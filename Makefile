@@ -11,7 +11,7 @@ cluster-down:
 
 deps:
 	helm repo add bitnami https://charts.bitnami.com/bitnami
-	helm repo add metabase https://helm.chartmuseum.metabase.com
+	helm repo add metabase https://helm.metabase.com
 	helm repo update
 	buf --version >/dev/null 2>&1 || go install github.com/bufbuild/buf/cmd/buf@latest
 
