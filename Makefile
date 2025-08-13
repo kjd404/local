@@ -19,7 +19,7 @@ install-core:
 	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml --create-namespace
 
 build-app:
-	buf generate ops/proto
+	cd ops/proto && buf generate
 	cd apps/ingest-service && ./gradlew bootJar && docker build -t ingest-service:latest .
 
 deploy:
