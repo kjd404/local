@@ -1,0 +1,9 @@
+# Encrypted secrets for local development
+postgresql:
+  auth:
+    username: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+    password: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+metabase:
+  admin:
+    password: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+    email: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]

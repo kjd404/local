@@ -1,0 +1,3 @@
+apps/ingest-service/build/
+apps/ingest-service/.gradle/
+**/gradle-wrapper.jar

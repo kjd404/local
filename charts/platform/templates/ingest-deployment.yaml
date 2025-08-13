@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingest-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: ingest-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingest-service
+  template:
+    metadata:
+      labels:
+        app: ingest-service
+    spec:
+      containers:
+        - name: ingest-service
+          image: {{ .Values.ingestService.image }}
+          env:
+            - name: DB_URL
+              value: {{ .Values.ingestService.env.DB_URL | quote }}
+            - name: DB_USER
+              value: {{ .Values.ingestService.env.DB_USER | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ingest-db
+                  key: password
+          ports:
+            - containerPort: 8080

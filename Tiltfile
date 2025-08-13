@@ -1,0 +1,14 @@
+load('ext://helm', 'helm')
+
+helm_release = helm(
+    name='platform',
+    chart='charts/platform',
+    namespace='personal',
+    values=['charts/platform/values.yaml', 'charts/platform/values.local.sops.yaml'],
+)
+
+docker_build('ingest-service', 'apps/ingest-service')
+
+k8s_yaml(helm_release)
+
+k8s_resource('ingest-service', port_forwards=8080)
