@@ -8,6 +8,3 @@ dependencies:
   - name: postgresql
     version: 12.1.0
     repository: https://charts.bitnami.com/bitnami
-  - name: metabase
-    version: 1.1.0
-    repository: https://metabase.github.io/helm-charts
