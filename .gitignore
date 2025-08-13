@@ -1,3 +1,4 @@
 apps/ingest-service/build/
 apps/ingest-service/.gradle/
 **/gradle-wrapper.jar
+apps/ingest-service/src/generated/
