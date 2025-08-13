@@ -3,13 +3,13 @@
 A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL, Metabase, and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres.
 
 ## Prerequisites
-- Docker
-- k3d
-- kubectl
-- Helm
-- Tilt
-- age + SOPS
-- Java 21 + Gradle
+- Docker (https://docs.docker.com/get-docker/)
+- k3d (e.g., `brew install k3d` or `curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash`)
+- kubectl (e.g., `brew install kubectl` or https://kubernetes.io/docs/tasks/tools/)
+- Helm (e.g., `brew install helm` or https://helm.sh/docs/intro/install/)
+- Tilt (e.g., `brew install tilt` or https://docs.tilt.dev/install.html)
+- age + SOPS (e.g., `brew install age sops` or https://github.com/mozilla/sops#installation)
+- Java 21 + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
 - buf (installed via `make deps`)
 
 ## Quickstart
