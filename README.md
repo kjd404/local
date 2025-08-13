@@ -1,6 +1,6 @@
 # Personal Platform
 
-A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL, Metabase, and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres.
+A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres. Metabase runs as a standalone Docker container.
 
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
@@ -15,11 +15,25 @@ A minimal personal data platform running on a local k3d Kubernetes cluster. It p
 ## Quickstart
 ```bash
 make cluster-up        # create k3d cluster
-make deps              # install Helm repos (Bitnami \& Metabase) and buf
-make install-core      # install Postgres + Metabase
+make deps              # install Helm repo (Bitnami) and buf
+make install-core      # install Postgres
 make build-app         # build ingest-service jar and container
 make deploy            # deploy ingest-service and CronJob
-The `deps` target adds the Bitnami and Metabase Helm repositories, using the official Metabase chart repo at https://metabase.github.io/helm-charts.
+```
+
+Start Metabase in a separate terminal:
+
+```bash
+kubectl port-forward svc/platform-postgresql 5432:5432 -n personal &
+docker run -d -p 8080:3000 --name metabase \
+  -e MB_DB_TYPE=postgres \
+  -e MB_DB_DBNAME=personal \
+  -e MB_DB_PORT=5432 \
+  -e MB_DB_USER=user \
+  -e MB_DB_PASS=changeme \
+  -e MB_DB_HOST=host.docker.internal \
+  metabase/metabase
+```
 
 Drop CSV files into `storage/incoming/`. The CronJob scans every 10 minutes and moves processed files to `storage/processed/`.
 
@@ -29,11 +43,7 @@ make tilt
 ```
 
 ### Metabase
-Metabase is exposed via the k3d load balancer. After `cluster-up` and `install-core`, run:
-```bash
-kubectl get svc -n personal
-```
-Look for the `metabase` `EXTERNAL-IP` (usually `0.0.0.0:8080`). Open `http://localhost:8080`.
+With the container running, open <http://localhost:8080> and complete the Metabase setup wizard.
 
 ## Operations
 - `kubectl logs job/<name> -n personal` to view CronJob runs.

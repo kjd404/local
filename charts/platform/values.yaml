@@ -8,17 +8,6 @@ postgresql:
     username: user
     database: personal
 
-metabase:
-  service:
-    type: LoadBalancer
-  database:
-    type: postgresql
-    host: postgresql.personal.svc.cluster.local
-    port: 5432
-    dbname: personal
-    user: user
-    password: changeme
-
 ingestService:
   image: ingest-service:latest
   env:
