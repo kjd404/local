@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.flywaydb:flyway-core'
     implementation 'com.opencsv:opencsv:5.9'
-    implementation 'com.google.protobuf:protobuf-java:3.24.3'
+    implementation 'com.google.protobuf:protobuf-java:4.27.2'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'commons-codec:commons-codec:1.15'
