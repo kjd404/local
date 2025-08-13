@@ -1,0 +1,13 @@
+apiVersion: v2
+name: platform
+description: Umbrella chart for personal platform
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: postgresql
+    version: 12.1.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: metabase
+    version: 1.1.0
+    repository: https://helm.chartmuseum.metabase.com

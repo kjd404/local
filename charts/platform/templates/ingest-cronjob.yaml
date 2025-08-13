@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ingest-cron
+  namespace: {{ .Values.namespace }}
+spec:
+  schedule: {{ .Values.ingestService.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ingest
+              image: {{ .Values.ingestService.image }}
+              args: ["--mode=scan", "--input=/incoming"]
+              env:
+                - name: DB_URL
+                  value: {{ .Values.ingestService.env.DB_URL | quote }}
+                - name: DB_USER
+                  value: {{ .Values.ingestService.env.DB_USER | quote }}
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ingest-db
+                      key: password
+              volumeMounts:
+                - name: incoming
+                  mountPath: /incoming
+                - name: processed
+                  mountPath: /processed
+          restartPolicy: OnFailure
+          volumes:
+            - name: incoming
+              hostPath:
+                path: {{ .Values.ingestService.hostPaths.incoming }}
+            - name: processed
+              hostPath:
+                path: {{ .Values.ingestService.hostPaths.processed }}

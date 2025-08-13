@@ -1,0 +1,24 @@
+syntax = "proto3";
+package finance.v1;
+
+message Transaction {
+  string account_id = 1;
+  string occurred_at = 2;
+  string posted_at = 3;
+  int64 amount_cents = 4;
+  string currency = 5;
+  string merchant = 6;
+  string category = 7;
+  string memo = 8;
+  string source = 9;
+  string hash = 10;
+  string raw_json = 11;
+}
+
+message IngestRequest {
+  repeated Transaction transactions = 1;
+}
+
+message IngestResponse {
+  int32 ingested_count = 1;
+}
