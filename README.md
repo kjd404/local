@@ -15,11 +15,11 @@ A minimal personal data platform running on a local k3d Kubernetes cluster. It p
 ## Quickstart
 ```bash
 make cluster-up        # create k3d cluster
-make deps              # install helm repos, buf, etc.
+make deps              # install Helm repos (Bitnami \& Metabase) and buf
 make install-core      # install Postgres + Metabase
 make build-app         # build ingest-service jar and container
 make deploy            # deploy ingest-service and CronJob
-```
+The `deps` target adds the Bitnami and Metabase Helm repositories, using the official Metabase chart repo at https://metabase.github.io/helm-charts.
 
 Drop CSV files into `storage/incoming/`. The CronJob scans every 10 minutes and moves processed files to `storage/processed/`.
 
