@@ -19,6 +19,7 @@ make deps              # install Helm repo (Bitnami) and buf
 make install-core      # install Postgres
 make build-app         # build ingest-service jar and container
 make deploy            # deploy ingest-service and CronJob
+make tilt              # start Tilt for live updates
 ```
 
 Start Metabase in a separate terminal:

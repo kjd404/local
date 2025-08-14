@@ -4,7 +4,7 @@ def helm(name, chart, namespace='', values=[]):
         cmd += ['--namespace', namespace]
     for v in values:
         cmd += ['-f', v]
-    return local(cmd, echo_off=False).stdout
+    return local(cmd, echo_off=False)
 
 helm_release = helm(
     name='platform',
