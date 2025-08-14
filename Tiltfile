@@ -1,4 +1,10 @@
-load('ext://helm', 'helm')
+def helm(name, chart, namespace='', values=[]):
+    cmd = ['helm', 'template', name, chart]
+    if namespace:
+        cmd += ['--namespace', namespace]
+    for v in values:
+        cmd += ['-f', v]
+    return local(cmd, echo_off=False).stdout
 
 helm_release = helm(
     name='platform',
