@@ -12,7 +12,7 @@ cluster-up:
 
 cluster-down:
 	k3d cluster delete $(CLUSTER_NAME) || true
-	k3d registry delete $(REGISTRY_NAME) || true
+	k3d registry list $(REGISTRY_NAME) >/dev/null 2>&1 && k3d registry delete $(REGISTRY_NAME) || true
 
 deps:
 	helm repo add bitnami https://charts.bitnami.com/bitnami
