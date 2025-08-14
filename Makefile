@@ -2,12 +2,17 @@ SHELL := /bin/bash
 
 CLUSTER_NAME ?= personal
 NAMESPACE ?= personal
+REGISTRY_NAME ?= $(CLUSTER_NAME)-registry
+REGISTRY_PORT ?= 5000
 
 cluster-up:
-	k3d cluster create $(CLUSTER_NAME) --servers 1 --agents 1 --port "8080:80@loadbalancer"
+	k3d cluster create $(CLUSTER_NAME) --servers 1 --agents 1 \
+	--port "8080:80@loadbalancer" \
+	--registry-create $(REGISTRY_NAME):0.0.0.0:$(REGISTRY_PORT)
 
 cluster-down:
 	k3d cluster delete $(CLUSTER_NAME) || true
+	k3d registry delete $(REGISTRY_NAME) || true
 
 deps:
 	helm repo add bitnami https://charts.bitnami.com/bitnami
