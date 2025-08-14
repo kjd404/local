@@ -1,3 +1,6 @@
+CLUSTER_NAME = read_env("CLUSTER_NAME", "personal")
+default_registry("k3d-%s-registry:5000" % CLUSTER_NAME)
+
 def helm(name, chart, namespace='', values=[]):
     cmd = ['helm', 'template', name, chart]
     if namespace:
