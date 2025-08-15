@@ -12,7 +12,6 @@ postgresql:
 ingestService:
   image: ingest-service:latest
   env:
-    DB_URL: jdbc:postgresql://postgresql.personal.svc.cluster.local:5432/personal
     DB_USER: user
     DB_PASSWORD: changeme
   schedule: "*/10 * * * *"
