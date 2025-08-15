@@ -13,22 +13,46 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CsvTransactionMapper {
+    private final AccountResolver accountResolver;
+
+    public CsvTransactionMapper() {
+        this(null);
+    }
+
+    public CsvTransactionMapper(AccountResolver accountResolver) {
+        this.accountResolver = accountResolver;
+    }
+
     public List<Transaction> parse(Reader reader) throws IOException, CsvException {
-        return parse(reader, Map.of());
+        return parse(null, reader, Map.of());
     }
 
     public List<Transaction> parse(Reader reader, Map<String, String> defaults) throws IOException, CsvException {
+        return parse(null, reader, defaults);
+    }
+
+    public List<Transaction> parse(Path file, Reader reader) throws IOException, CsvException {
+        return parse(file, reader, Map.of());
+    }
+
+    public List<Transaction> parse(Path file, Reader reader, Map<String, String> defaults) throws IOException, CsvException {
         try (CSVReader csv = new CSVReader(reader)) {
             List<String[]> rows = csv.readAll();
             String[] rawHeader = rows.remove(0);
             String[] header = Arrays.stream(rawHeader).map(this::normalize).toArray(String[]::new);
-            return rows.stream().map(r -> mapRow(header, r, defaults)).toList();
+            List<Transaction> txs = rows.stream().map(r -> mapRow(header, r, defaults)).toList();
+            if (accountResolver != null) {
+                long accountPk = accountResolver.resolve(txs, file);
+                txs.forEach(t -> t.accountPk = accountPk);
+            }
+            return txs;
         }
     }
 

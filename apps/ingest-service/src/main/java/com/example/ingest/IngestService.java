@@ -14,10 +14,13 @@ import java.util.List;
 @Service
 public class IngestService {
     private final DSLContext dsl;
-    private final CsvTransactionMapper mapper = new CsvTransactionMapper();
+    private final AccountResolver accountResolver;
+    private final CsvTransactionMapper mapper;
 
-    public IngestService(DSLContext dsl) {
+    public IngestService(DSLContext dsl, AccountResolver accountResolver) {
         this.dsl = dsl;
+        this.accountResolver = accountResolver;
+        this.mapper = new CsvTransactionMapper(accountResolver);
     }
 
     public void scanAndIngest(Path input) throws IOException, com.opencsv.exceptions.CsvException {
@@ -33,14 +36,14 @@ public class IngestService {
 
     public void ingestFile(Path file) throws IOException, com.opencsv.exceptions.CsvException {
         try (Reader reader = Files.newBufferedReader(file)) {
-            List<Transaction> txs = mapper.parse(reader);
+            List<Transaction> txs = mapper.parse(file, reader);
             txs.forEach(this::upsert);
         }
     }
 
     private void upsert(Transaction t) {
         dsl.insertInto(DSL.table("transactions"))
-                .set(DSL.field("account_id", Long.class), t.accountId)
+                .set(DSL.field("account_id"), t.accountPk)
                 .set(DSL.field("occurred_at"), toTs(t.occurredAt))
                 .set(DSL.field("posted_at"), toTs(t.postedAt))
                 .set(DSL.field("amount_cents"), t.amountCents)
