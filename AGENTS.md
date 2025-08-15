@@ -80,6 +80,14 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 4. Open Metabase (see README) and verify Questions return data.
 5. Iterate with `tilt up` for live dev.
 
+## Testing & PRs
+- Run unit tests with `cd apps/ingest-service && ./gradlew test`.
+- Build the app and image with `make build-app`.
+- **PR Checklist**
+  - [ ] Tests pass and `make build-app` succeeds.
+  - [ ] Migration plan noted for storage or schema changes.
+  - [ ] PR description lists the commands executed.
+
 ## Future Extensions
 - gRPC endpoints for cross-service messaging using the existing `buf` workspace.
 - Nightly `pg_dump` CronJob to a backup hostPath.
