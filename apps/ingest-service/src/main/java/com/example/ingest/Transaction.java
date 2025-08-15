@@ -4,6 +4,7 @@ import java.time.Instant;
 
 public class Transaction {
     public String accountId;
+    public Long accountPk;
     public Instant occurredAt;
     public Instant postedAt;
     public long amountCents;
