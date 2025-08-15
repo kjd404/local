@@ -13,12 +13,12 @@ class CsvTransactionMapperTest {
     @Test
     void parsesCsv() throws Exception {
         String csv = "account_id,occurred_at,posted_at,amount_cents,currency,merchant,category,memo,source\n" +
-                "acct1,2024-01-01T10:00:00Z,2024-01-02T10:00:00Z,-5678,USD,Store B,Refund,Returned item,capitalone\n";
+                "1,2024-01-01T10:00:00Z,2024-01-02T10:00:00Z,-5678,USD,Store B,Refund,Returned item,capitalone\n";
         CsvTransactionMapper mapper = new CsvTransactionMapper();
         List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of());
         assertEquals(1, txs.size());
         Transaction t = txs.get(0);
-        assertEquals("acct1", t.accountId);
+        assertEquals(1L, t.accountId);
         assertEquals(-5678, t.amountCents);
         assertEquals("Store B", t.merchant);
         assertNotNull(t.hash);
@@ -33,7 +33,7 @@ class CsvTransactionMapperTest {
         List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of("source", "capitalone"));
         assertEquals(2, txs.size());
         Transaction t0 = txs.get(0);
-        assertEquals("1828", t0.accountId);
+        assertEquals(1828L, t0.accountId);
         assertEquals(60000, t0.amountCents);
         assertEquals(Instant.parse("2025-04-30T00:00:00Z"), t0.occurredAt);
         Transaction t1 = txs.get(1);
@@ -47,10 +47,10 @@ class CsvTransactionMapperTest {
                 "04/30/2025,04/30/2025,Payment Thank You-Mobile,,Payment,18.62,\n" +
                 "04/27/2025,04/29/2025,JetBrains Americas INC,Shopping,Sale,-18.62,\n";
         CsvTransactionMapper mapper = new CsvTransactionMapper();
-        List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of("account_id", "acct2", "source", "otherbank"));
+        List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of("account_id", "2", "source", "otherbank"));
         assertEquals(2, txs.size());
         Transaction t0 = txs.get(0);
-        assertEquals("acct2", t0.accountId);
+        assertEquals(2L, t0.accountId);
         assertEquals(1862, t0.amountCents);
         assertEquals("Payment", t0.type);
         Transaction t1 = txs.get(1);

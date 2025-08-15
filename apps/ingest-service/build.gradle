@@ -26,6 +26,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // Needed for jOOQ's DDLDatabase integration
+    jooqGenerator 'org.jooq:jooq-meta-extensions:3.18.5'
 }
 
 sourceSets {
