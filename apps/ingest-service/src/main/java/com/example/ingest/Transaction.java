@@ -10,6 +10,7 @@ public class Transaction {
     public String currency;
     public String merchant;
     public String category;
+    public String type;
     public String memo;
     public String source;
     public String hash;
