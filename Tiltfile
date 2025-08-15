@@ -1,5 +1,9 @@
-CLUSTER_NAME = read_env("CLUSTER_NAME", "personal")
-REGISTRY_PORT = read_env("REGISTRY_PORT", "5001")
+import os
+
+# Read environment variables for cluster configuration, falling back to
+# sensible defaults when they are not set.
+CLUSTER_NAME = os.environ.get("CLUSTER_NAME", "personal")
+REGISTRY_PORT = os.environ.get("REGISTRY_PORT", "5001")
 default_registry("k3d-%s-registry:%s" % (CLUSTER_NAME, REGISTRY_PORT))
 
 def helm(name, chart, namespace='', values=[]):
