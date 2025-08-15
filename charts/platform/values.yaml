@@ -7,13 +7,14 @@ postgresql:
       enabled: false
   auth:
     username: user
+    password: &db_password changeme
     database: personal
 
 ingestService:
   image: ingest-service:latest
   env:
     DB_USER: user
-    DB_PASSWORD: changeme
+    DB_PASSWORD: *db_password
   schedule: "*/10 * * * *"
   hostPaths:
     incoming: /incoming
