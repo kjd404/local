@@ -24,6 +24,15 @@ make tilt              # start Tilt for live updates
 
 `make cluster-up` creates a local registry on port `5001` by default. Override with `REGISTRY_PORT` if needed.
 
+### Tilt UI
+
+Run `make tilt` and open [http://localhost:10350](http://localhost:10350). The UI shows:
+- **ingest-service** – Spring Boot app port-forwarded to `localhost:8080`.
+- **ingest-cron** – CronJob that scans `storage/incoming/` for files.
+- **platform-postgresql** – PostgreSQL database from the Bitnami chart.
+
+Tilt rebuilds the ingest-service image and applies Kubernetes updates as source files change.
+
 Start Metabase in a separate terminal:
 
 ```bash
@@ -38,12 +47,14 @@ docker run -d -p 8080:3000 --name metabase \
   metabase/metabase
 ```
 
-Drop CSV files into `storage/incoming/`. The CronJob scans every 10 minutes and moves processed files to `storage/processed/`.
+## Data Ingestion
 
-To iterate on the ingest-service:
-```bash
-make tilt
-```
+1. Copy CSV files into `storage/incoming/`.
+2. Wait for the `ingest-cron` CronJob (runs every 10 minutes) or trigger it manually:
+   ```bash
+   kubectl create job --from=cronjob/ingest-cron ingest-cron-manual -n personal
+   ```
+3. Processed files move to `storage/processed/` and records are loaded into Postgres.
 
 ### Metabase
 With the container running, open <http://localhost:8080> and complete the Metabase setup wizard.
