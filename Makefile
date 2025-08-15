@@ -3,7 +3,7 @@ SHELL := /bin/bash
 CLUSTER_NAME ?= personal
 NAMESPACE ?= personal
 REGISTRY_NAME ?= $(CLUSTER_NAME)-registry
-REGISTRY_PORT ?= 5000
+REGISTRY_PORT ?= 5001
 
 cluster-up:
 	@if k3d registry list $(REGISTRY_NAME) >/dev/null 2>&1; then \

@@ -1,5 +1,6 @@
 CLUSTER_NAME = read_env("CLUSTER_NAME", "personal")
-default_registry("k3d-%s-registry:5000" % CLUSTER_NAME)
+REGISTRY_PORT = read_env("REGISTRY_PORT", "5001")
+default_registry("k3d-%s-registry:%s" % (CLUSTER_NAME, REGISTRY_PORT))
 
 def helm(name, chart, namespace='', values=[]):
     cmd = ['helm', 'template', name, chart]
