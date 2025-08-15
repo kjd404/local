@@ -3,7 +3,7 @@ package com.example.ingest;
 import java.time.Instant;
 
 public class Transaction {
-    public String accountId;
+    public long accountId;
     public Instant occurredAt;
     public Instant postedAt;
     public long amountCents;
