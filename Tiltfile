@@ -1,6 +1,7 @@
 # Read environment variables for cluster configuration, falling back to
 # sensible defaults when they are not set.
 CLUSTER_NAME = os.getenv("CLUSTER_NAME", "personal")
+NAMESPACE = os.getenv("NAMESPACE", "personal")
 REGISTRY_PORT = os.getenv("REGISTRY_PORT", "5001")
 default_registry("k3d-%s-registry:%s" % (CLUSTER_NAME, REGISTRY_PORT))
 
@@ -15,7 +16,7 @@ def helm(name, chart, namespace='', values=[]):
 helm_release = helm(
     name='platform',
     chart='charts/platform',
-    namespace='personal',
+    namespace=NAMESPACE,
     values=['charts/platform/values.yaml', 'charts/platform/values.local.sops.yaml'],
 )
 

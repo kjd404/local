@@ -1,5 +1,5 @@
 namespace: personal
-namespaceCreate: false
+namespaceCreate: true
 
 postgresql:
   primary:
