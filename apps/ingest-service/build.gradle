@@ -38,7 +38,29 @@ sourceSets {
 jooq {
     version = '3.18.5'
     configurations {
-        main { generateSchemaSourceOnCompilation = false }
+        main {
+            generateSchemaSourceOnCompilation = false
+            jooqConfiguration.with {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                generator = new org.jooq.meta.jaxb.Generator()
+                generator.with {
+                    name = 'org.jooq.codegen.JavaGenerator'
+                    database = new org.jooq.meta.jaxb.Database()
+                    database.with {
+                        name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+                        properties = [
+                            new org.jooq.meta.jaxb.Property().withKey('scripts').withValue('../../ops/sql/*.sql'),
+                            new org.jooq.meta.jaxb.Property().withKey('sort').withValue('flyway')
+                        ]
+                    }
+                    target = new org.jooq.meta.jaxb.Target()
+                    target.with {
+                        packageName = 'com.example.jooq'
+                        directory = 'src/generated/java'
+                    }
+                }
+            }
+        }
     }
 }
 
