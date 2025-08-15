@@ -1,5 +1,9 @@
 # Encrypted secrets for local development
 postgresql:
   auth:
-    username: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
-    password: ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+    username: &db_user ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+    password: &db_password ENC[AES256_GCM,data:abcd,iv:abcd,tag:abcd,type:str]
+ingestService:
+  env:
+    DB_USER: *db_user
+    DB_PASSWORD: *db_password
