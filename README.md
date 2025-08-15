@@ -22,6 +22,8 @@ make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
 ```
 
+`make cluster-up` creates a local registry on port `5001` by default. Override with `REGISTRY_PORT` if needed.
+
 Start Metabase in a separate terminal:
 
 ```bash
