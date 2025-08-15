@@ -55,7 +55,7 @@ public class IngestService {
                 .set(DSL.field("source"), t.source)
                 .set(DSL.field("hash"), t.hash)
                 .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson))
-                .onConflict(DSL.field("account_id"), DSL.field("hash"))
+                .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
                 .doNothing()
                 .execute();
     }

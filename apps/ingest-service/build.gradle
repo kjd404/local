@@ -27,6 +27,9 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2:2.2.224'
+
+    // Needed for jOOQ's DDLDatabase integration
+    jooqGenerator 'org.jooq:jooq-meta-extensions:3.18.5'
 }
 
 sourceSets {

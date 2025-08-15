@@ -62,7 +62,8 @@ public class CsvTransactionMapper {
             m.put(header[i], row[i]);
         }
         Transaction t = new Transaction();
-        t.accountId = coalesce(m, "account_id", "card_no");
+        String acct = coalesce(m, "account_id", "card_no");
+        t.accountId = acct == null ? 0L : Long.parseLong(acct);
         t.occurredAt = parseDate(coalesce(m, "occurred_at", "transaction_date"));
         t.postedAt = parseDate(coalesce(m, "posted_at", "posted_date", "post_date"));
         t.amountCents = parseAmount(m);
@@ -73,7 +74,8 @@ public class CsvTransactionMapper {
         t.memo = m.get("memo");
         t.source = m.getOrDefault("source", defaults.get("source"));
         t.rawJson = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(m).toString();
-        t.hash = DigestUtils.sha256Hex(t.accountId + t.amountCents + t.occurredAt + t.merchant);
+        String occurred = t.occurredAt == null ? "" : t.occurredAt.toString();
+        t.hash = DigestUtils.sha256Hex(t.accountId + t.amountCents + occurred + t.merchant);
         return t;
     }
 
