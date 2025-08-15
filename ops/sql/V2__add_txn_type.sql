@@ -1,0 +1,1 @@
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS txn_type TEXT;

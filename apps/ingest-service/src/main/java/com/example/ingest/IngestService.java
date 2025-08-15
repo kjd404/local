@@ -47,6 +47,7 @@ public class IngestService {
                 .set(DSL.field("currency"), t.currency)
                 .set(DSL.field("merchant"), t.merchant)
                 .set(DSL.field("category"), t.category)
+                .set(DSL.field("txn_type"), t.type)
                 .set(DSL.field("memo"), t.memo)
                 .set(DSL.field("source"), t.source)
                 .set(DSL.field("hash"), t.hash)
