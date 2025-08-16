@@ -36,16 +36,10 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 Start Metabase in a separate terminal:
 
 ```bash
-kubectl port-forward svc/platform-postgresql 5432:5432 -n personal &
-docker run -d -p 8080:3000 --name metabase \
-  -e MB_DB_TYPE=postgres \
-  -e MB_DB_DBNAME=personal \
-  -e MB_DB_PORT=5432 \
-  -e MB_DB_USER=user \
-  -e MB_DB_PASS=changeme \
-  -e MB_DB_HOST=host.docker.internal \
-  metabase/metabase
+make metabase
 ```
+
+This forwards PostgreSQL to your host and launches a Metabase container preconfigured to use it.
 
 ## Data Ingestion
 
