@@ -18,7 +18,7 @@ class CsvTransactionMapperTest {
         List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of());
         assertEquals(1, txs.size());
         Transaction t = txs.get(0);
-        assertEquals(1L, t.accountId);
+        assertEquals("1", t.accountId);
         assertEquals(-5678, t.amountCents);
         assertEquals("Store B", t.merchant);
         assertNotNull(t.hash);
@@ -33,7 +33,7 @@ class CsvTransactionMapperTest {
         List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of("source", "capitalone"));
         assertEquals(2, txs.size());
         Transaction t0 = txs.get(0);
-        assertEquals(1828L, t0.accountId);
+        assertEquals("1828", t0.accountId);
         assertEquals(60000, t0.amountCents);
         assertEquals(Instant.parse("2025-04-30T00:00:00Z"), t0.occurredAt);
         Transaction t1 = txs.get(1);
@@ -50,7 +50,7 @@ class CsvTransactionMapperTest {
         List<Transaction> txs = mapper.parse(new StringReader(csv), Map.of("account_id", "2", "source", "otherbank"));
         assertEquals(2, txs.size());
         Transaction t0 = txs.get(0);
-        assertEquals(2L, t0.accountId);
+        assertEquals("2", t0.accountId);
         assertEquals(1862, t0.amountCents);
         assertEquals("Payment", t0.type);
         Transaction t1 = txs.get(1);

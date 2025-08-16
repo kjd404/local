@@ -49,6 +49,12 @@ docker run -d -p 8080:3000 --name metabase \
 
 ## Data Ingestion
 
+### CSV conventions
+
+- Include `account_id` and `card_no` columns when available.
+- When those columns are missing, name files as `<source>-<external_id>-*.csv`.
+- Defaults for `account_id` and `source` may also be provided via CLI flags or API parameters.
+
 1. Copy CSV files into `storage/incoming/`.
 2. Wait for the `ingest-cron` CronJob (runs every 10 minutes) or trigger it manually:
    ```bash

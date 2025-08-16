@@ -63,7 +63,7 @@ public class CsvTransactionMapper {
         }
         Transaction t = new Transaction();
         String acct = coalesce(m, "account_id", "card_no");
-        t.accountId = acct == null ? 0L : Long.parseLong(acct);
+        t.accountId = acct;
         t.occurredAt = parseDate(coalesce(m, "occurred_at", "transaction_date"));
         t.postedAt = parseDate(coalesce(m, "posted_at", "posted_date", "post_date"));
         t.amountCents = parseAmount(m);
