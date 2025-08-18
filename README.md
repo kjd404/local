@@ -1,6 +1,6 @@
 # Personal Platform
 
-A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres. Metabase runs as a standalone Docker container.
+A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres.
 
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
@@ -33,14 +33,6 @@ Run `make tilt` and open [http://localhost:10350](http://localhost:10350). The U
 
 Tilt rebuilds the ingest-service image and applies Kubernetes updates as source files change.
 
-Start Metabase in a separate terminal:
-
-```bash
-make metabase
-```
-
-This forwards PostgreSQL to your host and launches a Metabase container preconfigured to use it.
-
 ## Data Ingestion
 
 ### CSV conventions
@@ -56,8 +48,6 @@ This forwards PostgreSQL to your host and launches a Metabase container preconfi
    ```
 3. Processed files move to `storage/processed/` and records are loaded into Postgres.
 
-### Metabase
-With the container running, open <http://localhost:8080> and complete the Metabase setup wizard.
 
 ## Operations
 - `kubectl logs job/<name> -n personal` to view CronJob runs.

@@ -43,16 +43,4 @@ deploy:
 tilt:
 	tilt up
 
-metabase:
-	kubectl port-forward svc/platform-postgresql 5432:5432 -n $(NAMESPACE) &
-	docker rm -f metabase || true
-	docker run -d -p 8080:3000 --name metabase \
-		-e MB_DB_TYPE=postgres \
-		-e MB_DB_DBNAME=$(NAMESPACE) \
-		-e MB_DB_PORT=5432 \
-		-e MB_DB_USER=user \
-		-e MB_DB_PASS=changeme \
-		-e MB_DB_HOST=host.docker.internal \
-		metabase/metabase
-
-.PHONY: cluster-up cluster-down clean deps install-core build-app deploy tilt metabase
+.PHONY: cluster-up cluster-down clean deps install-core build-app deploy tilt

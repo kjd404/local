@@ -20,7 +20,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 
 **Checklist**
 - [ ] `make cluster-up/down` works.
-- [ ] Postgres & Metabase charts upgraded without breaking data.
+- [ ] Postgres charts upgraded without breaking data.
 - [ ] hostPath mounts documented and not absolute in templates.
 
 ### 3) App Engineer (Ingest)
@@ -36,23 +36,14 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 ### 4) Data Engineer
 - Owns schema evolution in `ops/sql/` and JOOQ regeneration.
 - Defines canonical columns and indexes.
-- Coordinates with Metabase semantics.
 
 **Checklist**
 - [ ] Flyway migrations are backward-compatible or include migration notes.
 - [ ] JOOQ codegen updated after schema changes.
 - [ ] Constraints/indexes keep ingest idempotent and performant.
 
-### 5) BI/Analytics
-- Configures Metabase connection and creates starter Questions/Dashboards.
-- Documents how to export/import dashboard JSON (future: API seeding).
 
-**Checklist**
-- [ ] “Monthly spend”, “Top merchants”, “Category breakdown” saved.
-- [ ] Connection uses non-superuser DB role (principle of least privilege).
-- [ ] Readme includes where to find Metabase URL in k3d.
-
-### 6) Operator (Runtime)
+### 5) Operator (Runtime)
 - Monitors CronJob logs, verifies successful runs, and triages failures.
 - Adds a `failed/` folder workflow for problematic files.
 
@@ -64,7 +55,6 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 ## Handoffs
 - **Planner → Infra:** cluster/charts tasks created with acceptance tests.
 - **Infra → App/Data:** DB connection info via SOPS values; service DNS documented.
-- **App/Data → BI:** table names, semantics, and sample queries shared.
 - **Operator feedback → Planner:** Reliability issues become tasks.
 
 ## Guardrails
@@ -77,8 +67,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 1. `make cluster-up && make deps && make install-core`
 2. `make build-app && make deploy`
 3. Drop a sample CSV into `storage/incoming/`, or run the app locally pointing at cluster DB.
-4. Open Metabase (see README) and verify Questions return data.
-5. Iterate with `tilt up` for live dev.
+4. Iterate with `tilt up` for live dev.
 
 ## Testing & PRs
 - Run unit tests with `cd apps/ingest-service && ./gradlew test`.
