@@ -9,7 +9,7 @@ A minimal personal data platform running on a local k3d Kubernetes cluster. It p
 - Helm (e.g., `brew install helm` or https://helm.sh/docs/intro/install/)
 - Tilt (e.g., `brew install tilt` or https://docs.tilt.dev/install.html)
 - age + SOPS (e.g., `brew install age sops` or https://github.com/mozilla/sops#installation)
-- Java 21 + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
+- Java 21 (JDK) + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
 - buf (installed via `make deps`)
 
 ## Quickstart
