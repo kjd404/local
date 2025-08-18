@@ -55,10 +55,20 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 ## Secrets
 Secrets live in SOPS-encrypted files under `charts/platform/*.sops.yaml`.
-To edit:
-```bash
-sops charts/platform/values.local.sops.yaml
-```
+### Secrets with SOPS
+
+- Generate an age key:
+  ```bash
+  age-keygen -o ~/.config/sops/age/keys.txt
+  ```
+- Store the key at `~/.config/sops/age/keys.txt`.
+- Edit encrypted files:
+  ```bash
+  sops charts/platform/values.local.sops.yaml
+  ```
+- Rotate or add recipients by updating `.sops.yaml`.
+
+`.sops.yaml` contains placeholder values—replace the example key with your own age public key. Add decrypted files (like `charts/platform/values.local.yaml`) to `.gitignore` to keep plaintext secrets out of version control.
 
 ## Cleanup
 ```bash
