@@ -1,20 +1,24 @@
 namespace: personal
 namespaceCreate: true
 
+secrets:
+  db:
+    username: &db_user ""
+    password: &db_password ""
+
 postgresql:
   primary:
     persistence:
       enabled: false
   auth:
-    username: user
-    password: &db_password changeme
+    username: *db_user
+    password: *db_password
     database: personal
 
 ingestService:
   image: ingest-service:latest
   env:
-    DB_USER: user
-    DB_PASSWORD: *db_password
+    DB_USER: *db_user
   schedule: "*/10 * * * *"
   hostPaths:
     incoming: /incoming
