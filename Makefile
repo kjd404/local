@@ -36,6 +36,7 @@ install-core:
 build-app:
 	cd ops/proto && buf generate
 	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t ingest-service:latest .
+	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t teller-poller:latest .
 
 deploy:
 	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml

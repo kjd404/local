@@ -1,0 +1,78 @@
+plugins {
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+    id 'nu.studer.jooq' version '9.0'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'com.google.protobuf:protobuf-java:4.27.2'
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.h2database:h2:2.2.224'
+
+    // Needed for jOOQ's DDLDatabase integration
+    jooqGenerator 'org.jooq:jooq-meta-extensions:3.18.5'
+}
+
+sourceSets {
+    main {
+        java { srcDir 'src/generated/java' }
+        resources { srcDir '../../ops/sql' }
+    }
+}
+
+jooq {
+    version = '3.18.5'
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = false
+            jooqConfiguration.with {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                generator = new org.jooq.meta.jaxb.Generator()
+                generator.with {
+                    name = 'org.jooq.codegen.JavaGenerator'
+                    database = new org.jooq.meta.jaxb.Database()
+                    database.with {
+                        name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+                        properties = [
+                            new org.jooq.meta.jaxb.Property().withKey('scripts').withValue('../../ops/sql/*.sql'),
+                            new org.jooq.meta.jaxb.Property().withKey('sort').withValue('flyway')
+                        ]
+                    }
+                    target = new org.jooq.meta.jaxb.Target()
+                    target.with {
+                        packageName = 'com.example.jooq'
+                        directory = 'src/generated/java'
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}

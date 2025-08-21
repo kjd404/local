@@ -2,3 +2,5 @@ version: v1
 plugins:
   - plugin: buf.build/protocolbuffers/java:v27.2
     out: ../../apps/ingest-service/src/generated/java
+  - plugin: buf.build/protocolbuffers/java:v27.2
+    out: ../../apps/teller-poller/src/generated/java
