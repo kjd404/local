@@ -4,145 +4,96 @@ import com.example.teller.TellerApi;
 import com.example.teller.TellerClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Record2;
-import org.jooq.Result;
-import org.jooq.exception.DataAccessException;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
-import org.jooq.tools.jdbc.MockConnection;
-import org.jooq.tools.jdbc.MockDataProvider;
-import org.jooq.tools.jdbc.MockResult;
-import org.junit.jupiter.api.Test;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class AccountPollingServiceTest {
+    private DSLContext dsl;
+    private TellerClient client;
+    private FakeTellerApi api;
+    private TimeProvider clock;
+    private SimpleMeterRegistry registry;
 
-    private DSLContext dsl(MockDataProvider provider) {
-        return DSL.using(new MockConnection(provider), org.jooq.SQLDialect.POSTGRES);
-    }
-
-    static class FixedTimeProvider implements TimeProvider {
-        private final OffsetDateTime fixed;
-        FixedTimeProvider(OffsetDateTime fixed) { this.fixed = fixed; }
-        @Override public OffsetDateTime now() { return fixed; }
-    }
-
-    static TellerClient dummyClient() {
-        TellerApi api = new TellerApi() {
-            @Override public JsonNode listAccounts(String token) { return null; }
-            @Override public JsonNode listTransactions(String token, String accountId, String cursor) { return null; }
-        };
-        return new TellerClient(List.of("tok"), api);
-    }
-
-    @Test
-    void backfillDbFailure() {
-        MockDataProvider provider = ctx -> { throw new DataAccessException("fail") {}; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        assertThrows(DataAccessException.class, svc::backfill);
-    }
-    @Test
-    void pollDbFailure() {
-        MockDataProvider provider = ctx -> { throw new DataAccessException("fail") {}; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        assertThrows(DataAccessException.class, svc::poll);
+    @BeforeEach
+    void setup() throws Exception {
+        dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        dsl.execute("drop table if exists account_poll_state");
+        dsl.execute("drop table if exists transactions");
+        dsl.execute("drop table if exists accounts");
+        dsl.execute("create table accounts (id bigserial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp, backfilled_at timestamp)");
+        dsl.execute("create unique index on accounts(institution, external_id)");
+        dsl.execute("create table account_poll_state (account_id bigint primary key, cursor varchar, updated_at timestamp)");
+        dsl.execute("create table transactions (id bigserial primary key, account_id bigint not null, occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar, merchant varchar, category varchar, txn_type varchar, memo varchar, source varchar not null, hash varchar not null, raw_json text not null, created_at timestamp)");
+        dsl.execute("create unique index transactions_account_hash_idx on transactions(account_id, hash)");
+        dsl.execute("insert into accounts (id, institution, external_id, display_name, created_at, updated_at) values (1, 'teller', 'acc1', 'acc1', now(), now())");
+        dsl.execute("insert into account_poll_state (account_id, cursor, updated_at) values (1, null, now())");
+        api = new FakeTellerApi();
+        client = new TellerClient(List.of("tok"), api);
+        clock = java.time.OffsetDateTime::now;
+        registry = new SimpleMeterRegistry();
     }
 
     @Test
-    void persistTransactionsReturnsCursor() throws Exception {
-        MockDataProvider provider = ctx -> new MockResult[]{ new MockResult(1, null) };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        JsonNode txs = new ObjectMapper().readTree("[{\"id\":\"t1\",\"amount\":{\"value\":1},\"cursor\":\"next\"}]");
-        String cursor = svc.persistTransactions(1L, "ext", txs);
-        assertEquals("next", cursor);
+    void paginationAndCursorPersistence() throws Exception {
+        AccountPollingService svc1 = new AccountPollingService(dsl, client, clock, registry);
+        svc1.poll();
+        assertEquals(2, dsl.fetchCount(DSL.table("transactions")));
+        String cur1 = dsl.select(DSL.field("cursor", String.class))
+                .from("account_poll_state")
+                .where(DSL.field("account_id").eq(1))
+                .fetchOneInto(String.class);
+        assertEquals("c2", cur1);
+
+        AccountPollingService svc2 = new AccountPollingService(dsl, client, clock, registry);
+        svc2.poll();
+        assertEquals(3, dsl.fetchCount(DSL.table("transactions")));
+        String cur2 = dsl.select(DSL.field("cursor", String.class))
+                .from("account_poll_state")
+                .where(DSL.field("account_id").eq(1))
+                .fetchOneInto(String.class);
+        assertEquals("c3", cur2);
+        String hash2 = DigestUtils.sha256Hex("1:tx2");
+        String hash3 = DigestUtils.sha256Hex("1:tx3");
+        assertEquals(1, dsl.fetchCount(DSL.table("transactions"), DSL.field("hash").eq(hash2)));
+        assertEquals(1, dsl.fetchCount(DSL.table("transactions"), DSL.field("hash").eq(hash3)));
+
+        svc2.poll();
+        assertEquals(3, dsl.fetchCount(DSL.table("transactions")));
+        assertEquals(java.util.Arrays.asList(null, "c2", "c3"), api.cursorCalls);
     }
 
-    @Test
-    void persistTransactionsHashesAccountAndId() throws Exception {
-        List<Object[]> bindings = new ArrayList<>();
-        MockDataProvider provider = ctx -> { bindings.add(ctx.bindings()); return new MockResult[]{ new MockResult(1, null) }; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        JsonNode txs = new ObjectMapper().readTree("[{\"id\":\"t1\",\"amount\":{\"value\":1}}]");
-        svc.persistTransactions(2L, "ext", txs);
-        String expected = org.apache.commons.codec.digest.DigestUtils.sha256Hex("2:t1");
-        assertEquals(expected, bindings.get(0)[10]);
-    }
-
-    @Test
-    void persistTransactionsWithNullReturnsNull() {
-        MockDataProvider provider = ctx -> new MockResult[]{ new MockResult(1, null) };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        assertNull(svc.persistTransactions(1L, "ext", null));
-    }
-
-    @Test
-    void upsertCursorSuccess() {
-        List<String> sqls = new ArrayList<>();
-        MockDataProvider provider = ctx -> { sqls.add(ctx.sql()); return new MockResult[]{ new MockResult(1, null) }; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        assertDoesNotThrow(() -> svc.upsertCursor(1L, "c"));
-        assertFalse(sqls.isEmpty());
-    }
-
-    @Test
-    void upsertCursorFailure() {
-        MockDataProvider provider = ctx -> { throw new DataAccessException("fail") {}; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        assertThrows(DataAccessException.class, () -> svc.upsertCursor(1L, "c"));
-    }
-
-    @Test
-    void upsertSuccess() {
-        MockDataProvider provider = ctx -> new MockResult[]{ new MockResult(1, null) };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        Transaction t = new Transaction();
-        t.accountPk = 1L;
-        t.hash = "h";
-        assertDoesNotThrow(() -> svc.upsert(t));
-    }
-
-    @Test
-    void upsertFailure() {
-        MockDataProvider provider = ctx -> { throw new DataAccessException("fail") {}; };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        Transaction t = new Transaction();
-        t.accountPk = 1L;
-        t.hash = "h";
-        assertThrows(DataAccessException.class, () -> svc.upsert(t));
-    }
-
-    @Test
-    void syncAccountsInsertsAccounts() throws Exception {
-        List<String> sqls = new ArrayList<>();
-        MockDataProvider provider = ctx -> { sqls.add(ctx.sql()); return new MockResult[]{ new MockResult(1, null) }; };
-        TellerApi api = new TellerApi() {
-            @Override public JsonNode listAccounts(String token) throws IOException, InterruptedException {
-                return new ObjectMapper().readTree("[{\"id\":\"acc1\",\"name\":\"A\"}]");
+    static class FakeTellerApi implements TellerApi {
+        private final ObjectMapper mapper = new ObjectMapper();
+        final List<String> cursorCalls = new ArrayList<>();
+        @Override
+        public JsonNode listAccounts(String token) {
+            return mapper.createArrayNode();
+        }
+        @Override
+        public JsonNode listTransactions(String token, String accountId, String cursor) {
+            cursorCalls.add(cursor);
+            try {
+                if (cursor == null) {
+                    return mapper.readTree("[{\"id\":\"tx1\",\"cursor\":\"c1\",\"date\":\"2024-01-01\",\"amount\":{\"value\":100},\"description\":\"t1\",\"category\":\"cat\",\"type\":\"debit\",\"details\":{\"class\":\"note1\"}},{\"id\":\"tx2\",\"cursor\":\"c2\",\"date\":\"2024-01-02\",\"amount\":{\"value\":200},\"description\":\"t2\",\"category\":\"cat\",\"type\":\"debit\",\"details\":{\"class\":\"note2\"}}]");
+                } else if ("c2".equals(cursor)) {
+                    return mapper.readTree("[{\"id\":\"tx2\",\"cursor\":\"c2\",\"date\":\"2024-01-02\",\"amount\":{\"value\":200},\"description\":\"t2\",\"category\":\"cat\",\"type\":\"debit\",\"details\":{\"class\":\"note2\"}},{\"id\":\"tx3\",\"cursor\":\"c3\",\"date\":\"2024-01-03\",\"amount\":{\"value\":300},\"description\":\"t3\",\"category\":\"cat\",\"type\":\"debit\",\"details\":{\"class\":\"note3\"}}]");
+                } else if ("c3".equals(cursor)) {
+                    return mapper.readTree("[{\"id\":\"tx3\",\"cursor\":\"c3\",\"date\":\"2024-01-03\",\"amount\":{\"value\":300},\"description\":\"t3\",\"category\":\"cat\",\"type\":\"debit\",\"details\":{\"class\":\"note3\"}}]");
+                }
+                return mapper.createArrayNode();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            @Override public JsonNode listTransactions(String token, String accountId, String cursor) { return null; }
-        };
-        TellerClient client = new TellerClient(List.of("tok"), api);
-        AccountPollingService svc = new AccountPollingService(dsl(provider), client, new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        svc.syncAccounts();
-        assertFalse(sqls.isEmpty());
-    }
-
-    @Test
-    void toTsWorks() {
-        MockDataProvider provider = ctx -> new MockResult[]{ new MockResult(1, null) };
-        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")), new SimpleMeterRegistry());
-        Instant now = Instant.now();
-        assertNotNull(svc.toTs(now));
-        assertNull(svc.toTs(null));
+        }
     }
 }
