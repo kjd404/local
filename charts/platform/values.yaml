@@ -5,6 +5,10 @@ secrets:
   db:
     username: &db_user ""
     password: &db_password ""
+  tellerPoller:
+    tokens: ""
+    cert: ""
+    key: ""
 
 postgresql:
   primary:
@@ -23,3 +27,9 @@ ingestService:
   hostPaths:
     incoming: /incoming
     processed: /processed
+
+tellerPoller:
+  image: teller-poller:latest
+  env:
+    DB_USER: *db_user
+  pollingInterval: "30s"
