@@ -151,15 +151,18 @@ public class AccountPollingService {
     }
 
     void upsertCursor(long accountId, String cursor) {
-        dsl.insertInto(DSL.table("account_poll_state"))
-                .set(DSL.field("account_id"), accountId)
+        int updated = dsl.update(DSL.table("account_poll_state"))
                 .set(DSL.field("cursor"), cursor)
                 .set(DSL.field("updated_at"), clock.now())
-                .onConflict(DSL.field("account_id"))
-                .doUpdate()
-                .set(DSL.field("cursor"), cursor)
-                .set(DSL.field("updated_at"), clock.now())
+                .where(DSL.field("account_id").eq(accountId))
                 .execute();
+        if (updated == 0) {
+            dsl.insertInto(DSL.table("account_poll_state"))
+                    .set(DSL.field("account_id"), accountId)
+                    .set(DSL.field("cursor"), cursor)
+                    .set(DSL.field("updated_at"), clock.now())
+                    .execute();
+        }
     }
 
     String persistTransactions(long accountId, String externalId, JsonNode txs) {
@@ -191,22 +194,24 @@ public class AccountPollingService {
     }
 
     void upsert(Transaction t) {
-        dsl.insertInto(DSL.table("transactions"))
-                .set(DSL.field("account_id"), t.accountPk)
-                .set(DSL.field("occurred_at"), toTs(t.occurredAt))
-                .set(DSL.field("posted_at"), toTs(t.postedAt))
-                .set(DSL.field("amount_cents"), t.amountCents)
-                .set(DSL.field("currency"), t.currency)
-                .set(DSL.field("merchant"), t.merchant)
-                .set(DSL.field("category"), t.category)
-                .set(DSL.field("txn_type"), t.type)
-                .set(DSL.field("memo"), t.memo)
-                .set(DSL.field("source"), t.source)
-                .set(DSL.field("hash"), t.hash)
-                .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson))
-                .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
-                .doNothing()
-                .execute();
+        try {
+            dsl.insertInto(DSL.table("transactions"))
+                    .set(DSL.field("account_id"), t.accountPk)
+                    .set(DSL.field("occurred_at"), toTs(t.occurredAt))
+                    .set(DSL.field("posted_at"), toTs(t.postedAt))
+                    .set(DSL.field("amount_cents"), t.amountCents)
+                    .set(DSL.field("currency"), t.currency)
+                    .set(DSL.field("merchant", String.class), t.merchant)
+                    .set(DSL.field("category", String.class), t.category)
+                    .set(DSL.field("txn_type", String.class), t.type)
+                    .set(DSL.field("memo", String.class), t.memo)
+                    .set(DSL.field("source"), t.source)
+                    .set(DSL.field("hash"), t.hash)
+                    .set(DSL.field("raw_json", String.class), t.rawJson)
+                    .execute();
+        } catch (org.jooq.exception.DataAccessException ignored) {
+            // likely duplicate
+        }
     }
 
     Timestamp toTs(Instant i) {
