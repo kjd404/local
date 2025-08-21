@@ -1,4 +1,6 @@
 apps/ingest-service/build/
 apps/ingest-service/.gradle/
+apps/teller-poller/build/
+apps/teller-poller/.gradle/
 **/gradle-wrapper.jar
 charts/platform/values.local.yaml

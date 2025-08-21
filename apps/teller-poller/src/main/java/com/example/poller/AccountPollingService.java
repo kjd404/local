@@ -2,10 +2,14 @@ package com.example.poller;
 
 import com.example.teller.TellerClient;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +18,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Polls Teller accounts for transactions and maintains cursors.
@@ -23,11 +28,20 @@ public class AccountPollingService {
     private final DSLContext dsl;
     private final TellerClient client;
     private final TimeProvider clock;
+    private final Counter pollSuccess;
+    private final Counter pollFailure;
+    private final AtomicLong lastSuccess;
+    private static final Logger log = LoggerFactory.getLogger(AccountPollingService.class);
+    private static final int MAX_RETRIES = 3;
+    private static final long INITIAL_BACKOFF_MS = 1000L;
 
-    public AccountPollingService(DSLContext dsl, TellerClient client, TimeProvider clock) {
+    public AccountPollingService(DSLContext dsl, TellerClient client, TimeProvider clock, MeterRegistry meterRegistry) {
         this.dsl = dsl;
         this.client = client;
         this.clock = clock;
+        this.pollSuccess = meterRegistry.counter("account.poll.success");
+        this.pollFailure = meterRegistry.counter("account.poll.failure");
+        this.lastSuccess = meterRegistry.gauge("account.poll.last_success.epoch_ms", new AtomicLong(0L));
     }
 
     @PostConstruct
@@ -41,15 +55,26 @@ public class AccountPollingService {
             long accountId = acc.get(0, Long.class);
             String externalId = acc.get(1, String.class);
             String cursor = null;
-            do {
-                JsonNode txs = client.listTransactions(client.getTokens().get(0), externalId, cursor);
-                cursor = persistTransactions(accountId, externalId, txs);
-            } while (cursor != null && !cursor.isBlank());
-            dsl.update(DSL.table("accounts"))
-                .set(DSL.field("backfilled_at"), clock.now())
-                .where(DSL.field("id").eq(accountId))
-                .execute();
-            upsertCursor(accountId, cursor);
+            boolean completed = true;
+            while (true) {
+                try {
+                    cursor = pollWithRetry(accountId, externalId, cursor);
+                    pollSuccess.increment();
+                    lastSuccess.set(clock.now().toInstant().toEpochMilli());
+                    if (cursor == null || cursor.isBlank()) break;
+                } catch (Exception e) {
+                    pollFailure.increment();
+                    completed = false;
+                    break;
+                }
+            }
+            if (completed) {
+                dsl.update(DSL.table("accounts"))
+                    .set(DSL.field("backfilled_at"), clock.now())
+                    .where(DSL.field("id").eq(accountId))
+                    .execute();
+                upsertCursor(accountId, cursor);
+            }
         }
     }
 
@@ -68,9 +93,39 @@ public class AccountPollingService {
                     .fetchOne();
             if (acc == null) continue;
             String externalId = acc.get(0, String.class);
-            JsonNode txs = client.listTransactions(client.getTokens().get(0), externalId, cursor);
-            String next = persistTransactions(accountId, externalId, txs);
-            upsertCursor(accountId, next);
+            try {
+                String next = pollWithRetry(accountId, externalId, cursor);
+                upsertCursor(accountId, next);
+                pollSuccess.increment();
+                lastSuccess.set(clock.now().toInstant().toEpochMilli());
+            } catch (Exception e) {
+                pollFailure.increment();
+            }
+        }
+    }
+
+    String pollWithRetry(long accountId, String externalId, String cursor) throws IOException, InterruptedException {
+        int attempt = 0;
+        long delay = INITIAL_BACKOFF_MS;
+        while (true) {
+            try {
+                JsonNode txs = client.listTransactions(client.getTokens().get(0), externalId, cursor);
+                String next = persistTransactions(accountId, externalId, txs);
+                log.info("account_poll_success accountId={} attempt={}", accountId, attempt + 1);
+                return next;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
+            } catch (Exception e) {
+                attempt++;
+                log.warn("account_poll_retry accountId={} attempt={}", accountId, attempt, e);
+                if (attempt >= MAX_RETRIES) {
+                    log.error("account_poll_failed accountId={} attempts={}", accountId, attempt, e);
+                    throw e;
+                }
+                Thread.sleep(delay);
+                delay *= 2;
+            }
         }
     }
 
