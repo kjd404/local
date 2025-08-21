@@ -2,6 +2,7 @@ package com.example.poller;
 
 import com.example.teller.TellerClient;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
@@ -31,6 +32,7 @@ public class AccountPollingService {
 
     @PostConstruct
     public void backfill() throws IOException, InterruptedException {
+        syncAccounts();
         var accounts = dsl.select(DSL.field("id", Long.class), DSL.field("external_id", String.class))
                 .from("accounts")
                 .where(DSL.field("backfilled_at").isNull())
@@ -53,6 +55,7 @@ public class AccountPollingService {
 
     @Scheduled(cron = "0 0 * * * *")
     public void poll() throws IOException, InterruptedException {
+        syncAccounts();
         var states = dsl.select(DSL.field("account_id", Long.class), DSL.field("cursor", String.class))
                 .from("account_poll_state")
                 .fetch();
@@ -68,6 +71,27 @@ public class AccountPollingService {
             JsonNode txs = client.listTransactions(client.getTokens().get(0), externalId, cursor);
             String next = persistTransactions(accountId, externalId, txs);
             upsertCursor(accountId, next);
+        }
+    }
+
+    void syncAccounts() throws IOException, InterruptedException {
+        for (String token : client.getTokens()) {
+            JsonNode accounts = client.listAccounts(token);
+            if (accounts == null || !accounts.isArray()) continue;
+            for (JsonNode node : accounts) {
+                String externalId = node.path("id").asText();
+                String name = node.path("name").asText(externalId);
+                var now = clock.now();
+                dsl.insertInto(DSL.table("accounts"))
+                        .set(DSL.field("institution"), "teller")
+                        .set(DSL.field("external_id"), externalId)
+                        .set(DSL.field("display_name"), name)
+                        .set(DSL.field("created_at"), now)
+                        .set(DSL.field("updated_at"), now)
+                        .onConflict(DSL.field("institution"), DSL.field("external_id"))
+                        .doNothing()
+                        .execute();
+            }
         }
     }
 
@@ -91,7 +115,8 @@ public class AccountPollingService {
             t.accountPk = accountId;
             t.accountId = externalId;
             t.source = "teller";
-            t.hash = node.path("id").asText();
+            String tellerId = node.path("id").asText();
+            t.hash = DigestUtils.sha256Hex(accountId + ":" + tellerId);
             t.amountCents = node.path("amount").path("value").asLong();
             t.currency = node.path("amount").path("currency").asText("USD");
             String date = node.path("date").asText(null);
