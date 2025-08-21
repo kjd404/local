@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teller-poller
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: teller-poller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teller-poller
+  template:
+    metadata:
+      labels:
+        app: teller-poller
+    spec:
+      containers:
+        - name: teller-poller
+          image: {{ .Values.tellerPoller.image }}
+          env:
+            - name: DB_URL
+              value: {{ printf "jdbc:postgresql://%s-postgresql.%s.svc.cluster.local:5432/%s" .Release.Name .Values.namespace .Values.postgresql.auth.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.tellerPoller.env.DB_USER | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ingest-db
+                  key: password
+            - name: TELLER_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: teller-poller
+                  key: tokens
+            - name: TELLER_CERT
+              valueFrom:
+                secretKeyRef:
+                  name: teller-poller
+                  key: cert
+            - name: TELLER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: teller-poller
+                  key: key
+            - name: POLL_INTERVAL
+              value: {{ .Values.tellerPoller.pollingInterval | quote }}
+          ports:
+            - containerPort: 8080

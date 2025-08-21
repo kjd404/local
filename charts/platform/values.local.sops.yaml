@@ -3,6 +3,10 @@ secrets:
     db:
         username: ENC[AES256_GCM,data:XJHGJ0p7K4Om,iv:b/R5rGiwrTuJYmmLHgpoMufiiQharf5t8MEbi74wvpc=,tag:rx+K5SbI4Z5LQCJa3m/Vwg==,type:str]
         password: ENC[AES256_GCM,data:vh2yreJRXkTf,iv:grrdxNr+tC7qHqHnaYS6G4iwItVVVfI38Mhd22NMSBw=,tag:mIwZ1p4Gff6SKtbdGKH67g==,type:str]
+    tellerPoller:
+        tokens: ENC[AES256_GCM,data:placeholder,iv:AAAAAAAAAAAAAAAAAAAAAA==,tag:AAAAAAAAAAAAAAAAAAAAAA==,type:str]
+        cert: ENC[AES256_GCM,data:placeholder,iv:AAAAAAAAAAAAAAAAAAAAAA==,tag:AAAAAAAAAAAAAAAAAAAAAA==,type:str]
+        key: ENC[AES256_GCM,data:placeholder,iv:AAAAAAAAAAAAAAAAAAAAAA==,tag:AAAAAAAAAAAAAAAAAAAAAA==,type:str]
 postgresql:
     auth:
         username: ENC[AES256_GCM,data:AQp4nI/n0bu5,iv:9uC50BL59Uob7/CQnk2LfVQhzGQols7RtN5UZBO2xcs=,tag:PifXHDxbMYjG92+tw1rRhA==,type:str]
@@ -10,6 +14,9 @@ postgresql:
 ingestService:
     env:
         DB_USER: ENC[AES256_GCM,data:Nu+jypZsDRuU,iv:Xjaa9J2b1mCDPi0m2Nv85t+TGPg0CyqnYM1AqFHS7kU=,tag:0IhqU6h0gV2uGtCZMVK9gg==,type:str]
+tellerPoller:
+    env:
+        DB_USER: ENC[AES256_GCM,data:placeholder,iv:AAAAAAAAAAAAAAAAAAAAAA==,tag:AAAAAAAAAAAAAAAAAAAAAA==,type:str]
 sops:
     kms: []
     gcp_kms: []
