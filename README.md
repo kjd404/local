@@ -1,6 +1,6 @@
 # Personal Platform
 
-A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and a Spring Boot ingest-service that normalizes CSV bank statements into Postgres.
+A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and Spring Boot services like ingest-service and teller-poller to normalize CSV bank statements into Postgres.
 
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
@@ -17,7 +17,7 @@ A minimal personal data platform running on a local k3d Kubernetes cluster. It p
 make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
 make install-core      # install Postgres
-make build-app         # build ingest-service jar and container
+make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
 ```

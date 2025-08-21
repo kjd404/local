@@ -21,6 +21,7 @@ helm_release = helm(
 )
 
 docker_build('ingest-service', 'apps/ingest-service')
+docker_build('teller-poller', 'apps/teller-poller')
 
 k8s_yaml(helm_release)
 
