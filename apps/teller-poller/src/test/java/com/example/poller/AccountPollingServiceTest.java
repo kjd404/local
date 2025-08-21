@@ -67,6 +67,17 @@ class AccountPollingServiceTest {
     }
 
     @Test
+    void persistTransactionsHashesAccountAndId() throws Exception {
+        List<Object[]> bindings = new ArrayList<>();
+        MockDataProvider provider = ctx -> { bindings.add(ctx.bindings()); return new MockResult[]{ new MockResult(1, null) }; };
+        AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")));
+        JsonNode txs = new ObjectMapper().readTree("[{\"id\":\"t1\",\"amount\":{\"value\":1}}]");
+        svc.persistTransactions(2L, "ext", txs);
+        String expected = org.apache.commons.codec.digest.DigestUtils.sha256Hex("2:t1");
+        assertEquals(expected, bindings.get(0)[10]);
+    }
+
+    @Test
     void persistTransactionsWithNullReturnsNull() {
         MockDataProvider provider = ctx -> new MockResult[]{ new MockResult(1, null) };
         AccountPollingService svc = new AccountPollingService(dsl(provider), dummyClient(), new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")));
@@ -107,6 +118,22 @@ class AccountPollingServiceTest {
         t.accountPk = 1L;
         t.hash = "h";
         assertThrows(DataAccessException.class, () -> svc.upsert(t));
+    }
+
+    @Test
+    void syncAccountsInsertsAccounts() throws Exception {
+        List<String> sqls = new ArrayList<>();
+        MockDataProvider provider = ctx -> { sqls.add(ctx.sql()); return new MockResult[]{ new MockResult(1, null) }; };
+        TellerApi api = new TellerApi() {
+            @Override public JsonNode listAccounts(String token) throws IOException, InterruptedException {
+                return new ObjectMapper().readTree("[{\"id\":\"acc1\",\"name\":\"A\"}]");
+            }
+            @Override public JsonNode listTransactions(String token, String accountId, String cursor) { return null; }
+        };
+        TellerClient client = new TellerClient(List.of("tok"), api);
+        AccountPollingService svc = new AccountPollingService(dsl(provider), client, new FixedTimeProvider(OffsetDateTime.parse("2024-01-01T00:00:00Z")));
+        svc.syncAccounts();
+        assertFalse(sqls.isEmpty());
     }
 
     @Test
