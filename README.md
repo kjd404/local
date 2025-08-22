@@ -1,6 +1,6 @@
 # Personal Platform
 
-A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and Spring Boot services like ingest-service and teller-poller to normalize CSV bank statements into Postgres.
+A minimal personal data platform running on a local k3d Kubernetes cluster. It deploys Spring Boot services like ingest-service and teller-poller to normalize CSV bank statements into a PostgreSQL database you manage.
 
 ## Design Guidelines
 
@@ -21,23 +21,13 @@ This project emphasizes object-oriented design with dependency injection and com
 make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
 make install-core      # create namespace
+sops charts/platform/values.local.sops.yaml  # set db.url, db.username, db.password
 make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
 ```
 
 `make cluster-up` creates a local registry on port `5001` by default. Override with `REGISTRY_PORT` if needed.
-
-Provide database connection settings via Helm values before deploying:
-
-```yaml
-# charts/platform/values.local.sops.yaml
-db:
-  url: postgresql://<host>:5432/<db>
-  username: <user>
-  password: <pass>
-```
-See `charts/platform/values.sample.yaml` for an unencrypted example.
 
 ### Tilt UI
 
@@ -46,6 +36,20 @@ Run `make tilt` and open [http://localhost:10350](http://localhost:10350). The U
 - **ingest-cron** – CronJob that scans `storage/incoming/` for files.
 
 Tilt rebuilds the ingest-service image and applies Kubernetes updates as source files change.
+
+## External Database
+
+The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach and store the connection details in a SOPS-encrypted values file.
+
+```yaml
+# charts/platform/values.local.sops.yaml
+db:
+  url: postgresql://<host>:5432/<db>
+  username: <user>
+  password: <pass>
+```
+
+Edit the file with `sops charts/platform/values.local.sops.yaml`. See `charts/platform/values.sample.yaml` for an unencrypted template.
 
 ## Data Ingestion
 
