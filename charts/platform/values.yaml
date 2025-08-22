@@ -1,28 +1,19 @@
 namespace: personal
 namespaceCreate: true
 
+db:
+  url: ""
+  username: ""
+  password: ""
+
 secrets:
-  db:
-    username: &db_user ""
-    password: &db_password ""
   tellerPoller:
     tokens: ""
     cert: ""
     key: ""
 
-postgresql:
-  primary:
-    persistence:
-      enabled: false
-  auth:
-    username: *db_user
-    password: *db_password
-    database: personal
-
 ingestService:
   image: ingest-service:latest
-  env:
-    DB_USER: *db_user
   schedule: "*/10 * * * *"
   hostPaths:
     incoming: /incoming
@@ -30,6 +21,4 @@ ingestService:
 
 tellerPoller:
   image: teller-poller:latest
-  env:
-    DB_USER: *db_user
   pollingInterval: "30s"
