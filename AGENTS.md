@@ -63,6 +63,13 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - Prefer Helm values and overlays over editing templates directly.
 - Keep Make/Tilt the blessed entry points; scripts should be idempotent.
 
+## Object-Oriented Design
+
+Prefer dependency injection and object composition as described in
+*Dependency Injection: Principles, Practices, and Patterns* by Mark Seemann and Steven van Deursen.
+Follow the guidelines in Yegor Bugayenko's *Elegant Objects* for small, cohesive classes
+and constructor-based immutability.
+
 ## Getting Started (human or agent)
 1. `make cluster-up && make deps && make install-core`
 2. `make build-app && make deploy`
@@ -82,3 +89,9 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - Nightly `pg_dump` CronJob to a backup hostPath.
 - NetworkPolicies tightening & non-root containers.
 - Additional services (budgeting rules, receipt OCR, alerts).
+
+## Ongoing Design Tasks
+- Audit existing services for alignment with the Object-Oriented Design guardrails and schedule refactors where needed.
+- Introduce dependency injection and composition patterns across modules lacking them.
+- Record design decisions and remaining work here. After completing any task, update this section with progress and new objectives.
+
