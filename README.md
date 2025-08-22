@@ -2,6 +2,10 @@
 
 A minimal personal data platform running on a local k3d Kubernetes cluster. It provisions PostgreSQL and Spring Boot services like ingest-service and teller-poller to normalize CSV bank statements into Postgres.
 
+## Design Guidelines
+
+This project emphasizes object-oriented design with dependency injection and composition to keep classes small, cohesive, and immutable, drawing from Mark Seemann's *Dependency Injection* and Yegor Bugayenko's *Elegant Objects*. Development follows test-driven development with a focus on integration tests and dedicated test databases.
+
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
 - k3d (e.g., `brew install k3d` or `curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash`)
