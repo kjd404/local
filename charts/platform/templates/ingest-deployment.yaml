@@ -20,9 +20,9 @@ spec:
           image: {{ .Values.ingestService.image }}
           env:
             - name: DB_URL
-              value: {{ printf "jdbc:postgresql://%s-postgresql.%s.svc.cluster.local:5432/%s" .Release.Name .Values.namespace .Values.postgresql.auth.database | quote }}
+              value: {{ .Values.db.url | quote }}
             - name: DB_USER
-              value: {{ .Values.ingestService.env.DB_USER | quote }}
+              value: {{ .Values.db.username | quote }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
