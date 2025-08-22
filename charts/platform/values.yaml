@@ -2,8 +2,11 @@ namespace: personal
 namespaceCreate: true
 
 db:
+  # JDBC URL for the external Postgres database
   url: ""
+  # Database user
   username: ""
+  # Database password
   password: ""
 
 secrets:

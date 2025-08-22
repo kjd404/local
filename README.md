@@ -20,7 +20,7 @@ This project emphasizes object-oriented design with dependency injection and com
 ```bash
 make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
-make install-core      # install Postgres
+make install-core      # create namespace
 make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
@@ -28,12 +28,22 @@ make tilt              # start Tilt for live updates
 
 `make cluster-up` creates a local registry on port `5001` by default. Override with `REGISTRY_PORT` if needed.
 
+Provide database connection settings via Helm values before deploying:
+
+```yaml
+# charts/platform/values.local.sops.yaml
+db:
+  url: postgresql://<host>:5432/<db>
+  username: <user>
+  password: <pass>
+```
+See `charts/platform/values.sample.yaml` for an unencrypted example.
+
 ### Tilt UI
 
 Run `make tilt` and open [http://localhost:10350](http://localhost:10350). The UI shows:
 - **ingest-service** – Spring Boot app port-forwarded to `localhost:8080`.
 - **ingest-cron** – CronJob that scans `storage/incoming/` for files.
-- **platform-postgresql** – PostgreSQL database from the Bitnami chart.
 
 Tilt rebuilds the ingest-service image and applies Kubernetes updates as source files change.
 
