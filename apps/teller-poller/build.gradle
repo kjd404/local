@@ -7,8 +7,8 @@ plugins {
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -70,9 +70,8 @@ jooq {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.release = 21
-}
+// Rely on Gradle's default release option for the configured Java version
+// to avoid errors when a newer JDK isn't available in the environment.
 
 tasks.withType(Test) {
     useJUnitPlatform()
