@@ -30,8 +30,7 @@ deps:
 	buf --version >/dev/null 2>&1 || go install github.com/bufbuild/buf/cmd/buf@latest
 
 install-core:
-	helm dependency update charts/platform
-	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml --create-namespace
+	kubectl create namespace $(NAMESPACE) >/dev/null 2>&1 || true
 
 build-app:
 	cd ops/proto && buf generate
@@ -39,7 +38,7 @@ build-app:
 	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t teller-poller:latest .
 
 deploy:
-	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml
+	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml --create-namespace
 
 tilt:
 	tilt up

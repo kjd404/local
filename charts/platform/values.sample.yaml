@@ -1,0 +1,7 @@
+# Sample Helm values for database connection
+# Copy to values.local.yaml and adjust for your environment
+
+db:
+  url: postgresql://postgres:postgres@postgresql:5432/postgres
+  username: postgres
+  password: postgres
