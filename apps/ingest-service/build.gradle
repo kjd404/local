@@ -7,8 +7,8 @@ plugins {
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -69,9 +69,6 @@ jooq {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.release = 21
-}
 
 tasks.withType(Test) {
     useJUnitPlatform()
