@@ -3,16 +3,14 @@
 ## Configuration
 
 1. Copy `.env-sample` from the repository root to `.env` and populate `TELLER_TOKENS`, `TELLER_CERT_FILE`, and `TELLER_KEY_FILE`.
-2. Load the values:
+2. These environment variables are consumed automatically by `make deploy` and `make tilt` when `.env` is present. If you need them in your shell for other commands, run:
 
    ```bash
    source scripts/export-env.sh
    ```
 
-These environment variables are consumed by `make deploy` and `make tilt`.
-
 ## Local Development with Tilt
-1. Ensure the environment variables are loaded (`source scripts/export-env.sh`).
+1. Ensure `.env` contains the required variables. The Makefile and Tiltfile will load them automatically (run `source scripts/export-env.sh` only for manual shells).
 2. Build images:
    ```bash
    make build-app
