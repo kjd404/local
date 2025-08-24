@@ -1,15 +1,12 @@
 package com.example.teller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.List;
 
 /**
  * High-level client for interacting with the Teller API.
  */
-@Component
 public final class TellerClient {
 
     private final List<String> tokens;
