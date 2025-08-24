@@ -20,7 +20,13 @@ This project emphasizes object-oriented design with dependency injection and com
 make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
 make install-core      # create namespace
-cp charts/platform/values.sample.yaml charts/platform/values.local.yaml  # set db.url, db.username, db.password
+export DB_URL=postgresql://<host>:5432/<db>
+export DB_USER=<user>
+export DB_PASSWORD=<pass>
+# optional Teller poller credentials
+export TELLER_TOKENS=<token1,token2>
+export TELLER_CERT_FILE=/path/to/cert.pem
+export TELLER_KEY_FILE=/path/to/key.pem
 make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
@@ -38,17 +44,15 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 ## External Database
 
-The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach and store the connection details in a local values file.
+The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then provide the connection details via environment variables when deploying:
 
-```yaml
-# charts/platform/values.local.yaml
-db:
-  url: postgresql://<host>:5432/<db>
-  username: <user>
-  password: <pass>
+```bash
+export DB_URL=postgresql://<host>:5432/<db>
+export DB_USER=<user>
+export DB_PASSWORD=<pass>
 ```
 
-Copy `charts/platform/values.sample.yaml` to `charts/platform/values.local.yaml` and edit as needed.
+You can place these in a local `.env` file so `make deploy` picks them up automatically.
 
 ## Data Ingestion
 
@@ -71,7 +75,7 @@ Copy `charts/platform/values.sample.yaml` to `charts/platform/values.local.yaml`
 - Failed files are moved to `storage/processed/` for inspection.
 
 ## Secrets
-Secrets live in `charts/platform/values.local.yaml`, which is excluded from version control. Copy the sample file and fill in your credentials. Avoid committing plaintext secrets.
+Secrets like database credentials and Teller API tokens are supplied via environment variables or files referenced by them. Store them in a local `.env` file and avoid committing plaintext secrets.
 
 ## Cleanup
 ```bash

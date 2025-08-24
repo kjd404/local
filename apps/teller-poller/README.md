@@ -4,11 +4,11 @@
 
 ### Tokens and Certificates
 - Set `TELLER_TOKENS` with a comma-separated list of Teller API tokens.
-- Provide `TELLER_CERT` and `TELLER_KEY` containing the PEM-encoded client certificate and private key for mTLS.
-- For local development, edit `charts/platform/values.local.yaml` under `secrets.tellerPoller` to supply these values.
+- Set `TELLER_CERT_FILE` and `TELLER_KEY_FILE` to paths of the PEM-encoded client certificate and private key for mTLS.
+- These environment variables are consumed by `make deploy`.
 
 ## Local Development with Tilt
-1. Populate Teller credentials in `charts/platform/values.local.yaml`.
+1. Export `TELLER_TOKENS`, `TELLER_CERT_FILE`, and `TELLER_KEY_FILE`.
 2. Build images:
    ```bash
    make build-app
@@ -36,4 +36,4 @@
 ### Troubleshooting Failed Accounts
 - Inspect logs for `account_poll_failed` or `account_poll_retry` messages which include the account ID and attempt count.
 - Check `account_poll_state` for stuck cursors and ensure the corresponding account has valid tokens.
-- Verify `TELLER_TOKENS`, `TELLER_CERT`, and `TELLER_KEY` are correctly configured and not expired.
+- Verify `TELLER_TOKENS`, `TELLER_CERT_FILE`, and `TELLER_KEY_FILE` are correctly configured and not expired.
