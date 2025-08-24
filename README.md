@@ -22,7 +22,6 @@ make deps              # install Helm repo (Bitnami) and buf
 make install-core      # create namespace
 cp .env-sample .env    # copy sample env
 # edit .env with DB credentials and optional Teller settings
-source scripts/export-env.sh
 make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
@@ -40,7 +39,7 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 ## External Database
 
-The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then set the connection details in `.env` and run `source scripts/export-env.sh` before deploying so `make deploy` picks them up automatically.
+The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then set the connection details in `.env`. The Makefile and Tiltfile automatically load this file so `make deploy` and `make tilt` pick up the settings.
 
 ## Data Ingestion
 
@@ -63,7 +62,7 @@ The platform expects an existing PostgreSQL instance. Provision a database and u
 - Failed files are moved to `storage/processed/` for inspection.
 
 ## Secrets
-Secrets like database credentials and Teller API tokens live in a local `.env` file. Start from `.env-sample`, populate the values, and run `source scripts/export-env.sh` before building or deploying. The `.env` file is git-ignored—never commit real secrets.
+Secrets like database credentials and Teller API tokens live in a local `.env` file. Start from `.env-sample`, populate the values, and the build/deploy tooling will read them automatically. If you need the variables in your shell for ad-hoc commands, run `source scripts/export-env.sh`. The `.env` file is git-ignored—never commit real secrets.
 
 ## Cleanup
 ```bash

@@ -1,3 +1,12 @@
+# Load variables from a local .env file so Tilt picks up settings like DB
+# credentials without requiring a separate `source` step.
+if os.path.exists('.env'):
+    for line in read_file('.env').splitlines():
+        line = line.strip()
+        if line and not line.startswith('#') and '=' in line:
+            key, value = line.split('=', 1)
+            os.putenv(key, value)
+
 # Read environment variables for cluster configuration, falling back to
 # sensible defaults when they are not set.
 CLUSTER_NAME = os.getenv("CLUSTER_NAME", "personal")

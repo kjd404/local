@@ -1,5 +1,12 @@
 SHELL := /bin/bash
 
+# Load environment variables from a local .env file when present so that
+# `make` targets automatically pick up DB credentials and other settings.
+ifneq (,$(wildcard ./.env))
+include .env
+export $(shell sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env)
+endif
+
 CLUSTER_NAME ?= personal
 NAMESPACE ?= personal
 REGISTRY_NAME ?= $(CLUSTER_NAME)-registry
