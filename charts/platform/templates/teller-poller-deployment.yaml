@@ -33,17 +33,20 @@ spec:
                 secretKeyRef:
                   name: teller-poller
                   key: tokens
-            - name: TELLER_CERT
-              valueFrom:
-                secretKeyRef:
-                  name: teller-poller
-                  key: cert
-            - name: TELLER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: teller-poller
-                  key: key
+            - name: TELLER_CERT_FILE
+              value: /var/run/secrets/teller/cert.pem
+            - name: TELLER_KEY_FILE
+              value: /var/run/secrets/teller/key.pem
             - name: POLL_INTERVAL
               value: {{ .Values.tellerPoller.pollingInterval | quote }}
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: teller-poller-cert
+              mountPath: /var/run/secrets/teller
+              readOnly: true
+
+      volumes:
+        - name: teller-poller-cert
+          secret:
+            secretName: teller-poller
