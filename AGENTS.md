@@ -58,7 +58,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - **Operator feedback → Planner:** Reliability issues become tasks.
 
 ## Guardrails
-- All secrets live in git-ignored `.env` files; never commit plaintext secrets.
+- Keep secrets only in local, git-ignored `.env` files; never commit them to the repository.
 - Changes that affect storage or schema require a migration plan in PR description.
 - Prefer Helm values and overlays over editing templates directly.
 - Keep Make/Tilt the blessed entry points; scripts should be idempotent.
