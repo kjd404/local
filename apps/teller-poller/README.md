@@ -2,13 +2,17 @@
 
 ## Configuration
 
-### Tokens and Certificates
-- Set `TELLER_TOKENS` with a comma-separated list of Teller API tokens.
-- Set `TELLER_CERT_FILE` and `TELLER_KEY_FILE` to paths of the PEM-encoded client certificate and private key for mTLS.
-- These environment variables are consumed by `make deploy`.
+1. Copy `.env-sample` from the repository root to `.env` and populate `TELLER_TOKENS`, `TELLER_CERT_FILE`, and `TELLER_KEY_FILE`.
+2. Load the values:
+
+   ```bash
+   source scripts/export-env.sh
+   ```
+
+These environment variables are consumed by `make deploy` and `make tilt`.
 
 ## Local Development with Tilt
-1. Export `TELLER_TOKENS`, `TELLER_CERT_FILE`, and `TELLER_KEY_FILE`.
+1. Ensure the environment variables are loaded (`source scripts/export-env.sh`).
 2. Build images:
    ```bash
    make build-app
