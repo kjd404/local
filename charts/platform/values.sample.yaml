@@ -1,5 +1,5 @@
-# Sample Helm values for database connection
-# Copy to values.local.yaml and adjust for your environment
+# Sample Helm values for database connection.
+# Use as a reference when setting DB_URL/DB_USER/DB_PASSWORD or copy to values.yaml if overriding defaults.
 
 db:
   url: postgresql://postgres:postgres@postgresql:5432/postgres
