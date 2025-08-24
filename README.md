@@ -12,7 +12,6 @@ This project emphasizes object-oriented design with dependency injection and com
 - kubectl (e.g., `brew install kubectl` or https://kubernetes.io/docs/tasks/tools/)
 - Helm (e.g., `brew install helm` or https://helm.sh/docs/intro/install/)
 - Tilt (e.g., `brew install tilt` or https://docs.tilt.dev/install.html)
-- age + SOPS (e.g., `brew install age sops` or https://github.com/mozilla/sops#installation)
 - Java 21 (JDK) + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
 - buf (installed via `make deps`)
 
@@ -21,7 +20,7 @@ This project emphasizes object-oriented design with dependency injection and com
 make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
 make install-core      # create namespace
-sops charts/platform/values.local.sops.yaml  # set db.url, db.username, db.password
+cp charts/platform/values.sample.yaml charts/platform/values.local.yaml  # set db.url, db.username, db.password
 make build-app         # build ingest-service and teller-poller jars and containers
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
@@ -39,17 +38,17 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 ## External Database
 
-The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach and store the connection details in a SOPS-encrypted values file.
+The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach and store the connection details in a local values file.
 
 ```yaml
-# charts/platform/values.local.sops.yaml
+# charts/platform/values.local.yaml
 db:
   url: postgresql://<host>:5432/<db>
   username: <user>
   password: <pass>
 ```
 
-Edit the file with `sops charts/platform/values.local.sops.yaml`. See `charts/platform/values.sample.yaml` for an unencrypted template.
+Copy `charts/platform/values.sample.yaml` to `charts/platform/values.local.yaml` and edit as needed.
 
 ## Data Ingestion
 
@@ -72,21 +71,7 @@ Edit the file with `sops charts/platform/values.local.sops.yaml`. See `charts/pl
 - Failed files are moved to `storage/processed/` for inspection.
 
 ## Secrets
-Secrets live in SOPS-encrypted files under `charts/platform/*.sops.yaml`.
-### Secrets with SOPS
-
-- Generate an age key:
-  ```bash
-  age-keygen -o ~/.config/sops/age/keys.txt
-  ```
-- Store the key at `~/.config/sops/age/keys.txt`.
-- Edit encrypted files:
-  ```bash
-  sops charts/platform/values.local.sops.yaml
-  ```
-- Rotate or add recipients by updating `.sops.yaml`.
-
-`.sops.yaml` contains placeholder values—replace the example key with your own age public key. Add decrypted files (like `charts/platform/values.local.yaml`) to `.gitignore` to keep plaintext secrets out of version control.
+Secrets live in `charts/platform/values.local.yaml`, which is excluded from version control. Copy the sample file and fill in your credentials. Avoid committing plaintext secrets.
 
 ## Cleanup
 ```bash

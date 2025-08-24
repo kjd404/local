@@ -54,11 +54,11 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 
 ## Handoffs
 - **Planner → Infra:** cluster/charts tasks created with acceptance tests.
-- **Infra → App/Data:** DB connection info via SOPS values; service DNS documented.
+- **Infra → App/Data:** DB connection info via `.env` and `values.local.yaml`; service DNS documented.
 - **Operator feedback → Planner:** Reliability issues become tasks.
 
 ## Guardrails
-- All secrets live in SOPS-encrypted files; never commit plaintext.
+- All secrets live in git-ignored `.env` files; never commit plaintext secrets.
 - Changes that affect storage or schema require a migration plan in PR description.
 - Prefer Helm values and overlays over editing templates directly.
 - Keep Make/Tilt the blessed entry points; scripts should be idempotent.

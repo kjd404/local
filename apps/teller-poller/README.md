@@ -5,10 +5,10 @@
 ### Tokens and Certificates
 - Set `TELLER_TOKENS` with a comma-separated list of Teller API tokens.
 - Provide `TELLER_CERT` and `TELLER_KEY` containing the PEM-encoded client certificate and private key for mTLS.
-- For local development, edit `charts/platform/values.local.sops.yaml` under `secrets.tellerPoller` using `sops` to supply these values.
+- For local development, edit `charts/platform/values.local.yaml` under `secrets.tellerPoller` to supply these values.
 
 ## Local Development with Tilt
-1. Populate Teller credentials in `charts/platform/values.local.sops.yaml`.
+1. Populate Teller credentials in `charts/platform/values.local.yaml`.
 2. Build images:
    ```bash
    make build-app

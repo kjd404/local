@@ -17,7 +17,7 @@ helm_release = helm(
     name='platform',
     chart='charts/platform',
     namespace=NAMESPACE,
-    values=['charts/platform/values.yaml', 'charts/platform/values.local.sops.yaml'],
+    values=['charts/platform/values.yaml'],
 )
 
 docker_build('ingest-service', 'apps/ingest-service')
