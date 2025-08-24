@@ -1,4 +1,0 @@
-creation_rules:
-  - path_regex: charts/platform/values.*\.sops\.yaml
-    encrypt: age
-    age: age1esqu48rkrs5uj6927n8z3eezu79lej3afn2az9hsc4zv93nvmpesaa5z0s

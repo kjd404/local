@@ -38,7 +38,7 @@ build-app:
 	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t teller-poller:latest .
 
 deploy:
-	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml -f charts/platform/values.local.sops.yaml --create-namespace
+	helm upgrade --install platform charts/platform -n $(NAMESPACE) -f charts/platform/values.yaml --create-namespace
 
 tilt:
 	tilt up
