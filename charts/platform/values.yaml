@@ -1,5 +1,4 @@
 namespace: personal
-namespaceCreate: true
 
 db:
   # JDBC URL for the external Postgres database
