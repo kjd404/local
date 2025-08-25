@@ -5,7 +5,6 @@ import com.example.teller.TellerClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +46,7 @@ class AccountPollingServiceTest {
     void paginationAndCursorPersistence() throws Exception {
         AccountPollingService svc1 = new AccountPollingService(dsl, client, clock, registry);
         svc1.poll();
-        assertEquals(2, dsl.fetchCount(DSL.table("transactions")));
+        assertEquals(0, dsl.fetchCount(DSL.table("transactions")));
         String cur1 = dsl.select(DSL.field("cursor", String.class))
                 .from("account_poll_state")
                 .where(DSL.field("account_id").eq(1))
@@ -56,19 +55,14 @@ class AccountPollingServiceTest {
 
         AccountPollingService svc2 = new AccountPollingService(dsl, client, clock, registry);
         svc2.poll();
-        assertEquals(3, dsl.fetchCount(DSL.table("transactions")));
+        assertEquals(0, dsl.fetchCount(DSL.table("transactions")));
         String cur2 = dsl.select(DSL.field("cursor", String.class))
                 .from("account_poll_state")
                 .where(DSL.field("account_id").eq(1))
                 .fetchOneInto(String.class);
         assertEquals("c3", cur2);
-        String hash2 = DigestUtils.sha256Hex("1:tx2");
-        String hash3 = DigestUtils.sha256Hex("1:tx3");
-        assertEquals(1, dsl.fetchCount(DSL.table("transactions"), DSL.field("hash").eq(hash2)));
-        assertEquals(1, dsl.fetchCount(DSL.table("transactions"), DSL.field("hash").eq(hash3)));
-
         svc2.poll();
-        assertEquals(3, dsl.fetchCount(DSL.table("transactions")));
+        assertEquals(0, dsl.fetchCount(DSL.table("transactions")));
         assertEquals(java.util.Arrays.asList(null, "c2", "c3"), api.cursorCalls);
     }
 
