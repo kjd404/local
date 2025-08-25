@@ -1,4 +1,4 @@
-package com.example.ingest;
+package com.example.poller;
 
 import javax.sql.DataSource;
 
@@ -11,9 +11,8 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configures the application's {@link DataSource} and logs the connection URL
- * with sensitive information removed. If the initial connection attempt
- * fails, the error is logged and the application continues to start so that it
- * can fail gracefully when the DataSource is first used.
+ * and user. If the initial connection attempt fails, the error is logged so
+ * that misconfiguration is obvious in the logs.
  */
 @Configuration
 public class DatabaseConfig {
@@ -22,7 +21,7 @@ public class DatabaseConfig {
     @Bean
     DataSource dataSource(DataSourceProperties properties) {
         String url = properties.getUrl();
-        String safeUrl = sanitize(url);
+        String safeUrl = JdbcUrl.sanitize(url);
         String user = properties.getUsername();
         if (url != null) {
             log.info("Attempting database connection to {} as user {}", safeUrl, user);
@@ -31,8 +30,6 @@ public class DatabaseConfig {
         }
         HikariDataSource ds = properties.initializeDataSourceBuilder()
                 .type(HikariDataSource.class).build();
-        // Try a connection to surface any configuration issues early but don't
-        // prevent the app from starting if it fails.
         try (var ignored = ds.getConnection()) {
             log.info("Database connection established");
         } catch (Exception ex) {
@@ -40,14 +37,5 @@ public class DatabaseConfig {
         }
         return ds;
     }
-
-    /**
-     * Remove credentials from a JDBC URL so it can be safely logged.
-     */
-    static String sanitize(String url) {
-        if (url == null) {
-            return "";
-        }
-        return url.replaceAll("(?<=//)[^/@]+:[^@]+@", "");
-    }
 }
+

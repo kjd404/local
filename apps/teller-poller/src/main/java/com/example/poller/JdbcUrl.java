@@ -13,4 +13,11 @@ final class JdbcUrl {
         String normalized = url.replaceFirst("^postgres://", "postgresql://");
         return "jdbc:" + normalized;
     }
+
+    static String sanitize(String url) {
+        if (url == null) {
+            return "";
+        }
+        return url.replaceAll("(?<=//)[^/@]+:[^@]+@", "");
+    }
 }

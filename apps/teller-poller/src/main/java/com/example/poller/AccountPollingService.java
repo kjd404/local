@@ -107,20 +107,21 @@ public class AccountPollingService {
     String pollWithRetry(long accountId, String externalId, String cursor) throws IOException, InterruptedException {
         int attempt = 0;
         long delay = INITIAL_BACKOFF_MS;
+        String token = client.getTokens().isEmpty() ? "" : client.getTokens().get(0);
         while (true) {
             try {
-                JsonNode txs = client.listTransactions(client.getTokens().get(0), externalId, cursor);
+                JsonNode txs = client.listTransactions(token, externalId, cursor);
                 String next = persistTransactions(accountId, externalId, txs);
-                log.info("account_poll_success accountId={} attempt={}", accountId, attempt + 1);
+                log.info("account_poll_success accountId={} token={} attempt={}", accountId, token, attempt + 1);
                 return next;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw e;
             } catch (Exception e) {
                 attempt++;
-                log.warn("account_poll_retry accountId={} attempt={}", accountId, attempt, e);
+                log.warn("account_poll_retry accountId={} token={} attempt={}", accountId, token, attempt, e);
                 if (attempt >= MAX_RETRIES) {
-                    log.error("account_poll_failed accountId={} attempts={}", accountId, attempt, e);
+                    log.error("account_poll_failed accountId={} token={} attempts={}", accountId, token, attempt, e);
                     throw e;
                 }
                 Thread.sleep(delay);
@@ -131,21 +132,26 @@ public class AccountPollingService {
 
     void syncAccounts() throws IOException, InterruptedException {
         for (String token : client.getTokens()) {
-            JsonNode accounts = client.listAccounts(token);
-            if (accounts == null || !accounts.isArray()) continue;
-            for (JsonNode node : accounts) {
-                String externalId = node.path("id").asText();
-                String name = node.path("name").asText(externalId);
-                var now = clock.now();
-                dsl.insertInto(DSL.table("accounts"))
-                        .set(DSL.field("institution"), "teller")
-                        .set(DSL.field("external_id"), externalId)
-                        .set(DSL.field("display_name"), name)
-                        .set(DSL.field("created_at"), now)
-                        .set(DSL.field("updated_at"), now)
-                        .onConflict(DSL.field("institution"), DSL.field("external_id"))
-                        .doNothing()
-                        .execute();
+            try {
+                JsonNode accounts = client.listAccounts(token);
+                if (accounts == null || !accounts.isArray()) continue;
+                for (JsonNode node : accounts) {
+                    String externalId = node.path("id").asText();
+                    String name = node.path("name").asText(externalId);
+                    var now = clock.now();
+                    dsl.insertInto(DSL.table("accounts"))
+                            .set(DSL.field("institution"), "teller")
+                            .set(DSL.field("external_id"), externalId)
+                            .set(DSL.field("display_name"), name)
+                            .set(DSL.field("created_at"), now)
+                            .set(DSL.field("updated_at"), now)
+                            .onConflict(DSL.field("institution"), DSL.field("external_id"))
+                            .doNothing()
+                            .execute();
+                }
+            } catch (Exception e) {
+                log.error("account_sync_failed token={}", token, e);
+                throw e;
             }
         }
     }
