@@ -13,7 +13,7 @@ import java.util.List;
 
 @Configuration
 @Profile("!test")
-public final class TellerClientConfig {
+public class TellerClientConfig {
     private static final Logger log = LoggerFactory.getLogger(TellerClientConfig.class);
 
     private final String tokensEnv;
