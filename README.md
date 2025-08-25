@@ -41,6 +41,8 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then set the connection details in `.env`. The services automatically prefix `DB_URL` with `jdbc:` so other tools can use the same non-JDBC URL. The Makefile and Tiltfile automatically load this file so `make deploy` and `make tilt` pick up the settings.
 
+Prefer managing overrides in a Helm values file instead? Copy `charts/platform/values.sample.yaml` to `charts/platform/values.local.yaml` and edit the `db` block. Both `make deploy` and `tilt` will include this file when present. When pointing at a database on your host machine, use `host.docker.internal` instead of `localhost` so pods can reach it.
+
 ## Data Ingestion
 
 ### CSV conventions

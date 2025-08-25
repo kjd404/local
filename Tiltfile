@@ -19,6 +19,9 @@ def helm(name, chart, namespace=''):
     if namespace:
         cmd += ['--namespace', namespace]
     cmd += ['-f', 'charts/platform/values.yaml']
+    local_values = 'charts/platform/values.local.yaml'
+    if os.path.exists(local_values):
+        cmd += ['-f', local_values]
 
     db_url = os.getenv('DB_URL')
     if db_url:
