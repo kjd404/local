@@ -1,7 +1,7 @@
 # Load variables from a local .env file so Tilt picks up settings like DB
 # credentials without requiring a separate `source` step.
 if os.path.exists('.env'):
-    for line in read_file('.env').splitlines():
+    for line in read_file('.env').split_lines():
         line = line.strip()
         if line and not line.startswith('#') and '=' in line:
             key, value = line.split('=', 1)
