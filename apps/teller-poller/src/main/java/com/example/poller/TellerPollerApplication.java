@@ -1,5 +1,7 @@
 package com.example.poller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,8 +14,12 @@ import java.nio.file.Paths;
 @SpringBootApplication
 @EnableScheduling
 public class TellerPollerApplication {
+    private static final Logger log = LoggerFactory.getLogger(TellerPollerApplication.class);
+
     public static void main(String[] args) {
         String rawUrl = System.getenv("DB_URL");
+        String user = System.getenv("DB_USER");
+        log.info("Starting with DB_URL={} DB_USER={}", JdbcUrl.sanitize(rawUrl), user);
         if (rawUrl != null) {
             System.setProperty("spring.datasource.url", JdbcUrl.from(rawUrl));
         }

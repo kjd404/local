@@ -19,4 +19,10 @@ class JdbcUrlTest {
     void convertsPostgresAlias() {
         assertEquals("jdbc:postgresql://host/db", JdbcUrl.from("postgres://host/db"));
     }
+
+    @Test
+    void sanitizeRemovesCredentials() {
+        String url = "jdbc:postgresql://user:secret@host:5432/db";
+        assertEquals("jdbc:postgresql://host:5432/db", JdbcUrl.sanitize(url));
+    }
 }
