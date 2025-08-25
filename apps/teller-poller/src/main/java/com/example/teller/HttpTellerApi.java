@@ -1,6 +1,8 @@
 package com.example.teller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +15,8 @@ import java.nio.charset.StandardCharsets;
  */
 public final class HttpTellerApi implements TellerApi {
 
+    private static final Logger log = LoggerFactory.getLogger(HttpTellerApi.class);
+
     private final RequestExecutor executor;
     private final URI baseUri = URI.create("https://api.teller.io");
 
@@ -22,10 +26,12 @@ public final class HttpTellerApi implements TellerApi {
 
     @Override
     public JsonNode listAccounts(String token) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(baseUri.resolve("/accounts"))
+        URI uri = baseUri.resolve("/accounts");
+        HttpRequest request = HttpRequest.newBuilder(uri)
             .header("Authorization", "Bearer " + token)
             .GET()
             .build();
+        log.debug("GET {} tokenPrefix={}", uri, mask(token));
         return executor.execute(request);
     }
 
@@ -36,11 +42,21 @@ public final class HttpTellerApi implements TellerApi {
         if (cursor != null && !cursor.isBlank()) {
             path += "?cursor=" + URLEncoder.encode(cursor, StandardCharsets.UTF_8);
         }
-        HttpRequest request = HttpRequest.newBuilder(baseUri.resolve(path))
+        URI uri = baseUri.resolve(path);
+        HttpRequest request = HttpRequest.newBuilder(uri)
             .header("Authorization", "Bearer " + token)
             .GET()
             .build();
+        log.debug("GET {} tokenPrefix={}", uri, mask(token));
         return executor.execute(request);
+    }
+
+    private String mask(String token) {
+        if (token == null) {
+            return "null";
+        }
+        int prefix = Math.min(6, token.length());
+        return token.substring(0, prefix) + "...";
     }
 }
 
