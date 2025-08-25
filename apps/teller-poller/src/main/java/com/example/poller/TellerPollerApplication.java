@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.nio.file.Paths;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.example")
 @EnableScheduling
 public class TellerPollerApplication {
     private static final Logger log = LoggerFactory.getLogger(TellerPollerApplication.class);
