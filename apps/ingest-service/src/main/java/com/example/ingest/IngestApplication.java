@@ -11,6 +11,10 @@ import java.nio.file.Paths;
 @SpringBootApplication
 public class IngestApplication {
     public static void main(String[] args) {
+        String rawUrl = System.getenv("DB_URL");
+        if (rawUrl != null) {
+            System.setProperty("spring.datasource.url", JdbcUrl.from(rawUrl));
+        }
         SpringApplication.run(IngestApplication.class, args);
     }
 

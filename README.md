@@ -39,7 +39,7 @@ Tilt rebuilds the ingest-service image and applies Kubernetes updates as source 
 
 ## External Database
 
-The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then set the connection details in `.env`. The Makefile and Tiltfile automatically load this file so `make deploy` and `make tilt` pick up the settings.
+The platform expects an existing PostgreSQL instance. Provision a database and user that the cluster can reach, then set the connection details in `.env`. The services automatically prefix `DB_URL` with `jdbc:` so other tools can use the same non-JDBC URL. The Makefile and Tiltfile automatically load this file so `make deploy` and `make tilt` pick up the settings.
 
 ## Data Ingestion
 

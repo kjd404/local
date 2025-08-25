@@ -13,6 +13,10 @@ import java.nio.file.Paths;
 @EnableScheduling
 public class TellerPollerApplication {
     public static void main(String[] args) {
+        String rawUrl = System.getenv("DB_URL");
+        if (rawUrl != null) {
+            System.setProperty("spring.datasource.url", JdbcUrl.from(rawUrl));
+        }
         SpringApplication.run(TellerPollerApplication.class, args);
     }
 
