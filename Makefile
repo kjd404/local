@@ -14,6 +14,11 @@ REGISTRY_PORT ?= 5001
 HOST_REGISTRY ?= localhost:$(REGISTRY_PORT)
 CLUSTER_REGISTRY ?= k3d-$(REGISTRY_NAME):$(REGISTRY_PORT)
 
+VALUES_FILES := -f charts/platform/values.yaml
+ifneq (,$(wildcard charts/platform/values.local.yaml))
+VALUES_FILES += -f charts/platform/values.local.yaml
+endif
+
 cluster-up:
 	@if k3d registry list $(REGISTRY_NAME) >/dev/null 2>&1; then \
 	echo "Using existing registry $(REGISTRY_NAME)"; \
@@ -52,7 +57,7 @@ build-app:
 
 deploy:
 	helm upgrade --install platform charts/platform \
-	-n $(NAMESPACE) -f charts/platform/values.yaml \
+	-n $(NAMESPACE) $(VALUES_FILES) \
 	--set db.url=$(DB_URL) \
 	--set db.username=$(DB_USER) \
 	--set db.password=$(DB_PASSWORD) \

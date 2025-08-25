@@ -2,6 +2,6 @@
 # Use as a reference when setting DB_URL/DB_USER/DB_PASSWORD or copy to values.yaml if overriding defaults.
 
 db:
-  url: postgresql://postgresql:5432/postgres
+  url: postgresql://host.docker.internal:5432/postgres
   username: postgres
   password: postgres
