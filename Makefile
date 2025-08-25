@@ -11,6 +11,8 @@ CLUSTER_NAME ?= personal
 NAMESPACE ?= personal
 REGISTRY_NAME ?= $(CLUSTER_NAME)-registry
 REGISTRY_PORT ?= 5001
+HOST_REGISTRY ?= localhost:$(REGISTRY_PORT)
+CLUSTER_REGISTRY ?= k3d-$(REGISTRY_NAME):$(REGISTRY_PORT)
 
 cluster-up:
 	@if k3d registry list $(REGISTRY_NAME) >/dev/null 2>&1; then \
@@ -41,8 +43,12 @@ install-core:
 
 build-app:
 	cd ops/proto && buf generate
-	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t ingest-service:latest .
-	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && docker build -t teller-poller:latest .
+	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && \
+	docker build -t ingest-service:latest -t $(HOST_REGISTRY)/ingest-service:latest . && \
+	docker push $(HOST_REGISTRY)/ingest-service:latest
+	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && \
+	docker build -t teller-poller:latest -t $(HOST_REGISTRY)/teller-poller:latest . && \
+	docker push $(HOST_REGISTRY)/teller-poller:latest
 
 deploy:
 	helm upgrade --install platform charts/platform \
@@ -52,7 +58,9 @@ deploy:
 	--set db.password=$(DB_PASSWORD) \
 	--set secrets.tellerPoller.tokens=$(TELLER_TOKENS) \
 	--set-file secrets.tellerPoller.cert=$(TELLER_CERT_FILE) \
-	--set-file secrets.tellerPoller.key=$(TELLER_KEY_FILE)
+	--set-file secrets.tellerPoller.key=$(TELLER_KEY_FILE) \
+	--set ingestService.image=$(CLUSTER_REGISTRY)/ingest-service:latest \
+	--set tellerPoller.image=$(CLUSTER_REGISTRY)/teller-poller:latest
 
 tilt:
 	tilt up

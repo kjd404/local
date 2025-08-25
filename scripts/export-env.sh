@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${SCRIPT_DIR}/../.env"
+ENV_FILE=".env"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo ".env missing"
-  exit 1
+  return 1 2>/dev/null || exit 1
 fi
 
 set -a
