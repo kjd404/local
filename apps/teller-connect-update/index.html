@@ -36,7 +36,8 @@
 
     document.getElementById("update").addEventListener("click", () => {
       log("Starting update flow...");
-      connect.update({ enrollmentId });
+      // open Teller Connect in update mode for the existing enrollment
+      connect.open({ enrollment: enrollmentId });
     });
   </script>
 </body>
