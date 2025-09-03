@@ -2,8 +2,7 @@ package com.example.ingest;
 
 import java.time.Instant;
 
-public final class CapitalOneVentureXTransaction implements TransactionRecord, SourceAware {
-    private static final String SOURCE = "capitalone";
+public final class CapitalOneVentureXTransaction implements TransactionRecord {
 
     private final String accountId;
     private final Instant occurredAt;
@@ -75,6 +74,4 @@ public final class CapitalOneVentureXTransaction implements TransactionRecord, S
     @Override
     public String rawJson() { return rawJson; }
 
-    @Override
-    public String source() { return SOURCE; }
 }

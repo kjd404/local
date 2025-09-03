@@ -34,9 +34,8 @@ Stop the database with `docker compose down` when finished.
 
 ### CSV conventions
 
-- Include `account_id` and `card_no` columns when available.
-- When those columns are missing, name files as `<source>-<external_id>-*.csv`.
-- Defaults for `account_id` and `source` may also be provided via CLI flags or API parameters.
+- Name files using the account shorthand `<institution><last4>-*.csv`, e.g. `co1828-2025-04.csv`.
+- The shorthand is used as the internal account identifier; CSVs need not include account or source columns.
 
 1. Copy CSV files into `storage/incoming/`.
 2. Run the CLI or service to ingest them.
