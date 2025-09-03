@@ -10,14 +10,13 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.*;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AccountCreationIntegrationTest {
     private DSLContext dsl;
     private AccountResolver resolver;
-    private CsvTransactionMapper mapper;
+    private TransactionCsvReader reader;
 
     @BeforeEach
     void setup() {
@@ -26,7 +25,7 @@ public class AccountCreationIntegrationTest {
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
         dsl.execute("create unique index on accounts(institution, external_id)");
         resolver = new AccountResolver(dsl);
-        mapper = new CsvTransactionMapper();
+        reader = new ChaseFreedomCsvReader();
     }
 
     private Path copyResource(String resource) throws IOException {
@@ -41,45 +40,33 @@ public class AccountCreationIntegrationTest {
 
     @Test
     void createsAndReusesAccountsFromFilename() throws Exception {
-        Path file1 = copyResource("/com/example/ingest/bank-1111.csv");
-        try (Reader reader = Files.newBufferedReader(file1)) {
-            List<TransactionRecord> txs = mapper.parse(file1, reader, Map.of());
+        Path file1 = copyResource("/com/example/ingest/chase-1111.csv");
+        try (Reader in = Files.newBufferedReader(file1)) {
+            List<TransactionRecord> txs = reader.read(file1, in);
             long id1 = resolver.resolve(txs, file1).id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
-            assertEquals("bank", dsl.fetchValue("select institution from accounts where id = ?", id1));
+            assertEquals("chase", dsl.fetchValue("select institution from accounts where id = ?", id1));
             assertEquals("1111", dsl.fetchValue("select external_id from accounts where id = ?", id1));
         }
 
         // Re-ingest same account
-        Path file1b = copyResource("/com/example/ingest/bank-1111.csv");
-        try (Reader reader = Files.newBufferedReader(file1b)) {
-            List<TransactionRecord> txs = mapper.parse(file1b, reader, Map.of());
+        Path file1b = copyResource("/com/example/ingest/chase-1111.csv");
+        try (Reader in = Files.newBufferedReader(file1b)) {
+            List<TransactionRecord> txs = reader.read(file1b, in);
             long idAgain = resolver.resolve(txs, file1b).id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
-            Long existingId = dsl.fetchOne("select id from accounts where institution='bank' and external_id='1111'")
+            Long existingId = dsl.fetchOne("select id from accounts where institution='chase' and external_id='1111'")
                     .get(0, Long.class);
             assertNotNull(existingId);
             assertEquals(existingId.longValue(), idAgain);
         }
 
         // Ingest second account
-        Path file2 = copyResource("/com/example/ingest/bank-2222.csv");
-        try (Reader reader = Files.newBufferedReader(file2)) {
-            List<TransactionRecord> txs = mapper.parse(file2, reader, Map.of());
+        Path file2 = copyResource("/com/example/ingest/chase-2222.csv");
+        try (Reader in = Files.newBufferedReader(file2)) {
+            List<TransactionRecord> txs = reader.read(file2, in);
             resolver.resolve(txs, file2);
         }
         assertEquals(2, dsl.fetchCount(DSL.table("accounts")));
-    }
-
-    @Test
-    void resolvesUsingDefaultsWhenFilenameMissing() throws Exception {
-        Path file = copyResource("/com/example/ingest/mystery.csv");
-        Map<String, String> defaults = Map.of("source", "otherbank", "account_id", "9999");
-        try (Reader reader = Files.newBufferedReader(file)) {
-            List<TransactionRecord> txs = mapper.parse(file, reader, defaults);
-            long id = resolver.resolve(txs, file).id();
-            assertEquals("otherbank", dsl.fetchValue("select institution from accounts where id = ?", id));
-            assertEquals("9999", dsl.fetchValue("select external_id from accounts where id = ?", id));
-        }
     }
 }
