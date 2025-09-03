@@ -43,7 +43,7 @@ Stop the database with `docker compose down` when finished.
 
 ### Sample CSVs
 
-Example statements demonstrating UTF-8 merchants and positive/negative amounts live under `apps/ingest-service/src/test/resources/com/example/ingest/`:
+Example statements demonstrating UTF-8 merchants and positive/negative amounts live under `apps/ingest-service/src/test/resources/examples/`:
 
 - `co1828-example.csv` – Capital One Venture X
 - `ch1234-example.csv` – Chase Freedom

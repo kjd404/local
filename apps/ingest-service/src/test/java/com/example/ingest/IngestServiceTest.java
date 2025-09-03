@@ -9,8 +9,11 @@ import org.jooq.tools.jdbc.MockResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -32,8 +35,8 @@ class IngestServiceTest {
         when(resolver.resolve(any(DSLContext.class), eq("ch1234"))).thenReturn(new ResolvedAccount(1L, "ch", "1234"));
         when(resolver.resolve(any(DSLContext.class), eq("co1828"))).thenReturn(new ResolvedAccount(2L, "co", "1828"));
 
-        Files.writeString(dir.resolve("ch1234-example.csv"), "id,amount\n1,10");
-        Files.writeString(dir.resolve("co1828-example.csv"), "id,amount\n1,10");
+        copyResource("ch1234-example.csv", dir.resolve("ch1234-example.csv"));
+        copyResource("co1828-example.csv", dir.resolve("co1828-example.csv"));
 
         IngestService service = new IngestService(dsl, resolver, List.of(chReader, coReader));
         service.scanAndIngest(dir);
@@ -42,5 +45,11 @@ class IngestServiceTest {
         verify(coReader).read(eq(dir.resolve("co1828-example.csv")), any(), eq("1828"));
         verify(resolver).resolve(any(DSLContext.class), eq("ch1234"));
         verify(resolver).resolve(any(DSLContext.class), eq("co1828"));
+    }
+
+    private void copyResource(String resource, Path target) throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/examples/" + resource)) {
+            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 }
