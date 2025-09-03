@@ -26,17 +26,21 @@ abstract class BaseCsvReader {
 
     protected long parseAmount(String amount) {
         if (amount == null || amount.isBlank()) return 0;
-        return toCents(new BigDecimal(amount));
+        return toCents(toBigDecimal(amount));
     }
 
     protected long parseAmount(String credit, String debit) {
         if (credit != null && !credit.isBlank()) {
-            return toCents(new BigDecimal(credit));
+            return toCents(toBigDecimal(credit));
         }
         if (debit != null && !debit.isBlank()) {
-            return -toCents(new BigDecimal(debit));
+            return -toCents(toBigDecimal(debit));
         }
         return 0;
+    }
+
+    private BigDecimal toBigDecimal(String amount) {
+        return new BigDecimal(amount.replace(",", ""));
     }
 
     private long toCents(BigDecimal v) {
