@@ -1,6 +1,6 @@
 # Personal Platform
 
-A minimal personal data platform running on a local k3d Kubernetes cluster. It deploys Spring Boot services like ingest-service and teller-poller to normalize CSV bank statements into a PostgreSQL database you manage.
+A minimal personal data platform running on a local k3d Kubernetes cluster. It deploys Spring Boot services like ingest-service to normalize CSV bank statements into a PostgreSQL database you manage.
 
 ## Design Guidelines
 
@@ -21,8 +21,8 @@ make cluster-up        # create k3d cluster
 make deps              # install Helm repo (Bitnami) and buf
 make install-core      # create namespace
 cp .env-sample .env    # copy sample env
-# edit .env with DB credentials and optional Teller settings
-make build-app         # build ingest-service and teller-poller jars and containers
+# edit .env with DB credentials
+make build-app         # build ingest-service jar and container
 make deploy            # deploy ingest-service and CronJob
 make tilt              # start Tilt for live updates
 ```
@@ -64,7 +64,7 @@ Prefer managing overrides in a Helm values file instead? Copy `charts/platform/v
 - Failed files are moved to `storage/processed/` for inspection.
 
 ## Secrets
-Secrets like database credentials and Teller API tokens live in a local `.env` file. Start from `.env-sample`, populate the values, and the build/deploy tooling will read them automatically. If you need the variables in your shell for ad-hoc commands, run `source scripts/export-env.sh`. The `.env` file is git-ignored—never commit real secrets.
+Secrets like database credentials live in a local `.env` file. Start from `.env-sample`, populate the values, and the build/deploy tooling will read them automatically. If you need the variables in your shell for ad-hoc commands, run `source scripts/export-env.sh`. The `.env` file is git-ignored—never commit real secrets.
 
 ## Cleanup
 ```bash

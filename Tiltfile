@@ -32,15 +32,6 @@ def helm(name, chart, namespace=''):
     db_password = os.getenv('DB_PASSWORD')
     if db_password:
         cmd += ['--set', 'db.password=%s' % db_password]
-    teller_tokens = os.getenv('TELLER_TOKENS')
-    if teller_tokens:
-        cmd += ['--set', 'secrets.tellerPoller.tokens=%s' % teller_tokens]
-    teller_cert_file = os.getenv('TELLER_CERT_FILE')
-    if teller_cert_file:
-        cmd += ['--set-file', 'secrets.tellerPoller.cert=%s' % teller_cert_file]
-    teller_key_file = os.getenv('TELLER_KEY_FILE')
-    if teller_key_file:
-        cmd += ['--set-file', 'secrets.tellerPoller.key=%s' % teller_key_file]
 
     return local(cmd, echo_off=False)
 
@@ -51,7 +42,6 @@ helm_release = helm(
 )
 
 docker_build('ingest-service', 'apps/ingest-service')
-docker_build('teller-poller', 'apps/teller-poller')
 
 k8s_yaml(helm_release)
 

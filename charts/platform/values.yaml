@@ -8,19 +8,9 @@ db:
   # Database password
   password: ""
 
-secrets:
-  tellerPoller:
-    tokens: ""
-    cert: ""
-    key: ""
-
 ingestService:
   image: ingest-service:latest
   schedule: "*/10 * * * *"
   hostPaths:
     incoming: /incoming
     processed: /processed
-
-tellerPoller:
-  image: teller-poller:latest
-  pollingInterval: "30s"
