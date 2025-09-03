@@ -8,75 +8,64 @@ import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CsvTransactionMapper {
-    private final AccountResolver accountResolver;
 
-    public CsvTransactionMapper() {
-        this(null);
-    }
-
-    public CsvTransactionMapper(AccountResolver accountResolver) {
-        this.accountResolver = accountResolver;
-    }
-
-    public List<Transaction> parse(Reader reader) throws IOException, CsvException {
+    public List<TransactionRecord> parse(Reader reader) throws IOException, CsvException {
         return parse(null, reader, Map.of());
     }
 
-    public List<Transaction> parse(Reader reader, Map<String, String> defaults) throws IOException, CsvException {
+    public List<TransactionRecord> parse(Reader reader, Map<String, String> defaults) throws IOException, CsvException {
         return parse(null, reader, defaults);
     }
 
-    public List<Transaction> parse(Path file, Reader reader) throws IOException, CsvException {
+    public List<TransactionRecord> parse(Path file, Reader reader) throws IOException, CsvException {
         return parse(file, reader, Map.of());
     }
 
-    public List<Transaction> parse(Path file, Reader reader, Map<String, String> defaults) throws IOException, CsvException {
+    public List<TransactionRecord> parse(Path file, Reader reader, Map<String, String> defaults) throws IOException, CsvException {
         try (CSVReader csv = new CSVReader(reader)) {
             List<String[]> rows = csv.readAll();
             String[] rawHeader = rows.remove(0);
             String[] header = Arrays.stream(rawHeader).map(this::normalize).toArray(String[]::new);
-            List<Transaction> txs = rows.stream().map(r -> mapRow(header, r, defaults)).toList();
-            if (accountResolver != null) {
-                long accountPk = accountResolver.resolve(txs, file);
-                txs.forEach(t -> t.accountPk = accountPk);
-            }
-            return txs;
+            return rows.stream().map(r -> mapRow(header, r, defaults)).toList();
         }
     }
 
-    private Transaction mapRow(String[] header, String[] row, Map<String, String> defaults) {
+    private TransactionRecord mapRow(String[] header, String[] row, Map<String, String> defaults) {
         Map<String, String> m = new HashMap<>(defaults);
         for (int i = 0; i < header.length && i < row.length; i++) {
             m.put(header[i], row[i]);
         }
-        Transaction t = new Transaction();
-        String acct = coalesce(m, "account_id", "card_no");
-        t.accountId = acct;
-        t.occurredAt = parseDate(coalesce(m, "occurred_at", "transaction_date"));
-        t.postedAt = parseDate(coalesce(m, "posted_at", "posted_date", "post_date"));
-        t.amountCents = parseAmount(m);
-        t.currency = m.getOrDefault("currency", defaults.getOrDefault("currency", "USD"));
-        t.merchant = coalesce(m, "merchant", "description");
-        t.category = m.get("category");
-        t.type = m.get("type");
-        t.memo = m.get("memo");
-        t.source = m.getOrDefault("source", defaults.get("source"));
-        t.rawJson = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(m).toString();
-        String occurred = t.occurredAt == null ? "" : t.occurredAt.toString();
-        t.hash = DigestUtils.sha256Hex(t.accountId + t.amountCents + occurred + t.merchant);
-        return t;
+        String accountId = coalesce(m, "account_id", "card_no");
+        Instant occurredAt = parseDate(coalesce(m, "occurred_at", "transaction_date"));
+        Instant postedAt = parseDate(coalesce(m, "posted_at", "posted_date", "post_date"));
+        long amountCents = parseAmount(m);
+        String currency = m.getOrDefault("currency", defaults.getOrDefault("currency", "USD"));
+        String merchant = coalesce(m, "merchant", "description");
+        String category = m.get("category");
+        String type = m.get("type");
+        String memo = m.get("memo");
+        String source = m.getOrDefault("source", defaults.get("source"));
+        String rawJson = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(m).toString();
+        String occurred = occurredAt == null ? "" : occurredAt.toString();
+        String hash = DigestUtils.sha256Hex(accountId + amountCents + occurred + merchant);
+        if ("capitalone".equals(source)) {
+            return new CapitalOneVentureXTransaction(accountId, occurredAt, postedAt, amountCents,
+                    currency, merchant, category, type, memo, hash, rawJson);
+        }
+        return new GenericTransaction(accountId, occurredAt, postedAt, amountCents, currency, merchant,
+                category, type, memo, hash, rawJson, source);
     }
 
     private long parseAmount(Map<String, String> m) {

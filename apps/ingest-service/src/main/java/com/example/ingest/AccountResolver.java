@@ -22,12 +22,21 @@ public class AccountResolver {
         this.dsl = dsl;
     }
 
-    public long resolve(List<Transaction> txs, Path file) {
+    public ResolvedAccount resolve(List<? extends TransactionRecord> txs, Path file) {
         String source = uniqueValue(
-                txs.stream().map(t -> t.source).filter(Objects::nonNull).filter(s -> !s.isBlank()).collect(Collectors.toList()),
+                txs.stream()
+                        .filter(t -> t instanceof SourceAware)
+                        .map(t -> ((SourceAware) t).source())
+                        .filter(Objects::nonNull)
+                        .filter(s -> !s.isBlank())
+                        .collect(Collectors.toList()),
                 "source");
         String external = uniqueValue(
-                txs.stream().map(t -> t.accountId).filter(Objects::nonNull).filter(s -> !s.isBlank()).collect(Collectors.toList()),
+                txs.stream()
+                        .map(TransactionRecord::accountId)
+                        .filter(Objects::nonNull)
+                        .filter(s -> !s.isBlank())
+                        .collect(Collectors.toList()),
                 "account");
 
         String fileSource = null;
@@ -62,11 +71,11 @@ public class AccountResolver {
                         .and(Accounts.ACCOUNTS.EXTERNAL_ID.eq(external)))
                 .fetchOne();
         if (existing != null) {
-            return existing.value1();
+            return new ResolvedAccount(existing.value1(), source, external);
         }
 
         OffsetDateTime now = OffsetDateTime.now();
-        return dsl.insertInto(Accounts.ACCOUNTS)
+        long id = dsl.insertInto(Accounts.ACCOUNTS)
                 .set(Accounts.ACCOUNTS.INSTITUTION, source)
                 .set(Accounts.ACCOUNTS.EXTERNAL_ID, external)
                 .set(Accounts.ACCOUNTS.DISPLAY_NAME, external)
@@ -75,6 +84,7 @@ public class AccountResolver {
                 .returning(Accounts.ACCOUNTS.ID)
                 .fetchOne()
                 .get(Accounts.ACCOUNTS.ID);
+        return new ResolvedAccount(id, source, external);
     }
 
     private String uniqueValue(List<String> values, String field) {
