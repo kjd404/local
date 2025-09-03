@@ -13,17 +13,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] Each task has a crisp “done” definition.
 - [ ] No breaking change merges without a migration plan.
 
-### 2) Infra Engineer
-- Owns k3d/Helm/Kustomize/Tilt wiring, namespaces, secrets, PVCs.
-- Adds/updates charts under `charts/platform` and overlays in `deploy/local`.
-- Keeps Make targets working across macOS (arm64) and x86_64.
-
-**Checklist**
-- [ ] `make cluster-up/down` works.
-- [ ] Postgres charts upgraded without breaking data.
-- [ ] hostPath mounts documented and not absolute in templates.
-
-### 3) App Engineer (Ingest)
+### 2) App Engineer (Ingest)
 - Builds `apps/ingest-service` (Spring Boot, JOOQ, Flyway, CSV/XLSX parsing).
 - Ensures idempotent upserts with stable hashing.
 - Adds tests and sample data.
@@ -33,7 +23,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] Unit test covers mapper edge cases (dates, negative amounts, UTF-8).
 - [ ] Docker image builds for arm64/amd64 (if feasible).
 
-### 4) Data Engineer
+### 3) Data Engineer
 - Owns schema evolution in `ops/sql/` and JOOQ regeneration.
 - Defines canonical columns and indexes.
 
@@ -43,25 +33,14 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] Constraints/indexes keep ingest idempotent and performant.
 
 
-### 5) Operator (Runtime)
-- Monitors CronJob logs, verifies successful runs, and triages failures.
-- Adds a `failed/` folder workflow for problematic files.
-
-**Checklist**
-- [ ] CronJob success/failure visible via `kubectl logs` guidance.
-- [ ] Processed and failed files moved to correct folders.
-- [ ] Simple runbook in README → “Operations”.
-
 ## Handoffs
-- **Planner → Infra:** cluster/charts tasks created with acceptance tests.
-- **Infra → App/Data:** DB connection info via `.env` or environment variables; service DNS documented.
+- **Planner → App/Data:** tasks created with acceptance tests and necessary context.
 - **Operator feedback → Planner:** Reliability issues become tasks.
 
 ## Guardrails
 - Keep secrets only in local, git-ignored `.env` files; never commit them to the repository.
 - Changes that affect storage or schema require a migration plan in PR description.
-- Prefer Helm values and overlays over editing templates directly.
-- Keep Make/Tilt the blessed entry points; scripts should be idempotent.
+- Keep `make` the blessed entry point; scripts should be idempotent.
 
 ## Object-Oriented Design
 
@@ -71,11 +50,10 @@ Follow the guidelines in Yegor Bugayenko's *Elegant Objects* for small, cohesive
 and constructor-based immutability.
 
 ## Getting Started (human or agent)
-1. `make cluster-up && make deps && make install-core`
-2. Set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
-3. `make build-app && make deploy`
-4. Drop a sample CSV into `storage/incoming/`, or run the app locally pointing at cluster DB.
-5. Iterate with `tilt up` for live dev.
+1. `docker compose up -d` to start Postgres.
+2. `cp .env-sample .env` and set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
+3. `make build-app` to generate the application JAR.
+4. Drop a sample CSV into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
 - Run unit tests with `cd apps/ingest-service && ./gradlew test`.
@@ -87,8 +65,6 @@ and constructor-based immutability.
 
 ## Future Extensions
 - gRPC endpoints for cross-service messaging using the existing `buf` workspace.
-- Nightly `pg_dump` CronJob to a backup hostPath.
-- NetworkPolicies tightening & non-root containers.
 - Additional services (budgeting rules, receipt OCR, alerts).
 
 ## Ongoing Design Tasks
