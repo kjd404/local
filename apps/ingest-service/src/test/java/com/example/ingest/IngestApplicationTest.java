@@ -14,12 +14,12 @@ class IngestApplicationTest {
     void ingestsFileWhenFileOptionPresent() throws Exception {
         IngestService service = mock(IngestService.class);
         when(service.ingestFile(any(), any())).thenReturn(true);
-        DefaultApplicationArguments args = new DefaultApplicationArguments("--file=/tmp/ch1111.csv");
+        DefaultApplicationArguments args = new DefaultApplicationArguments("--file=/tmp/ch1234.csv");
         IngestApplication app = new IngestApplication();
 
         boolean shouldExit = app.processArgs(service, args);
 
-        verify(service).ingestFile(Path.of("/tmp/ch1111.csv"), "ch1111");
+        verify(service).ingestFile(Path.of("/tmp/ch1234.csv"), "ch1234");
         assertThat(shouldExit).isTrue();
     }
 

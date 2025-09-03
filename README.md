@@ -42,6 +42,13 @@ Stop the database with `docker compose down` when finished.
 2. Run the CLI or service to ingest them.
 3. Processed files move to `storage/processed/` and records are loaded into Postgres.
 
+### Sample CSVs
+
+Example statements demonstrating UTF-8 merchants and positive/negative amounts live under `apps/ingest-service/src/test/resources/com/example/ingest/`:
+
+- `co1828-example.csv` – Capital One Venture X
+- `ch1234-example.csv` – Chase Freedom
+
 ## Secrets
 
 Secrets like database credentials live in a local `.env` file. Start from `.env-sample`, populate the values, and the build/run tooling will read them automatically. If you need the variables in your shell for ad-hoc commands, run `source scripts/export-env.sh`. The `.env` file is git-ignored—never commit real secrets.
