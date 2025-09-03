@@ -29,6 +29,30 @@ make tilt              # start Tilt for live updates
 
 `make cluster-up` creates a local registry on port `5001` by default. Override with `REGISTRY_PORT` if needed.
 
+### Local Postgres and Service
+
+For a lightweight setup without Kubernetes, use the provided `docker-compose.yml` to launch Postgres locally:
+
+```bash
+docker compose up -d    # start Postgres on localhost:5432 with a persistent volume
+```
+
+Then export connection settings and run the application:
+
+```bash
+export DB_URL=postgresql://localhost:5432/ingest
+export DB_USER=ingest
+export DB_PASSWORD=ingest
+
+# Run the HTTP service
+./apps/ingest-service/gradlew -p apps/ingest-service bootRun
+
+# Or run the CLI to scan the incoming folder
+./apps/ingest-service/gradlew -p apps/ingest-service bootRun --args='--mode=scan --input=storage/incoming'
+```
+
+Stop the database with `docker compose down` when finished.
+
 ### Tilt UI
 
 Run `make tilt` and open [http://localhost:10350](http://localhost:10350). The UI shows:
