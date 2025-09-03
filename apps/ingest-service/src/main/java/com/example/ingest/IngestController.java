@@ -16,8 +16,8 @@ public class IngestController {
     }
 
     @PostMapping("/ingest/file")
-    public ResponseEntity<Void> ingest(@RequestParam("path") String path) throws Exception {
-        service.ingestFile(Path.of(path));
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> ingest(@RequestParam("path") String path) {
+        boolean ok = service.ingestFile(Path.of(path));
+        return ok ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
     }
 }
