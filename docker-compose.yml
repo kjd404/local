@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER:-ingest}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ingest}
+      POSTGRES_DB: ${DB_NAME:-ingest}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  ingest-service:
+    build:
+      context: ./apps/ingest-service
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-ingest}
+      DB_USER: ${DB_USER:-ingest}
+      DB_PASSWORD: ${DB_PASSWORD:-ingest}
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+volumes:
+  pgdata:
