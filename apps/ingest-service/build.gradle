@@ -5,7 +5,7 @@ plugins {
     id 'nu.studer.jooq' version '9.0'
 }
 
-group = 'com.example'
+group = 'org.artificers'
 version = '0.0.1-SNAPSHOT'
 java.sourceCompatibility = JavaVersion.VERSION_17
 java.targetCompatibility = JavaVersion.VERSION_17
@@ -60,7 +60,7 @@ jooq {
                     }
                     target = new org.jooq.meta.jaxb.Target()
                     target.with {
-                        packageName = 'com.example.jooq'
+                        packageName = 'org.artificers.jooq'
                         directory = 'src/generated/java'
                     }
                 }
