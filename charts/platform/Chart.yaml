@@ -1,5 +1,0 @@
-apiVersion: v2
-name: platform
-description: Umbrella chart for personal platform
-type: application
-version: 0.1.0
