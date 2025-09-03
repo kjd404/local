@@ -51,21 +51,14 @@ build-app:
 	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && \
 	docker build -t ingest-service:latest -t $(HOST_REGISTRY)/ingest-service:latest . && \
 	docker push $(HOST_REGISTRY)/ingest-service:latest
-	cd apps/teller-poller && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar && \
-	docker build -t teller-poller:latest -t $(HOST_REGISTRY)/teller-poller:latest . && \
-	docker push $(HOST_REGISTRY)/teller-poller:latest
 
 deploy:
 	helm upgrade --install platform charts/platform \
 	-n $(NAMESPACE) $(VALUES_FILES) \
-	--set db.url=$(DB_URL) \
-	--set db.username=$(DB_USER) \
-	--set db.password=$(DB_PASSWORD) \
-	--set secrets.tellerPoller.tokens=$(TELLER_TOKENS) \
-	--set-file secrets.tellerPoller.cert=$(TELLER_CERT_FILE) \
-	--set-file secrets.tellerPoller.key=$(TELLER_KEY_FILE) \
-	--set ingestService.image=$(CLUSTER_REGISTRY)/ingest-service:latest \
-	--set tellerPoller.image=$(CLUSTER_REGISTRY)/teller-poller:latest
+        --set db.url=$(DB_URL) \
+        --set db.username=$(DB_USER) \
+        --set db.password=$(DB_PASSWORD) \
+        --set ingestService.image=$(CLUSTER_REGISTRY)/ingest-service:latest
 
 tilt:
 	tilt up

@@ -72,7 +72,7 @@ and constructor-based immutability.
 
 ## Getting Started (human or agent)
 1. `make cluster-up && make deps && make install-core`
-2. Set `DB_URL`, `DB_USER`, and `DB_PASSWORD` (plus optional `TELLER_TOKENS`, `TELLER_CERT_FILE`, `TELLER_KEY_FILE`).
+2. Set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
 3. `make build-app && make deploy`
 4. Drop a sample CSV into `storage/incoming/`, or run the app locally pointing at cluster DB.
 5. Iterate with `tilt up` for live dev.
