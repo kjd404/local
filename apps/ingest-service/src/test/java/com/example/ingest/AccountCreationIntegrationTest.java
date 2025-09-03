@@ -38,7 +38,7 @@ public class AccountCreationIntegrationTest {
 
     @Test
     void createsAndReusesAccountsFromFilename() throws Exception {
-        Path file1 = copyResource("/com/example/ingest/ch1234-example.csv");
+        Path file1 = copyResource("/examples/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1)) {
             List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1, in, "1234");
             long id1 = resolver.resolve("ch1234").id();
@@ -47,7 +47,7 @@ public class AccountCreationIntegrationTest {
             assertEquals("1234", dsl.fetchValue("select external_id from accounts where id = ?", id1));
         }
 
-        Path file1b = copyResource("/com/example/ingest/ch1234-example.csv");
+        Path file1b = copyResource("/examples/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1b)) {
             List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1b, in, "1234");
             long idAgain = resolver.resolve("ch1234").id();
@@ -58,7 +58,7 @@ public class AccountCreationIntegrationTest {
             assertEquals(existingId.longValue(), idAgain);
         }
 
-        Path file2 = copyResource("/com/example/ingest/co1828-example.csv");
+        Path file2 = copyResource("/examples/co1828-example.csv");
         try (Reader in = Files.newBufferedReader(file2)) {
             List<TransactionRecord> txs = new CapitalOneVentureXCsvReader().read(file2, in, "1828");
             resolver.resolve("co1828");
