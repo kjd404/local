@@ -25,7 +25,7 @@ make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=ingest DB
 Alternatively, run the CLI directly:
 
 ```bash
-./apps/ingest-service/gradlew -p apps/ingest-service bootRun --args='--mode=scan --input=storage/incoming'
+./apps/ingest-service/gradlew -p apps/ingest-service bootRun --args='--mode=scan'  # defaults to storage/incoming
 ```
 
 Stop the database with `docker compose down` when finished.
@@ -38,7 +38,7 @@ Stop the database with `docker compose down` when finished.
 - The shorthand is used as the internal account identifier; CSVs need not include account or source columns.
 
 1. Copy CSV files into `storage/incoming/`.
-2. Run the CLI or service to ingest them.
+2. Run the CLI or service to ingest them (it watches `storage/incoming/` by default, configurable via `--input` or `INGEST_DIR`).
 3. Processed files move to `storage/processed/` and records are loaded into Postgres.
 
 ### Sample CSVs
