@@ -8,11 +8,10 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
-public class Transactions extends TableImpl<Record> {
-    public static final Transactions TRANSACTIONS = new Transactions();
+public class ChaseTransactions extends TableImpl<Record> {
+    public static final ChaseTransactions CHASE_TRANSACTIONS = new ChaseTransactions();
 
     public final TableField<Record, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.identity(true), this, "");
-    public final TableField<Record, Long> ACCOUNT_ID = createField(DSL.name("account_id"), SQLDataType.BIGINT.nullable(false), this, "");
     public final TableField<Record, OffsetDateTime> OCCURRED_AT = createField(DSL.name("occurred_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
     public final TableField<Record, OffsetDateTime> POSTED_AT = createField(DSL.name("posted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
     public final TableField<Record, Long> AMOUNT_CENTS = createField(DSL.name("amount_cents"), SQLDataType.BIGINT.nullable(false), this, "");
@@ -25,8 +24,7 @@ public class Transactions extends TableImpl<Record> {
     public final TableField<Record, JSONB> RAW_JSON = createField(DSL.name("raw_json"), SQLDataType.JSONB.nullable(false), this, "");
     public final TableField<Record, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
 
-    private Transactions() {
-        super(DSL.name("transactions"));
+    private ChaseTransactions() {
+        super(DSL.name("chase_transactions"));
     }
 }
-
