@@ -1,6 +1,8 @@
 package org.artificers.ingest;
 
+import org.artificers.jooq.tables.Transactions;
 import org.jooq.DSLContext;
+import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -11,8 +13,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.*;
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,19 +93,19 @@ public class IngestService {
 
     private void upsert(DSLContext ctx, TransactionRecord t, long accountPk) {
         try {
-            ctx.insertInto(DSL.table("transactions"))
-                    .set(DSL.field("account_id"), accountPk)
-                    .set(DSL.field("occurred_at"), toTs(t.occurredAt()))
-                    .set(DSL.field("posted_at"), toTs(t.postedAt()))
-                    .set(DSL.field("amount_cents"), t.amountCents())
-                    .set(DSL.field("currency"), t.currency())
-                    .set(DSL.field("merchant"), t.merchant())
-                    .set(DSL.field("category"), t.category())
-                    .set(DSL.field("txn_type"), t.type())
-                    .set(DSL.field("memo"), t.memo())
-                    .set(DSL.field("hash"), t.hash())
-                    .set(DSL.field("raw_json", String.class), t.rawJson())
-                    .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
+            ctx.insertInto(Transactions.TRANSACTIONS)
+                    .set(Transactions.TRANSACTIONS.ACCOUNT_ID, accountPk)
+                    .set(Transactions.TRANSACTIONS.OCCURRED_AT, toOffsetDateTime(t.occurredAt()))
+                    .set(Transactions.TRANSACTIONS.POSTED_AT, toOffsetDateTime(t.postedAt()))
+                    .set(Transactions.TRANSACTIONS.AMOUNT_CENTS, t.amountCents())
+                    .set(Transactions.TRANSACTIONS.CURRENCY, t.currency())
+                    .set(Transactions.TRANSACTIONS.MERCHANT, t.merchant())
+                    .set(Transactions.TRANSACTIONS.CATEGORY, t.category())
+                    .set(Transactions.TRANSACTIONS.TXN_TYPE, t.type())
+                    .set(Transactions.TRANSACTIONS.MEMO, t.memo())
+                    .set(Transactions.TRANSACTIONS.HASH, t.hash())
+                    .set(Transactions.TRANSACTIONS.RAW_JSON, JSONB.valueOf(t.rawJson()))
+                    .onConflict(Transactions.TRANSACTIONS.ACCOUNT_ID, Transactions.TRANSACTIONS.HASH)
                     .doNothing()
                     .execute();
         } catch (DataAccessException e) {
@@ -110,7 +113,7 @@ public class IngestService {
         }
     }
 
-    private Timestamp toTs(Instant i) {
-        return i == null ? null : Timestamp.from(i);
+    private OffsetDateTime toOffsetDateTime(Instant i) {
+        return i == null ? null : OffsetDateTime.ofInstant(i, ZoneOffset.UTC);
     }
 }

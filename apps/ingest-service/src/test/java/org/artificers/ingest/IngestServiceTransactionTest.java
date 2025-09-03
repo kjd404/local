@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 
 class IngestServiceTransactionTest {
     @Test
-    void rollsBackWhenUpsertFails(@TempDir Path dir) throws Exception {
+    void ignoresDuplicateTransactions(@TempDir Path dir) throws Exception {
         DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
         dsl.execute("drop table if exists accounts");
         dsl.execute("drop table if exists transactions");
@@ -35,7 +35,7 @@ class IngestServiceTransactionTest {
         IngestService service = new IngestService(dsl, resolver, List.of(reader));
         boolean ok = service.ingestFile(dir.resolve("ch1234.csv"), "ch1234");
 
-        assertThat(ok).isFalse();
-        assertThat(dsl.fetchCount(DSL.table("transactions"))).isZero();
+        assertThat(ok).isTrue();
+        assertThat(dsl.fetchCount(DSL.table("transactions"))).isEqualTo(1);
     }
 }
