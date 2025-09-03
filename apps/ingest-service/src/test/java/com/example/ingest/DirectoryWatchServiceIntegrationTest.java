@@ -66,4 +66,23 @@ class DirectoryWatchServiceIntegrationTest {
         assertThat(Files.exists(failed)).isTrue();
         assertThat(Files.exists(processed)).isTrue();
     }
+
+    @Test
+    void processesExistingFilesOnStartup(@TempDir Path dir) throws Exception {
+        IngestService ingestService = mock(IngestService.class);
+        when(ingestService.ingestFile(any(), any())).thenReturn(true);
+        Path file = dir.resolve("ch1234-existing.csv");
+        Files.writeString(file, "id,amount\n1,10");
+
+        watcher = new DirectoryWatchService(ingestService, dir.toString());
+        watcher.start();
+
+        Path processed = dir.resolve("processed").resolve("ch1234-existing.csv");
+        for (int i = 0; i < 50 && !Files.exists(processed); i++) {
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+
+        verify(ingestService, timeout(5000)).ingestFile(file, "ch1234");
+        assertThat(Files.exists(processed)).isTrue();
+    }
 }
