@@ -1,6 +1,7 @@
 package org.artificers.ingest;
 
 import org.jooq.DSLContext;
+import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -109,7 +110,7 @@ public class IngestService {
                     .set(DSL.field(DSL.name(table, "txn_type"), String.class), t.type())
                     .set(DSL.field(DSL.name(table, "memo"), String.class), t.memo())
                     .set(DSL.field(DSL.name(table, "hash"), String.class), t.hash())
-                    .set(DSL.field(DSL.name(table, "raw_json"), String.class), t.rawJson())
+                    .set(DSL.field(DSL.name(table, "raw_json"), JSONB.class), JSONB.valueOf(t.rawJson()))
                     .onConflict(DSL.field(DSL.name(table, "hash"), String.class))
                     .doNothing()
                     .execute();
