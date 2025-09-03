@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +42,7 @@ public class DirectoryWatchService {
         log.info("Watching directory {} for new files", directory);
         watchService = FileSystems.getDefault().newWatchService();
         directory.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+        scanDirectory();
         executor.submit(this::processEvents);
     }
 
@@ -56,23 +58,39 @@ public class DirectoryWatchService {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 log.debug("Polling {} for changes", directory);
-                WatchKey key = watchService.take();
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                        Path filename = (Path) event.context();
-                        Matcher m = FILE_PATTERN.matcher(filename.toString());
-                        if (m.matches()) {
-                            String shorthand = m.group(1).toLowerCase();
-                            handleFile(filename, shorthand);
+                WatchKey key = watchService.poll(5, TimeUnit.SECONDS);
+                if (key != null) {
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                            Path filename = (Path) event.context();
+                            Matcher m = FILE_PATTERN.matcher(filename.toString());
+                            if (m.matches()) {
+                                String shorthand = m.group(1).toLowerCase();
+                                handleFile(filename, shorthand);
+                            }
                         }
                     }
+                    key.reset();
                 }
-                key.reset();
+                scanDirectory();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
                 log.error("Watch service error", e);
             }
+        }
+    }
+
+    private void scanDirectory() {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.csv")) {
+            for (Path file : stream) {
+                Matcher m = FILE_PATTERN.matcher(file.getFileName().toString());
+                if (m.matches()) {
+                    handleFile(file.getFileName(), m.group(1).toLowerCase());
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to scan directory {}", directory, e);
         }
     }
 
