@@ -22,4 +22,28 @@ class IngestApplicationTest {
         verify(service).ingestFile(Path.of("/tmp/sample.csv"));
         assertThat(shouldExit).isTrue();
     }
+
+    @Test
+    void scansDirectoryWhenModeScanWithInput() throws Exception {
+        IngestService service = mock(IngestService.class);
+        DefaultApplicationArguments args = new DefaultApplicationArguments("--mode=scan", "--input=/tmp/in");
+        IngestApplication app = new IngestApplication();
+
+        boolean shouldExit = app.processArgs(service, args);
+
+        verify(service).scanAndIngest(Path.of("/tmp/in"));
+        assertThat(shouldExit).isTrue();
+    }
+
+    @Test
+    void scansDefaultDirectoryWhenInputMissing() throws Exception {
+        IngestService service = mock(IngestService.class);
+        DefaultApplicationArguments args = new DefaultApplicationArguments("--mode=scan");
+        IngestApplication app = new IngestApplication();
+
+        boolean shouldExit = app.processArgs(service, args);
+
+        verify(service).scanAndIngest(Path.of("/incoming"));
+        assertThat(shouldExit).isTrue();
+    }
 }
