@@ -2,6 +2,7 @@ package com.example.ingest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class DirectoryWatchServiceTest {
+class DirectoryWatchServiceIntegrationTest {
     private DirectoryWatchService watcher;
 
     @AfterEach
@@ -22,8 +23,7 @@ class DirectoryWatchServiceTest {
     }
 
     @Test
-    void ingestsAndMovesNewCsvFiles() throws Exception {
-        Path dir = Files.createTempDirectory("watch");
+    void ingestsAndMovesNewCsvFiles(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any())).thenReturn(true);
         watcher = new DirectoryWatchService(ingestService, dir.toString());
@@ -42,8 +42,7 @@ class DirectoryWatchServiceTest {
     }
 
     @Test
-    void movesFailedFilesAndContinuesWatching() throws Exception {
-        Path dir = Files.createTempDirectory("watch");
+    void movesFailedFilesAndContinuesWatching(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any())).thenReturn(false, true);
         watcher = new DirectoryWatchService(ingestService, dir.toString());
