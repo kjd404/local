@@ -1,6 +1,7 @@
 package org.artificers.ingest;
 
-import org.artificers.jooq.tables.Transactions;
+import org.artificers.jooq.tables.ChaseTransactions;
+import org.artificers.jooq.tables.CapitalOneTransactions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -17,9 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SchemaConsistencyTest {
     @Test
     void databaseColumnTypesMatchExpectations() {
-        assertThat(Transactions.TRANSACTIONS.AMOUNT_CENTS.getDataType().getType())
+        assertThat(ChaseTransactions.CHASE_TRANSACTIONS.AMOUNT_CENTS.getDataType().getType())
                 .isEqualTo(Long.class);
-        assertThat(Transactions.TRANSACTIONS.CURRENCY.getDataType().getType())
+        assertThat(CapitalOneTransactions.CAPITAL_ONE_TRANSACTIONS.AMOUNT_CENTS.getDataType().getType())
+                .isEqualTo(Long.class);
+        assertThat(ChaseTransactions.CHASE_TRANSACTIONS.CURRENCY.getDataType().getType())
+                .isEqualTo(String.class);
+        assertThat(CapitalOneTransactions.CAPITAL_ONE_TRANSACTIONS.CURRENCY.getDataType().getType())
                 .isEqualTo(String.class);
     }
 
