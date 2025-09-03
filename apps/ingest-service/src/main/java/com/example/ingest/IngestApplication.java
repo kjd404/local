@@ -37,7 +37,9 @@ public class IngestApplication {
     boolean processArgs(IngestService service, ApplicationArguments args) throws Exception {
         if (args.containsOption("file")) {
             String file = args.getOptionValues("file").get(0);
-            boolean ok = service.ingestFile(Path.of(file));
+            Path p = Path.of(file);
+            String shorthand = AccountResolver.extractShorthand(p);
+            boolean ok = shorthand != null && service.ingestFile(p, shorthand);
             if (!ok) {
                 log.warn("Ingestion failed for {}", file);
             }

@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class DirectoryWatchService {
@@ -20,6 +22,7 @@ public class DirectoryWatchService {
     private final Path directory;
     private final ExecutorService executor;
     private WatchService watchService;
+    private static final Pattern FILE_PATTERN = Pattern.compile("^([a-zA-Z]+\\d{4}).*\\.csv$");
 
     public DirectoryWatchService(IngestService ingestService, @Value("${INGEST_DIR:/incoming}") String dir) {
         this.ingestService = ingestService;
@@ -55,8 +58,10 @@ public class DirectoryWatchService {
                 for (WatchEvent<?> event : key.pollEvents()) {
                     if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                         Path filename = (Path) event.context();
-                        if (filename.toString().endsWith(".csv")) {
-                            handleFile(filename);
+                        Matcher m = FILE_PATTERN.matcher(filename.toString());
+                        if (m.matches()) {
+                            String shorthand = m.group(1).toLowerCase();
+                            handleFile(filename, shorthand);
                         }
                     }
                 }
@@ -69,9 +74,9 @@ public class DirectoryWatchService {
         }
     }
 
-    private void handleFile(Path filename) {
+    private void handleFile(Path filename, String shorthand) {
         Path file = directory.resolve(filename);
-        boolean ok = ingestService.ingestFile(file);
+        boolean ok = ingestService.ingestFile(file, shorthand);
         Path target = directory.resolve(ok ? "processed" : "failed");
         try {
             Files.createDirectories(target);

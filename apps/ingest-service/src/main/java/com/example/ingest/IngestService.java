@@ -13,6 +13,8 @@ import java.nio.file.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class IngestService {
@@ -20,18 +22,20 @@ public class IngestService {
 
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
-    private final List<TransactionCsvReader> readers;
+    private final Map<String, TransactionCsvReader> readers;
 
     public IngestService(DSLContext dsl, AccountResolver accountResolver, List<TransactionCsvReader> readers) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
-        this.readers = readers;
+        this.readers = readers.stream().collect(Collectors.toMap(TransactionCsvReader::institution, r -> r));
     }
 
     public void scanAndIngest(Path input) throws IOException {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(input, "*.csv")) {
             for (Path file : stream) {
-                boolean ok = ingestFile(file);
+                String shorthand = AccountResolver.extractShorthand(file);
+                if (shorthand == null) continue;
+                boolean ok = ingestFile(file, shorthand);
                 Path targetDir = input.resolveSibling(ok ? "processed" : "failed");
                 Files.createDirectories(targetDir);
                 Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
@@ -39,23 +43,28 @@ public class IngestService {
         }
     }
 
-    public boolean ingestFile(Path file) {
+    public boolean ingestFile(Path file, String shorthand) {
         try {
-            String csv = Files.readString(file);
-            for (TransactionCsvReader r : readers) {
-                try (Reader reader = new StringReader(csv)) {
-                    List<TransactionRecord> txs = r.read(file, reader);
-                    if (txs.isEmpty()) continue;
-                    ResolvedAccount account = accountResolver.resolve(txs, file);
-                    txs.forEach(t -> upsert(t, account.id(), account.institution()));
-                    return true;
-                } catch (RuntimeException e) {
-                    log.debug("Reader {} failed for {}", r.getClass().getSimpleName(), file, e);
-                }
+            AccountResolver.ParsedShorthand ids = AccountResolver.parse(shorthand);
+            TransactionCsvReader reader = readers.get(ids.institution());
+            if (reader == null) {
+                log.error("No reader for institution {}", ids.institution());
+                return false;
             }
-            log.error("No reader handled {}", file);
+            String csv = Files.readString(file);
+            try (Reader r = new StringReader(csv)) {
+                List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
+                if (txs.isEmpty()) return false;
+                ResolvedAccount account = accountResolver.resolve(shorthand);
+                txs.forEach(t -> upsert(t, account.id(), account.institution()));
+                return true;
+            } catch (RuntimeException e) {
+                log.debug("Reader {} failed for {}", reader.getClass().getSimpleName(), file, e);
+            }
         } catch (IOException e) {
             log.error("Failed to ingest {}", file, e);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid shorthand {} for file {}", shorthand, file, e);
         }
         return false;
     }

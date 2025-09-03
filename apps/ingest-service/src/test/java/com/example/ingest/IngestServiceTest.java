@@ -16,7 +16,7 @@ class IngestServiceTest {
         AccountResolver resolver = mock(AccountResolver.class);
         IngestService service = new IngestService(dsl, resolver, List.of());
 
-        boolean ok = service.ingestFile(Path.of("does-not-exist.csv"));
+        boolean ok = service.ingestFile(Path.of("does-not-exist.csv"), "ch1111");
 
         assertThat(ok).isFalse();
     }
