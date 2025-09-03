@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SpringBootApplication
@@ -27,11 +28,23 @@ public class IngestApplication {
     @Bean
     CommandLineRunner runner(IngestService service, ApplicationArguments args) {
         return a -> {
-            if (args.containsOption("mode") && args.getOptionValues("mode").contains("scan")) {
-                String input = args.containsOption("input") ? args.getOptionValues("input").get(0) : "/incoming";
-                service.scanAndIngest(Paths.get(input));
+            if (processArgs(service, args)) {
                 System.exit(0);
             }
         };
+    }
+
+    boolean processArgs(IngestService service, ApplicationArguments args) throws Exception {
+        if (args.containsOption("file")) {
+            String file = args.getOptionValues("file").get(0);
+            service.ingestFile(Path.of(file));
+            return true;
+        }
+        if (args.containsOption("mode") && args.getOptionValues("mode").contains("scan")) {
+            String input = args.containsOption("input") ? args.getOptionValues("input").get(0) : "/incoming";
+            service.scanAndIngest(Paths.get(input));
+            return true;
+        }
+        return false;
     }
 }
