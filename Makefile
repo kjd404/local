@@ -19,10 +19,19 @@ docker-build: build-app
 # Run the ingest-service container locally pointing at a Postgres database
 # Example usage: `make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=user DB_PASSWORD=pass`
 docker-run:
-	docker run --rm -p 8080:8080 \
-		-e DB_URL=$(DB_URL) \
-		-e DB_USER=$(DB_USER) \
-		-e DB_PASSWORD=$(DB_PASSWORD) \
+	-docker rm -f ingest-service >/dev/null 2>&1 || true
+	docker run --rm --name ingest-service -p 8080:8080 \\
+		-e DB_URL=$(DB_URL) \\
+		-e DB_USER=$(DB_USER) \\
+		-e DB_PASSWORD=$(DB_PASSWORD) \\
 		ingest-service:latest
 
-.PHONY: build-app docker-build docker-run
+# Apply database migrations using Flyway
+db-migrate:
+	./scripts/migrate.sh
+
+# Tail logs from the running ingest-service container
+docker-logs:
+	./scripts/app-logs.sh
+
+.PHONY: build-app docker-build docker-run db-migrate docker-logs
