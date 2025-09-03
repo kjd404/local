@@ -48,6 +48,6 @@ public class ChaseFreedomCsvReader extends BaseCsvReader implements TransactionC
         String occurred = occurredAt == null ? "" : occurredAt.toString();
         String hash = DigestUtils.sha256Hex(accountId + amountCents + occurred + merchant);
         return new GenericTransaction(accountId, occurredAt, postedAt, amountCents,
-                currency, merchant, category, type, memo, hash, rawJson, "chase");
+                currency, merchant, category, type, memo, hash, rawJson);
     }
 }

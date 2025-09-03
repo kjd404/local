@@ -2,7 +2,7 @@ package com.example.ingest;
 
 import java.time.Instant;
 
-public final class GenericTransaction implements TransactionRecord, SourceAware {
+public final class GenericTransaction implements TransactionRecord {
     private final String accountId;
     private final Instant occurredAt;
     private final Instant postedAt;
@@ -14,7 +14,6 @@ public final class GenericTransaction implements TransactionRecord, SourceAware 
     private final String memo;
     private final String hash;
     private final String rawJson;
-    private final String source;
 
     public GenericTransaction(
             String accountId,
@@ -27,8 +26,7 @@ public final class GenericTransaction implements TransactionRecord, SourceAware 
             String type,
             String memo,
             String hash,
-            String rawJson,
-            String source) {
+            String rawJson) {
         this.accountId = accountId;
         this.occurredAt = occurredAt;
         this.postedAt = postedAt;
@@ -40,7 +38,6 @@ public final class GenericTransaction implements TransactionRecord, SourceAware 
         this.memo = memo;
         this.hash = hash;
         this.rawJson = rawJson;
-        this.source = source;
     }
 
     @Override
@@ -76,6 +73,4 @@ public final class GenericTransaction implements TransactionRecord, SourceAware 
     @Override
     public String rawJson() { return rawJson; }
 
-    @Override
-    public String source() { return source; }
 }
