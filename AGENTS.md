@@ -53,7 +53,7 @@ and constructor-based immutability.
 1. `docker compose up -d` to start Postgres.
 2. `cp .env-sample .env` and set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
 3. `make build-app` to generate the application JAR.
-4. Drop a sample CSV into `storage/incoming/`, or run the app locally pointing at the database.
+4. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/com/example/ingest`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
 - Run unit tests with `cd apps/ingest-service && ./gradlew test`.

@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AccountCreationIntegrationTest {
     private DSLContext dsl;
     private AccountResolver resolver;
-    private TransactionCsvReader reader;
 
     @BeforeEach
     void setup() {
@@ -25,7 +24,6 @@ public class AccountCreationIntegrationTest {
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
         dsl.execute("create unique index on accounts(institution, external_id)");
         resolver = new AccountResolver(dsl);
-        reader = new ChaseFreedomCsvReader();
     }
 
     private Path copyResource(String resource) throws IOException {
@@ -40,32 +38,30 @@ public class AccountCreationIntegrationTest {
 
     @Test
     void createsAndReusesAccountsFromFilename() throws Exception {
-        Path file1 = copyResource("/com/example/ingest/ch1111.csv");
+        Path file1 = copyResource("/com/example/ingest/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1)) {
-            List<TransactionRecord> txs = reader.read(file1, in, "1111");
-            long id1 = resolver.resolve("ch1111").id();
+            List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1, in, "1234");
+            long id1 = resolver.resolve("ch1234").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
             assertEquals("ch", dsl.fetchValue("select institution from accounts where id = ?", id1));
-            assertEquals("1111", dsl.fetchValue("select external_id from accounts where id = ?", id1));
+            assertEquals("1234", dsl.fetchValue("select external_id from accounts where id = ?", id1));
         }
 
-        // Re-ingest same account
-        Path file1b = copyResource("/com/example/ingest/ch1111.csv");
+        Path file1b = copyResource("/com/example/ingest/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1b)) {
-            List<TransactionRecord> txs = reader.read(file1b, in, "1111");
-            long idAgain = resolver.resolve("ch1111").id();
+            List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1b, in, "1234");
+            long idAgain = resolver.resolve("ch1234").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
-            Long existingId = dsl.fetchOne("select id from accounts where institution='ch' and external_id='1111'")
+            Long existingId = dsl.fetchOne("select id from accounts where institution='ch' and external_id='1234'")
                     .get(0, Long.class);
             assertNotNull(existingId);
             assertEquals(existingId.longValue(), idAgain);
         }
 
-        // Ingest second account
-        Path file2 = copyResource("/com/example/ingest/ch2222.csv");
+        Path file2 = copyResource("/com/example/ingest/co1828-example.csv");
         try (Reader in = Files.newBufferedReader(file2)) {
-            List<TransactionRecord> txs = reader.read(file2, in, "2222");
-            resolver.resolve("ch2222");
+            List<TransactionRecord> txs = new CapitalOneVentureXCsvReader().read(file2, in, "1828");
+            resolver.resolve("co1828");
         }
         assertEquals(2, dsl.fetchCount(DSL.table("accounts")));
     }
