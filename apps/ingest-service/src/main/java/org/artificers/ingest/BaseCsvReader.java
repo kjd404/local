@@ -18,7 +18,7 @@ abstract class BaseCsvReader {
                 LocalDate d = LocalDate.parse(v, DateTimeFormatter.ISO_DATE);
                 return d.atStartOfDay(ZoneOffset.UTC).toInstant();
             } catch (DateTimeParseException e2) {
-                LocalDate d = LocalDate.parse(v, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                LocalDate d = LocalDate.parse(v, DateTimeFormatter.ofPattern("M/d/yyyy"));
                 return d.atStartOfDay(ZoneOffset.UTC).toInstant();
             }
         }
