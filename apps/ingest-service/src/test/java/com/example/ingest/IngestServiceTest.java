@@ -29,8 +29,8 @@ class IngestServiceTest {
         TransactionRecord dummy = new GenericTransaction("id", null, null, 1, "USD", "m", "c", null, null, "h", "{}");
         when(chReader.read(any(), any(), eq("1234"))).thenReturn(List.of(dummy));
         when(coReader.read(any(), any(), eq("1828"))).thenReturn(List.of(dummy));
-        when(resolver.resolve("ch1234")).thenReturn(new ResolvedAccount(1L, "ch", "1234"));
-        when(resolver.resolve("co1828")).thenReturn(new ResolvedAccount(2L, "co", "1828"));
+        when(resolver.resolve(any(DSLContext.class), eq("ch1234"))).thenReturn(new ResolvedAccount(1L, "ch", "1234"));
+        when(resolver.resolve(any(DSLContext.class), eq("co1828"))).thenReturn(new ResolvedAccount(2L, "co", "1828"));
 
         Files.writeString(dir.resolve("ch1234-example.csv"), "id,amount\n1,10");
         Files.writeString(dir.resolve("co1828-example.csv"), "id,amount\n1,10");
@@ -40,7 +40,7 @@ class IngestServiceTest {
 
         verify(chReader).read(eq(dir.resolve("ch1234-example.csv")), any(), eq("1234"));
         verify(coReader).read(eq(dir.resolve("co1828-example.csv")), any(), eq("1828"));
-        verify(resolver).resolve("ch1234");
-        verify(resolver).resolve("co1828");
+        verify(resolver).resolve(any(DSLContext.class), eq("ch1234"));
+        verify(resolver).resolve(any(DSLContext.class), eq("co1828"));
     }
 }
