@@ -56,7 +56,7 @@ public class IngestService {
                 List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
                 if (txs.isEmpty()) return false;
                 ResolvedAccount account = accountResolver.resolve(shorthand);
-                txs.forEach(t -> upsert(t, account.id(), account.institution()));
+                txs.forEach(t -> upsert(t, account.id()));
                 return true;
             } catch (RuntimeException e) {
                 log.debug("Reader {} failed for {}", reader.getClass().getSimpleName(), file, e);
@@ -69,7 +69,7 @@ public class IngestService {
         return false;
     }
 
-    private void upsert(TransactionRecord t, long accountPk, String source) {
+    private void upsert(TransactionRecord t, long accountPk) {
         dsl.insertInto(DSL.table("transactions"))
                 .set(DSL.field("account_id"), accountPk)
                 .set(DSL.field("occurred_at"), toTs(t.occurredAt()))
@@ -80,7 +80,6 @@ public class IngestService {
                 .set(DSL.field("category"), t.category())
                 .set(DSL.field("txn_type"), t.type())
                 .set(DSL.field("memo"), t.memo())
-                .set(DSL.field("source"), source)
                 .set(DSL.field("hash"), t.hash())
                 .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson()))
                 .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
