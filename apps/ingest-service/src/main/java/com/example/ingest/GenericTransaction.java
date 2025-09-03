@@ -73,4 +73,19 @@ public final class GenericTransaction implements TransactionRecord {
     @Override
     public String rawJson() { return rawJson; }
 
+    @Override
+    public String toString() {
+        return "GenericTransaction{" +
+                "accountId='" + accountId + '\'' +
+                ", occurredAt=" + occurredAt +
+                ", postedAt=" + postedAt +
+                ", amountCents=" + amountCents +
+                ", currency='" + currency + '\'' +
+                ", merchant='" + merchant + '\'' +
+                ", category='" + category + '\'' +
+                ", type='" + type + '\'' +
+                ", memo='" + memo + '\'' +
+                ", hash='" + hash + '\'' +
+                '}';
+    }
 }

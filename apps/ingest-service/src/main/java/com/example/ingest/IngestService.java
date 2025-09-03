@@ -31,11 +31,17 @@ public class IngestService {
     }
 
     public void scanAndIngest(Path input) throws IOException {
+        log.info("Scanning directory {}", input.toAbsolutePath());
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(input, "*.csv")) {
             for (Path file : stream) {
+                log.info("Found file {}", file);
                 String shorthand = AccountResolver.extractShorthand(file);
-                if (shorthand == null) continue;
+                if (shorthand == null) {
+                    log.warn("Skipping file {} with unrecognized name", file);
+                    continue;
+                }
                 boolean ok = ingestFile(file, shorthand);
+                log.info("Ingestion {} for file {}", ok ? "succeeded" : "failed", file);
                 Path targetDir = input.resolveSibling(ok ? "processed" : "error");
                 Files.createDirectories(targetDir);
                 Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
@@ -44,6 +50,7 @@ public class IngestService {
     }
 
     public boolean ingestFile(Path file, String shorthand) {
+        log.info("Ingesting file {} for shorthand {}", file, shorthand);
         try {
             AccountResolver.ParsedShorthand ids = AccountResolver.parse(shorthand);
             TransactionCsvReader reader = readers.get(ids.institution());
@@ -54,12 +61,17 @@ public class IngestService {
             String csv = Files.readString(file);
             try (Reader r = new StringReader(csv)) {
                 List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
-                if (txs.isEmpty()) return false;
+                if (txs.isEmpty()) {
+                    log.warn("No transactions found in {}", file);
+                    return false;
+                }
+                txs.forEach(t -> log.info("Read transaction: {}", t));
                 dsl.transaction(conf -> {
                     DSLContext ctx = DSL.using(conf);
                     ResolvedAccount account = accountResolver.resolve(ctx, shorthand);
                     txs.forEach(t -> upsert(ctx, t, account.id()));
                 });
+                log.info("Successfully ingested {} transactions from {}", txs.size(), file);
                 return true;
             }
         } catch (IllegalArgumentException e) {

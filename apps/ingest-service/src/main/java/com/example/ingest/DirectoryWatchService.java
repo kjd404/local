@@ -96,7 +96,9 @@ public class DirectoryWatchService {
 
     private void handleFile(Path filename, String shorthand) {
         Path file = directory.resolve(filename);
+        log.info("Processing file {} with shorthand {}", file, shorthand);
         boolean ok = ingestService.ingestFile(file, shorthand);
+        log.info("Finished processing file {}: {}", file, ok ? "success" : "failure");
         Path target = directory.resolve(ok ? "processed" : "error");
         try {
             Files.createDirectories(target);
