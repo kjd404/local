@@ -46,8 +46,10 @@ public class IngestApplication {
             return true;
         }
         if (args.containsOption("mode") && args.getOptionValues("mode").contains("scan")) {
-            String input = args.containsOption("input") ? args.getOptionValues("input").get(0) : "/incoming";
-            service.scanAndIngest(Paths.get(input));
+            Path input = args.containsOption("input")
+                    ? Path.of(args.getOptionValues("input").get(0))
+                    : Path.of("storage", "incoming");
+            service.scanAndIngest(input);
             return true;
         }
         return false;

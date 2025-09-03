@@ -19,7 +19,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - Adds tests and sample data.
 
 **Checklist**
-- [ ] CLI `--mode=scan --input=/incoming` ingests sample CSV → Postgres.
+- [ ] CLI `--mode=scan` ingests sample CSV from `storage/incoming` → Postgres.
 - [ ] Unit test covers mapper edge cases (dates, negative amounts, UTF-8).
 - [ ] Docker image builds for arm64/amd64 (if feasible).
 

@@ -43,7 +43,7 @@ class IngestApplicationTest {
 
         boolean shouldExit = app.processArgs(service, args);
 
-        verify(service).scanAndIngest(Path.of("/incoming"));
+        verify(service).scanAndIngest(Path.of("storage/incoming"));
         assertThat(shouldExit).isTrue();
     }
 }
