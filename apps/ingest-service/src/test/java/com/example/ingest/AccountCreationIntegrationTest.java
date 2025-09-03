@@ -40,32 +40,32 @@ public class AccountCreationIntegrationTest {
 
     @Test
     void createsAndReusesAccountsFromFilename() throws Exception {
-        Path file1 = copyResource("/com/example/ingest/chase-1111.csv");
+        Path file1 = copyResource("/com/example/ingest/ch1111.csv");
         try (Reader in = Files.newBufferedReader(file1)) {
-            List<TransactionRecord> txs = reader.read(file1, in);
-            long id1 = resolver.resolve(txs, file1).id();
+            List<TransactionRecord> txs = reader.read(file1, in, "1111");
+            long id1 = resolver.resolve("ch1111").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
-            assertEquals("chase", dsl.fetchValue("select institution from accounts where id = ?", id1));
+            assertEquals("ch", dsl.fetchValue("select institution from accounts where id = ?", id1));
             assertEquals("1111", dsl.fetchValue("select external_id from accounts where id = ?", id1));
         }
 
         // Re-ingest same account
-        Path file1b = copyResource("/com/example/ingest/chase-1111.csv");
+        Path file1b = copyResource("/com/example/ingest/ch1111.csv");
         try (Reader in = Files.newBufferedReader(file1b)) {
-            List<TransactionRecord> txs = reader.read(file1b, in);
-            long idAgain = resolver.resolve(txs, file1b).id();
+            List<TransactionRecord> txs = reader.read(file1b, in, "1111");
+            long idAgain = resolver.resolve("ch1111").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
-            Long existingId = dsl.fetchOne("select id from accounts where institution='chase' and external_id='1111'")
+            Long existingId = dsl.fetchOne("select id from accounts where institution='ch' and external_id='1111'")
                     .get(0, Long.class);
             assertNotNull(existingId);
             assertEquals(existingId.longValue(), idAgain);
         }
 
         // Ingest second account
-        Path file2 = copyResource("/com/example/ingest/chase-2222.csv");
+        Path file2 = copyResource("/com/example/ingest/ch2222.csv");
         try (Reader in = Files.newBufferedReader(file2)) {
-            List<TransactionRecord> txs = reader.read(file2, in);
-            resolver.resolve(txs, file2);
+            List<TransactionRecord> txs = reader.read(file2, in, "2222");
+            resolver.resolve("ch2222");
         }
         assertEquals(2, dsl.fetchCount(DSL.table("accounts")));
     }

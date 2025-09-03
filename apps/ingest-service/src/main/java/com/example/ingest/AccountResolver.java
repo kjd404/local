@@ -7,94 +7,53 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Component
 public class AccountResolver {
-    private static final Pattern FILE_PATTERN = Pattern.compile("([A-Za-z0-9]+)[-_]([A-Za-z0-9]+)");
-    private final DSLContext dsl;
+    private static final Pattern SHORTHAND = Pattern.compile("^([A-Za-z]+)(\\d{4})$");
+    private static final Pattern FILE_PATTERN = Pattern.compile("^([A-Za-z]+\\d{4}).*\\.csv$");
 
-    public AccountResolver(DSLContext dsl) {
-        this.dsl = dsl;
+    public static String extractShorthand(Path path) {
+        Matcher m = FILE_PATTERN.matcher(path.getFileName().toString());
+        return m.matches() ? m.group(1).toLowerCase() : null;
     }
 
-    public ResolvedAccount resolve(List<? extends TransactionRecord> txs, Path file) {
-        String source = uniqueValue(
-                txs.stream()
-                        .filter(t -> t instanceof SourceAware)
-                        .map(t -> ((SourceAware) t).source())
-                        .filter(Objects::nonNull)
-                        .filter(s -> !s.isBlank())
-                        .collect(Collectors.toList()),
-                "source");
-        String external = uniqueValue(
-                txs.stream()
-                        .map(TransactionRecord::accountId)
-                        .filter(Objects::nonNull)
-                        .filter(s -> !s.isBlank())
-                        .collect(Collectors.toList()),
-                "account");
+    public static ParsedShorthand parse(String shorthand) {
+        if (shorthand == null) throw new IllegalArgumentException("Missing account shorthand");
+        Matcher m = SHORTHAND.matcher(shorthand.toLowerCase());
+        if (!m.matches()) throw new IllegalArgumentException("Invalid account shorthand");
+        return new ParsedShorthand(m.group(1), m.group(2));
+    }
 
-        String fileSource = null;
-        String fileExternal = null;
-        if (file != null) {
-            Matcher m = FILE_PATTERN.matcher(file.getFileName().toString());
-            if (m.find()) {
-                fileSource = m.group(1);
-                fileExternal = m.group(2);
-            }
-        }
+    public record ParsedShorthand(String institution, String externalId) {}
 
-        if (source == null) {
-            source = fileSource;
-        } else if (fileSource != null && !fileSource.equals(source)) {
-            throw new IllegalArgumentException("Ambiguous source identifiers");
-        }
+    private final DSLContext dsl;
 
-        if (external == null) {
-            external = fileExternal;
-        } else if (fileExternal != null && !fileExternal.equals(external)) {
-            throw new IllegalArgumentException("Ambiguous account identifiers");
-        }
+    public AccountResolver(DSLContext dsl) { this.dsl = dsl; }
 
-        if (source == null || external == null) {
-            throw new IllegalArgumentException("Missing account identifiers");
-        }
-
+    public ResolvedAccount resolve(String shorthand) {
+        ParsedShorthand ids = parse(shorthand);
         Record1<Long> existing = dsl.select(Accounts.ACCOUNTS.ID)
                 .from(Accounts.ACCOUNTS)
-                .where(Accounts.ACCOUNTS.INSTITUTION.eq(source)
-                        .and(Accounts.ACCOUNTS.EXTERNAL_ID.eq(external)))
+                .where(Accounts.ACCOUNTS.INSTITUTION.eq(ids.institution())
+                        .and(Accounts.ACCOUNTS.EXTERNAL_ID.eq(ids.externalId())))
                 .fetchOne();
         if (existing != null) {
-            return new ResolvedAccount(existing.value1(), source, external);
+            return new ResolvedAccount(existing.value1(), ids.institution(), ids.externalId());
         }
-
         OffsetDateTime now = OffsetDateTime.now();
         long id = dsl.insertInto(Accounts.ACCOUNTS)
-                .set(Accounts.ACCOUNTS.INSTITUTION, source)
-                .set(Accounts.ACCOUNTS.EXTERNAL_ID, external)
-                .set(Accounts.ACCOUNTS.DISPLAY_NAME, external)
+                .set(Accounts.ACCOUNTS.INSTITUTION, ids.institution())
+                .set(Accounts.ACCOUNTS.EXTERNAL_ID, ids.externalId())
+                .set(Accounts.ACCOUNTS.DISPLAY_NAME, ids.externalId())
                 .set(Accounts.ACCOUNTS.CREATED_AT, now)
                 .set(Accounts.ACCOUNTS.UPDATED_AT, now)
                 .returning(Accounts.ACCOUNTS.ID)
                 .fetchOne()
                 .get(Accounts.ACCOUNTS.ID);
-        return new ResolvedAccount(id, source, external);
-    }
-
-    private String uniqueValue(List<String> values, String field) {
-        if (values.isEmpty()) return null;
-        String first = values.get(0);
-        for (String v : values) {
-            if (!first.equals(v)) {
-                throw new IllegalArgumentException("Ambiguous " + field + " identifiers");
-            }
-        }
-        return first;
+        return new ResolvedAccount(id, ids.institution(), ids.externalId());
     }
 }
+

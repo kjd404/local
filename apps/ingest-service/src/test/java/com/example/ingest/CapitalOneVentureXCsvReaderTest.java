@@ -15,7 +15,7 @@ class CapitalOneVentureXCsvReaderTest {
                 "2025-04-30,2025-04-30,1828,CAPITAL ONE MOBILE PYMT,Payment/Credit,,600.00\n" +
                 "2025-04-28,2025-04-30,1828,TST*ROYAL BAKEHOUSE,Dining,14.12,\n";
         CapitalOneVentureXCsvReader reader = new CapitalOneVentureXCsvReader();
-        List<TransactionRecord> txs = reader.read(null, new StringReader(csv));
+        List<TransactionRecord> txs = reader.read(null, new StringReader(csv), "1828");
         assertEquals(2, txs.size());
         TransactionRecord t0 = txs.get(0);
         assertEquals("1828", t0.accountId());

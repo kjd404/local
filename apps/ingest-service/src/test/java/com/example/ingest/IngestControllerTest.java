@@ -12,10 +12,10 @@ class IngestControllerTest {
     @Test
     void returnsServerErrorWhenIngestionFails() {
         IngestService service = mock(IngestService.class);
-        when(service.ingestFile(any())).thenReturn(false);
+        when(service.ingestFile(any(), any())).thenReturn(false);
         IngestController controller = new IngestController(service);
 
-        ResponseEntity<Void> resp = controller.ingest("/tmp/sample.csv");
+        ResponseEntity<Void> resp = controller.ingest("/tmp/ch1111.csv");
 
         assertThat(resp.getStatusCode().is5xxServerError()).isTrue();
     }
@@ -23,10 +23,10 @@ class IngestControllerTest {
     @Test
     void returnsOkWhenIngestionSucceeds() {
         IngestService service = mock(IngestService.class);
-        when(service.ingestFile(any())).thenReturn(true);
+        when(service.ingestFile(any(), any())).thenReturn(true);
         IngestController controller = new IngestController(service);
 
-        ResponseEntity<Void> resp = controller.ingest("/tmp/sample.csv");
+        ResponseEntity<Void> resp = controller.ingest("/tmp/ch1111.csv");
 
         assertThat(resp.getStatusCode().is2xxSuccessful()).isTrue();
     }

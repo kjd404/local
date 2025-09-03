@@ -17,7 +17,9 @@ public class IngestController {
 
     @PostMapping("/ingest/file")
     public ResponseEntity<Void> ingest(@RequestParam("path") String path) {
-        boolean ok = service.ingestFile(Path.of(path));
+        Path p = Path.of(path);
+        String shorthand = AccountResolver.extractShorthand(p);
+        boolean ok = shorthand != null && service.ingestFile(p, shorthand);
         return ok ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
     }
 }

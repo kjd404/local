@@ -18,22 +18,24 @@ import java.util.Map;
 @Component
 public class CapitalOneVentureXCsvReader extends BaseCsvReader implements TransactionCsvReader {
     @Override
-    public List<TransactionRecord> read(Path file, Reader reader) {
+    public String institution() { return "co"; }
+
+    @Override
+    public List<TransactionRecord> read(Path file, Reader reader, String accountId) {
         try (CSVReader csv = new CSVReader(reader)) {
             List<String[]> rows = csv.readAll();
             String[] header = Arrays.stream(rows.remove(0)).map(this::normalize).toArray(String[]::new);
-            return rows.stream().map(r -> mapRow(header, r)).toList();
+            return rows.stream().map(r -> mapRow(accountId, header, r)).toList();
         } catch (IOException | CsvException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private TransactionRecord mapRow(String[] header, String[] row) {
+    private TransactionRecord mapRow(String accountId, String[] header, String[] row) {
         Map<String, String> m = new LinkedHashMap<>();
         for (int i = 0; i < header.length && i < row.length; i++) {
             m.put(header[i], row[i]);
         }
-        String accountId = m.get("card_no");
         Instant occurredAt = parseDate(m.get("transaction_date"));
         Instant postedAt = parseDate(m.get("posted_date"));
         long amountCents = parseAmount(m.get("credit"), m.get("debit"));
@@ -44,7 +46,7 @@ public class CapitalOneVentureXCsvReader extends BaseCsvReader implements Transa
         String memo = null;
         String rawJson = new ObjectMapper().valueToTree(m).toString();
         String occurred = occurredAt == null ? "" : occurredAt.toString();
-        String hash = DigestUtils.sha256Hex((accountId == null ? "" : accountId) + amountCents + occurred + merchant);
+        String hash = DigestUtils.sha256Hex(accountId + amountCents + occurred + merchant);
         return new CapitalOneVentureXTransaction(accountId, occurredAt, postedAt, amountCents,
                 currency, merchant, category, type, memo, hash, rawJson);
     }

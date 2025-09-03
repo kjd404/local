@@ -5,6 +5,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface TransactionCsvReader {
-    List<TransactionRecord> read(Path file, Reader reader);
+    /**
+     * Shorthand institution code used in filenames (e.g. "ch" for Chase).
+     */
+    String institution();
+
+    /**
+     * Read transactions for the given account. The accountId is taken from the
+     * filename shorthand and should be applied to every transaction rather than
+     * parsed from the CSV contents.
+     */
+    List<TransactionRecord> read(Path file, Reader reader, String accountId);
 }
 

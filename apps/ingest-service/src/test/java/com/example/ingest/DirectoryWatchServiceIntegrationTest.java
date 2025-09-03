@@ -25,44 +25,44 @@ class DirectoryWatchServiceIntegrationTest {
     @Test
     void ingestsAndMovesNewCsvFiles(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
-        when(ingestService.ingestFile(any())).thenReturn(true);
+        when(ingestService.ingestFile(any(), any())).thenReturn(true);
         watcher = new DirectoryWatchService(ingestService, dir.toString());
         watcher.start();
 
-        Path file = dir.resolve("sample.csv");
+        Path file = dir.resolve("ch1111-sample.csv");
         Files.writeString(file, "id,amount\n1,10");
 
-        Path processed = dir.resolve("processed").resolve("sample.csv");
+        Path processed = dir.resolve("processed").resolve("ch1111-sample.csv");
         for (int i = 0; i < 50 && !Files.exists(processed); i++) {
             TimeUnit.MILLISECONDS.sleep(100);
         }
 
-        verify(ingestService, timeout(5000)).ingestFile(file);
+        verify(ingestService, timeout(5000)).ingestFile(file, "ch1111");
         assertThat(Files.exists(processed)).isTrue();
     }
 
     @Test
     void movesFailedFilesAndContinuesWatching(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
-        when(ingestService.ingestFile(any())).thenReturn(false, true);
+        when(ingestService.ingestFile(any(), any())).thenReturn(false, true);
         watcher = new DirectoryWatchService(ingestService, dir.toString());
         watcher.start();
 
-        Path bad = dir.resolve("bad.csv");
+        Path bad = dir.resolve("ch1111-bad.csv");
         Files.writeString(bad, "id,amount\n1,10");
-        Path failed = dir.resolve("failed").resolve("bad.csv");
+        Path failed = dir.resolve("failed").resolve("ch1111-bad.csv");
         for (int i = 0; i < 50 && !Files.exists(failed); i++) {
             TimeUnit.MILLISECONDS.sleep(100);
         }
 
-        Path good = dir.resolve("good.csv");
+        Path good = dir.resolve("ch1111-good.csv");
         Files.writeString(good, "id,amount\n1,10");
-        Path processed = dir.resolve("processed").resolve("good.csv");
+        Path processed = dir.resolve("processed").resolve("ch1111-good.csv");
         for (int i = 0; i < 50 && !Files.exists(processed); i++) {
             TimeUnit.MILLISECONDS.sleep(100);
         }
 
-        verify(ingestService, timeout(5000).times(2)).ingestFile(any());
+        verify(ingestService, timeout(5000).times(2)).ingestFile(any(), any());
         assertThat(Files.exists(failed)).isTrue();
         assertThat(Files.exists(processed)).isTrue();
     }
