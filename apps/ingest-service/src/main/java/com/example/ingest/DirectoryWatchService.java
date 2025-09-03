@@ -97,7 +97,7 @@ public class DirectoryWatchService {
     private void handleFile(Path filename, String shorthand) {
         Path file = directory.resolve(filename);
         boolean ok = ingestService.ingestFile(file, shorthand);
-        Path target = directory.resolve(ok ? "processed" : "failed");
+        Path target = directory.resolve(ok ? "processed" : "error");
         try {
             Files.createDirectories(target);
             Files.move(file, target.resolve(filename), StandardCopyOption.REPLACE_EXISTING);

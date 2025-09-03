@@ -50,8 +50,8 @@ class DirectoryWatchServiceIntegrationTest {
 
         Path bad = dir.resolve("ch1234-bad.csv");
         Files.writeString(bad, "id,amount\n1,10");
-        Path failed = dir.resolve("failed").resolve("ch1234-bad.csv");
-        for (int i = 0; i < 50 && !Files.exists(failed); i++) {
+        Path error = dir.resolve("error").resolve("ch1234-bad.csv");
+        for (int i = 0; i < 50 && !Files.exists(error); i++) {
             TimeUnit.MILLISECONDS.sleep(100);
         }
 
@@ -63,7 +63,7 @@ class DirectoryWatchServiceIntegrationTest {
         }
 
         verify(ingestService, timeout(5000).times(2)).ingestFile(any(), any());
-        assertThat(Files.exists(failed)).isTrue();
+        assertThat(Files.exists(error)).isTrue();
         assertThat(Files.exists(processed)).isTrue();
     }
 

@@ -34,8 +34,12 @@ public class AccountResolver {
     public AccountResolver(DSLContext dsl) { this.dsl = dsl; }
 
     public ResolvedAccount resolve(String shorthand) {
+        return resolve(this.dsl, shorthand);
+    }
+
+    public ResolvedAccount resolve(DSLContext ctx, String shorthand) {
         ParsedShorthand ids = parse(shorthand);
-        Record1<Long> existing = dsl.select(Accounts.ACCOUNTS.ID)
+        Record1<Long> existing = ctx.select(Accounts.ACCOUNTS.ID)
                 .from(Accounts.ACCOUNTS)
                 .where(Accounts.ACCOUNTS.INSTITUTION.eq(ids.institution())
                         .and(Accounts.ACCOUNTS.EXTERNAL_ID.eq(ids.externalId())))
@@ -44,7 +48,7 @@ public class AccountResolver {
             return new ResolvedAccount(existing.value1(), ids.institution(), ids.externalId());
         }
         OffsetDateTime now = OffsetDateTime.now();
-        long id = dsl.insertInto(Accounts.ACCOUNTS)
+        long id = ctx.insertInto(Accounts.ACCOUNTS)
                 .set(Accounts.ACCOUNTS.INSTITUTION, ids.institution())
                 .set(Accounts.ACCOUNTS.EXTERNAL_ID, ids.externalId())
                 .set(Accounts.ACCOUNTS.DISPLAY_NAME, ids.externalId())

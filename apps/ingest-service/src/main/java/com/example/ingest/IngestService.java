@@ -36,7 +36,7 @@ public class IngestService {
                 String shorthand = AccountResolver.extractShorthand(file);
                 if (shorthand == null) continue;
                 boolean ok = ingestFile(file, shorthand);
-                Path targetDir = input.resolveSibling(ok ? "processed" : "failed");
+                Path targetDir = input.resolveSibling(ok ? "processed" : "error");
                 Files.createDirectories(targetDir);
                 Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             }
@@ -55,22 +55,23 @@ public class IngestService {
             try (Reader r = new StringReader(csv)) {
                 List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
                 if (txs.isEmpty()) return false;
-                ResolvedAccount account = accountResolver.resolve(shorthand);
-                txs.forEach(t -> upsert(t, account.id()));
+                dsl.transaction(conf -> {
+                    DSLContext ctx = DSL.using(conf);
+                    ResolvedAccount account = accountResolver.resolve(ctx, shorthand);
+                    txs.forEach(t -> upsert(ctx, t, account.id()));
+                });
                 return true;
-            } catch (RuntimeException e) {
-                log.debug("Reader {} failed for {}", reader.getClass().getSimpleName(), file, e);
             }
-        } catch (IOException e) {
-            log.error("Failed to ingest {}", file, e);
         } catch (IllegalArgumentException e) {
             log.error("Invalid shorthand {} for file {}", shorthand, file, e);
+        } catch (Exception e) {
+            log.error("Failed to ingest {}", file, e);
         }
         return false;
     }
 
-    private void upsert(TransactionRecord t, long accountPk) {
-        dsl.insertInto(DSL.table("transactions"))
+    private void upsert(DSLContext ctx, TransactionRecord t, long accountPk) {
+        ctx.insertInto(DSL.table("transactions"))
                 .set(DSL.field("account_id"), accountPk)
                 .set(DSL.field("occurred_at"), toTs(t.occurredAt()))
                 .set(DSL.field("posted_at"), toTs(t.postedAt()))
@@ -81,7 +82,7 @@ public class IngestService {
                 .set(DSL.field("txn_type"), t.type())
                 .set(DSL.field("memo"), t.memo())
                 .set(DSL.field("hash"), t.hash())
-                .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson()))
+                .set(DSL.field("raw_json", String.class), t.rawJson())
                 .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
                 .doNothing()
                 .execute();
