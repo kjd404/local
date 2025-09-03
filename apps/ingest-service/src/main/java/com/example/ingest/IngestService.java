@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.file.*;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,12 +20,12 @@ public class IngestService {
 
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
-    private final CsvTransactionMapper mapper;
+    private final List<TransactionCsvReader> readers;
 
-    public IngestService(DSLContext dsl, AccountResolver accountResolver) {
+    public IngestService(DSLContext dsl, AccountResolver accountResolver, List<TransactionCsvReader> readers) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
-        this.mapper = new CsvTransactionMapper();
+        this.readers = readers;
     }
 
     public void scanAndIngest(Path input) throws IOException {
@@ -39,15 +40,24 @@ public class IngestService {
     }
 
     public boolean ingestFile(Path file) {
-        try (Reader reader = Files.newBufferedReader(file)) {
-            List<TransactionRecord> txs = mapper.parse(file, reader);
-            ResolvedAccount account = accountResolver.resolve(txs, file);
-            txs.forEach(t -> upsert(t, account.id(), account.institution()));
-            return true;
-        } catch (IOException | com.opencsv.exceptions.CsvException e) {
+        try {
+            String csv = Files.readString(file);
+            for (TransactionCsvReader r : readers) {
+                try (Reader reader = new StringReader(csv)) {
+                    List<TransactionRecord> txs = r.read(file, reader);
+                    if (txs.isEmpty()) continue;
+                    ResolvedAccount account = accountResolver.resolve(txs, file);
+                    txs.forEach(t -> upsert(t, account.id(), account.institution()));
+                    return true;
+                } catch (RuntimeException e) {
+                    log.debug("Reader {} failed for {}", r.getClass().getSimpleName(), file, e);
+                }
+            }
+            log.error("No reader handled {}", file);
+        } catch (IOException e) {
             log.error("Failed to ingest {}", file, e);
-            return false;
         }
+        return false;
     }
 
     private void upsert(TransactionRecord t, long accountPk, String source) {
