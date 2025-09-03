@@ -74,4 +74,19 @@ public final class CapitalOneVentureXTransaction implements TransactionRecord {
     @Override
     public String rawJson() { return rawJson; }
 
+    @Override
+    public String toString() {
+        return "CapitalOneVentureXTransaction{" +
+                "accountId='" + accountId + '\'' +
+                ", occurredAt=" + occurredAt +
+                ", postedAt=" + postedAt +
+                ", amountCents=" + amountCents +
+                ", currency='" + currency + '\'' +
+                ", merchant='" + merchant + '\'' +
+                ", category='" + category + '\'' +
+                ", type='" + type + '\'' +
+                ", memo='" + memo + '\'' +
+                ", hash='" + hash + '\'' +
+                '}';
+    }
 }
