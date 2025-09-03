@@ -69,12 +69,16 @@ public class DirectoryWatchService {
         }
     }
 
-    private void handleFile(Path filename) throws IOException, com.opencsv.exceptions.CsvException {
+    private void handleFile(Path filename) {
         Path file = directory.resolve(filename);
-        ingestService.ingestFile(file);
-        Path processed = directory.resolve("processed");
-        Files.createDirectories(processed);
-        Files.move(file, processed.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+        boolean ok = ingestService.ingestFile(file);
+        Path target = directory.resolve(ok ? "processed" : "failed");
+        try {
+            Files.createDirectories(target);
+            Files.move(file, target.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error("Failed to move file {} to {}", file, target, e);
+        }
     }
 }
 

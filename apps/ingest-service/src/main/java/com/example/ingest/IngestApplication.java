@@ -37,7 +37,10 @@ public class IngestApplication {
     boolean processArgs(IngestService service, ApplicationArguments args) throws Exception {
         if (args.containsOption("file")) {
             String file = args.getOptionValues("file").get(0);
-            service.ingestFile(Path.of(file));
+            boolean ok = service.ingestFile(Path.of(file));
+            if (!ok) {
+                log.warn("Ingestion failed for {}", file);
+            }
             return true;
         }
         if (args.containsOption("mode") && args.getOptionValues("mode").contains("scan")) {

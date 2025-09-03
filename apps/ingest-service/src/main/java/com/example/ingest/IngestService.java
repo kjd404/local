@@ -2,6 +2,8 @@ package com.example.ingest;
 
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.util.List;
 
 @Service
 public class IngestService {
+    private static final Logger log = LoggerFactory.getLogger(IngestService.class);
+
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
     private final CsvTransactionMapper mapper;
@@ -23,21 +27,25 @@ public class IngestService {
         this.mapper = new CsvTransactionMapper(accountResolver);
     }
 
-    public void scanAndIngest(Path input) throws IOException, com.opencsv.exceptions.CsvException {
+    public void scanAndIngest(Path input) throws IOException {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(input, "*.csv")) {
             for (Path file : stream) {
-                ingestFile(file);
-                Path processedDir = input.resolveSibling("processed");
-                Files.createDirectories(processedDir);
-                Files.move(file, processedDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                boolean ok = ingestFile(file);
+                Path targetDir = input.resolveSibling(ok ? "processed" : "failed");
+                Files.createDirectories(targetDir);
+                Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             }
         }
     }
 
-    public void ingestFile(Path file) throws IOException, com.opencsv.exceptions.CsvException {
+    public boolean ingestFile(Path file) {
         try (Reader reader = Files.newBufferedReader(file)) {
             List<Transaction> txs = mapper.parse(file, reader);
             txs.forEach(this::upsert);
+            return true;
+        } catch (IOException | com.opencsv.exceptions.CsvException e) {
+            log.error("Failed to ingest {}", file, e);
+            return false;
         }
     }
 
