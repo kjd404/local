@@ -38,6 +38,7 @@ public class DirectoryWatchService {
     @PostConstruct
     public void start() throws IOException {
         Files.createDirectories(directory);
+        log.info("Watching directory {} for new files", directory);
         watchService = FileSystems.getDefault().newWatchService();
         directory.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
         executor.submit(this::processEvents);
@@ -54,6 +55,7 @@ public class DirectoryWatchService {
     private void processEvents() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                log.debug("Polling {} for changes", directory);
                 WatchKey key = watchService.take();
                 for (WatchEvent<?> event : key.pollEvents()) {
                     if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
