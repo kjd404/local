@@ -2,10 +2,11 @@ package com.example.ingest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
 
 import java.nio.file.Path;
@@ -23,6 +24,11 @@ public class IngestApplication {
             System.setProperty("spring.datasource.url", JdbcUrl.from(rawUrl));
         }
         SpringApplication.run(IngestApplication.class, args);
+    }
+
+    @Bean
+    CommandLineRunner ingestDirLogger(@Value("${INGEST_DIR:storage/incoming}") String dir) {
+        return args -> log.info("Using ingest directory {}", Paths.get(dir).toAbsolutePath());
     }
 
     @Bean
