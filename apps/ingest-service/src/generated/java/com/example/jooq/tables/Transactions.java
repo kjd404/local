@@ -21,7 +21,6 @@ public class Transactions extends TableImpl<Record> {
     public final TableField<Record, String> CATEGORY = createField(DSL.name("category"), SQLDataType.VARCHAR, this, "");
     public final TableField<Record, String> TXN_TYPE = createField(DSL.name("txn_type"), SQLDataType.VARCHAR, this, "");
     public final TableField<Record, String> MEMO = createField(DSL.name("memo"), SQLDataType.VARCHAR, this, "");
-    public final TableField<Record, String> SOURCE = createField(DSL.name("source"), SQLDataType.VARCHAR.nullable(false), this, "");
     public final TableField<Record, String> HASH = createField(DSL.name("hash"), SQLDataType.VARCHAR.nullable(false), this, "");
     public final TableField<Record, JSONB> RAW_JSON = createField(DSL.name("raw_json"), SQLDataType.JSONB.nullable(false), this, "");
     public final TableField<Record, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
