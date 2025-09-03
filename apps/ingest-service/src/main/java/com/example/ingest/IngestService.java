@@ -24,7 +24,7 @@ public class IngestService {
     public IngestService(DSLContext dsl, AccountResolver accountResolver) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
-        this.mapper = new CsvTransactionMapper(accountResolver);
+        this.mapper = new CsvTransactionMapper();
     }
 
     public void scanAndIngest(Path input) throws IOException {
@@ -40,8 +40,9 @@ public class IngestService {
 
     public boolean ingestFile(Path file) {
         try (Reader reader = Files.newBufferedReader(file)) {
-            List<Transaction> txs = mapper.parse(file, reader);
-            txs.forEach(this::upsert);
+            List<TransactionRecord> txs = mapper.parse(file, reader);
+            ResolvedAccount account = accountResolver.resolve(txs, file);
+            txs.forEach(t -> upsert(t, account.id(), account.institution()));
             return true;
         } catch (IOException | com.opencsv.exceptions.CsvException e) {
             log.error("Failed to ingest {}", file, e);
@@ -49,20 +50,20 @@ public class IngestService {
         }
     }
 
-    private void upsert(Transaction t) {
+    private void upsert(TransactionRecord t, long accountPk, String source) {
         dsl.insertInto(DSL.table("transactions"))
-                .set(DSL.field("account_id"), t.accountPk)
-                .set(DSL.field("occurred_at"), toTs(t.occurredAt))
-                .set(DSL.field("posted_at"), toTs(t.postedAt))
-                .set(DSL.field("amount_cents"), t.amountCents)
-                .set(DSL.field("currency"), t.currency)
-                .set(DSL.field("merchant"), t.merchant)
-                .set(DSL.field("category"), t.category)
-                .set(DSL.field("txn_type"), t.type)
-                .set(DSL.field("memo"), t.memo)
-                .set(DSL.field("source"), t.source)
-                .set(DSL.field("hash"), t.hash)
-                .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson))
+                .set(DSL.field("account_id"), accountPk)
+                .set(DSL.field("occurred_at"), toTs(t.occurredAt()))
+                .set(DSL.field("posted_at"), toTs(t.postedAt()))
+                .set(DSL.field("amount_cents"), t.amountCents())
+                .set(DSL.field("currency"), t.currency())
+                .set(DSL.field("merchant"), t.merchant())
+                .set(DSL.field("category"), t.category())
+                .set(DSL.field("txn_type"), t.type())
+                .set(DSL.field("memo"), t.memo())
+                .set(DSL.field("source"), source)
+                .set(DSL.field("hash"), t.hash())
+                .set(DSL.field("raw_json"), DSL.field("?::jsonb", String.class, t.rawJson()))
                 .onConflict(DSL.field("account_id", Long.class), DSL.field("hash"))
                 .doNothing()
                 .execute();
