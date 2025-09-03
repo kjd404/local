@@ -20,11 +20,7 @@ docker-build: build-app
 # Example usage: `make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=user DB_PASSWORD=pass`
 docker-run:
 	-docker rm -f ingest-service >/dev/null 2>&1 || true
-	docker run --rm --name ingest-service -p 8080:8080 \\
-		-e DB_URL=$(DB_URL) \\
-		-e DB_USER=$(DB_USER) \\
-		-e DB_PASSWORD=$(DB_PASSWORD) \\
-		ingest-service:latest
+	docker run --rm --name ingest-service -p 8080:8080 -e DB_URL=$(DB_URL) -e DB_USER=$(DB_USER) -e DB_PASSWORD=$(DB_PASSWORD) ingest-service:latest
 
 # Apply database migrations using Flyway
 db-migrate:

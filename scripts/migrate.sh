@@ -8,6 +8,11 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=./export-env.sh
 source "$SCRIPT_DIR/export-env.sh"
 
+# Ensure DB_URL uses JDBC format for Flyway
+if [[ "$DB_URL" != jdbc:* ]]; then
+  DB_URL="jdbc:$DB_URL"
+fi
+
 docker run --rm \
   -v "$ROOT_DIR/ops/sql":/flyway/sql \
   flyway/flyway \
