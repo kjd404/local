@@ -130,8 +130,15 @@ public class IngestService {
 
     private void refreshMaterializedView() {
         try {
-            dsl.execute("REFRESH MATERIALIZED VIEW transactions_view");
-        } catch (DataAccessException e) {
+            boolean exists = dsl.fetchExists(
+                    DSL.selectOne()
+                            .from("pg_matviews")
+                            .where(DSL.field("matviewname").eq("transactions_view"))
+            );
+            if (exists) {
+                dsl.execute("REFRESH MATERIALIZED VIEW transactions_view");
+            }
+        } catch (Exception e) {
             log.debug("Skipping materialized view refresh: {}", e.getMessage());
         }
     }
