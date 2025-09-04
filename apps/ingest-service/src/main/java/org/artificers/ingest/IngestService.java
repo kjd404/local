@@ -101,6 +101,7 @@ public class IngestService {
         }
         try {
             ctx.insertInto(DSL.table(DSL.name(table)))
+                    .set(DSL.field(DSL.name(table, "account_id"), Long.class), account.id())
                     .set(DSL.field(DSL.name(table, "occurred_at"), OffsetDateTime.class), toOffsetDateTime(t.occurredAt()))
                     .set(DSL.field(DSL.name(table, "posted_at"), OffsetDateTime.class), toOffsetDateTime(t.postedAt()))
                     .set(DSL.field(DSL.name(table, "amount_cents"), Long.class), t.amountCents())
@@ -111,7 +112,10 @@ public class IngestService {
                     .set(DSL.field(DSL.name(table, "memo"), String.class), t.memo())
                     .set(DSL.field(DSL.name(table, "hash"), String.class), t.hash())
                     .set(DSL.field(DSL.name(table, "raw_json"), JSONB.class), JSONB.valueOf(t.rawJson()))
-                    .onConflict(DSL.field(DSL.name(table, "hash"), String.class))
+                    .onConflict(
+                            DSL.field(DSL.name(table, "account_id"), Long.class),
+                            DSL.field(DSL.name(table, "hash"), String.class)
+                    )
                     .doNothing()
                     .execute();
         } catch (DataAccessException e) {

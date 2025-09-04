@@ -12,6 +12,7 @@ public class ChaseTransactions extends TableImpl<Record> {
     public static final ChaseTransactions CHASE_TRANSACTIONS = new ChaseTransactions();
 
     public final TableField<Record, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.identity(true), this, "");
+    public final TableField<Record, Long> ACCOUNT_ID = createField(DSL.name("account_id"), SQLDataType.BIGINT.nullable(false), this, "");
     public final TableField<Record, OffsetDateTime> OCCURRED_AT = createField(DSL.name("occurred_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
     public final TableField<Record, OffsetDateTime> POSTED_AT = createField(DSL.name("posted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
     public final TableField<Record, Long> AMOUNT_CENTS = createField(DSL.name("amount_cents"), SQLDataType.BIGINT.nullable(false), this, "");
