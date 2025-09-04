@@ -1,0 +1,11 @@
+institution: xx
+fields:
+  date:
+    target: occurred_at
+    type: timestamp
+  amount:
+    target: amount_cents
+    type: currency
+  description:
+    target: merchant
+    type: string
