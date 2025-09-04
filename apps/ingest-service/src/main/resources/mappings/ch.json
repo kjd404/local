@@ -1,0 +1,12 @@
+{
+  "institution": "ch",
+  "fields": {
+    "transaction_date": {"target": "occurred_at", "type": "timestamp"},
+    "post_date": {"target": "posted_at", "type": "timestamp"},
+    "description": {"target": "merchant", "type": "string"},
+    "category": {"target": "category", "type": "string"},
+    "type": {"target": "type", "type": "string"},
+    "amount": {"target": "amount_cents", "type": "currency"},
+    "memo": {"target": "memo", "type": "string"}
+  }
+}
