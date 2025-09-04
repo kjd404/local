@@ -36,11 +36,19 @@ public class AccountCreationIntegrationTest {
         return file;
     }
 
+    private ConfigurableCsvReader reader(String institution) throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/mappings/" + institution + ".json")) {
+            ConfigurableCsvReader.Mapping mapping =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readValue(in, ConfigurableCsvReader.Mapping.class);
+            return new ConfigurableCsvReader(mapping);
+        }
+    }
+
     @Test
     void createsAndReusesAccountsFromFilename() throws Exception {
         Path file1 = copyResource("/examples/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1)) {
-            List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1, in, "1234");
+            List<TransactionRecord> txs = reader("ch").read(file1, in, "1234");
             long id1 = resolver.resolve("ch1234").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
             assertEquals("ch", dsl.fetchValue("select institution from accounts where id = ?", id1));
@@ -49,7 +57,7 @@ public class AccountCreationIntegrationTest {
 
         Path file1b = copyResource("/examples/ch1234-example.csv");
         try (Reader in = Files.newBufferedReader(file1b)) {
-            List<TransactionRecord> txs = new ChaseFreedomCsvReader().read(file1b, in, "1234");
+            List<TransactionRecord> txs = reader("ch").read(file1b, in, "1234");
             long idAgain = resolver.resolve("ch1234").id();
             assertEquals(1, dsl.fetchCount(DSL.table("accounts")));
             Long existingId = dsl.fetchOne("select id from accounts where institution='ch' and external_id='1234'")
@@ -60,7 +68,7 @@ public class AccountCreationIntegrationTest {
 
         Path file2 = copyResource("/examples/co1828-example.csv");
         try (Reader in = Files.newBufferedReader(file2)) {
-            List<TransactionRecord> txs = new CapitalOneVentureXCsvReader().read(file2, in, "1828");
+            List<TransactionRecord> txs = reader("co").read(file2, in, "1828");
             resolver.resolve("co1828");
         }
         assertEquals(2, dsl.fetchCount(DSL.table("accounts")));

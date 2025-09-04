@@ -1,4 +1,4 @@
-Transaction Date,Posted Date,Description,Amount
-2025-04-30T00:00:00Z,2025-04-30T00:00:00Z,Salary,1000.00
-2025-05-01,2025-05-02,Coffee Shop,-12.34
-05/03/2025,05/03/2025,Café Bücher,-20.00
+Transaction Date,Post Date,Description,Category,Type,Amount,Memo
+04/30/2025,04/30/2025,Payment Thank You-Mobile,,Payment,18.62,
+04/27/2025,04/29/2025,JetBrains Americas INC,Shopping,Sale,-18.62,
+
