@@ -19,6 +19,7 @@ class IngestServiceTransactionTest {
     @CsvSource({"ch", "co"})
     void ignoresDuplicateTransactions(String institution, @TempDir Path dir) throws Exception {
         DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        dsl.execute("drop view if exists transactions_view");
         dsl.execute("drop table if exists transactions");
         dsl.execute("drop table if exists accounts");
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
