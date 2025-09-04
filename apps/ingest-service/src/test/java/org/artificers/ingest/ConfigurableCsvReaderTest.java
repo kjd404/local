@@ -59,4 +59,24 @@ class ConfigurableCsvReaderTest {
         assertEquals(Instant.parse("2025-04-28T00:00:00Z"), t1.occurredAt());
         assertTrue(t1.rawJson().contains("\"card_no\":\"1828\""));
     }
+
+    @Test
+    void parsesIntAmounts() throws Exception {
+        String mapping = "{" +
+                "\"institution\":\"xx\"," +
+                "\"fields\":{" +
+                "\"date\":{\"target\":\"occurred_at\",\"type\":\"timestamp\"}," +
+                "\"debit\":{\"target\":\"amount_cents\",\"type\":\"int\"}," +
+                "\"credit\":{\"target\":\"amount_cents\",\"type\":\"int\"}" +
+                "}}";
+        ConfigurableCsvReader.Mapping m = new ObjectMapper().readValue(mapping, ConfigurableCsvReader.Mapping.class);
+        ConfigurableCsvReader reader = new ConfigurableCsvReader(m);
+        String csv = "date,debit,credit\n" +
+                "2025-04-30,100,0\n" +
+                "2025-04-29,0,200\n";
+        List<TransactionRecord> txs = reader.read(null, new StringReader(csv), "1");
+        assertEquals(2, txs.size());
+        assertEquals(-100, txs.get(0).amountCents());
+        assertEquals(200, txs.get(1).amountCents());
+    }
 }
