@@ -48,6 +48,21 @@ Example statements demonstrating UTF-8 merchants and positive/negative amounts l
 - `co1828-example.csv` – Capital One Venture X
 - `ch1234-example.csv` – Chase Freedom
 
+## Metabase
+
+Metabase users should query the `transactions_view` view for a unified
+list of transactions across all institutions. The view performs a
+`UNION ALL` over each `<institution>_transactions` table, exposing the
+shared transaction fields along with `account_id` and an `institution`
+column identifying the source. Because it's a regular SQL view, newly
+ingested data is immediately visible. If performance becomes an issue,
+consider converting it to a materialized view and refresh it after each
+ingest:
+
+```sql
+REFRESH MATERIALIZED VIEW transactions_view;
+```
+
 ## Secrets
 
 Secrets like database credentials live in a local `.env` file. Start from `.env-sample`, populate the values, and the build/run tooling will read them automatically. If you need the variables in your shell for ad-hoc commands, run `source scripts/export-env.sh`. The `.env` file is git-ignored—never commit real secrets.
