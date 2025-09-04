@@ -30,6 +30,15 @@ Alternatively, run the CLI directly:
 
 Stop the database with `docker compose down` when finished.
 
+## Schema
+
+All transactions land in a single `transactions` table.  In addition to
+canonical columns like `occurred_at`, `amount_cents`, and `merchant`, the
+table includes a `raw_json` column that preserves every original CSV field
+as JSON for later auditing or enrichment.  A convenience view
+`transactions_view` joins `transactions` with `accounts` to expose the
+institution code alongside each row.
+
 ## Data Ingestion
 
 ### CSV conventions
@@ -41,6 +50,46 @@ Stop the database with `docker compose down` when finished.
 2. Run the CLI or service to ingest them (it watches `storage/incoming/` by default, configurable via `--input` or `INGEST_DIR`).
 3. Processed files move to `storage/processed/` and records are loaded into Postgres.
 
+### Mapping files
+
+CSV columns are mapped to the canonical schema via per-institution mapping
+files.  These YAML or JSON files live under
+`~/.config/ingest/mappings/` (override with `INGEST_CONFIG_DIR`) and are
+named `<institution>.yaml` or `<institution>.json`.  Each entry maps a
+normalized header to a target field and type:
+
+```yaml
+institution: xx
+fields:
+  transaction_date:
+    target: occurred_at
+    type: timestamp
+  amount:
+    target: amount_cents
+    type: currency
+  description:
+    target: merchant
+    type: string
+```
+
+The ingest service watches this directory and hot-reloads mappings when
+files change.
+
+### Creating accounts
+
+Run `./scripts/new-account` from the repository root to add an account and
+generate a mapping template.  The script prompts for institution code,
+last-four external ID, display name, and optional currency, then writes
+`~/.config/ingest/mappings/<institution>.yaml`.  Pass `--force` to
+overwrite an existing mapping file.
+
+### Adding new institutions
+
+To onboard another institution, run `./scripts/new-account`, edit the
+generated mapping file to match that institution's CSV headers, and place
+its statements in `storage/incoming/`.  No code changes or rebuilds are
+required; the service will pick up the new mapping automatically.
+
 ### Sample CSVs
 
 Example statements demonstrating UTF-8 merchants and positive/negative amounts live under `apps/ingest-service/src/test/resources/examples/`:
@@ -51,10 +100,9 @@ Example statements demonstrating UTF-8 merchants and positive/negative amounts l
 ## Metabase
 
 Metabase users should query the `transactions_view` view for a unified
-list of transactions across all institutions. The view performs a
-`UNION ALL` over each `<institution>_transactions` table, exposing the
-shared transaction fields along with `account_id` and an `institution`
-column identifying the source. Because it's a regular SQL view, newly
+list of transactions across all institutions.  The view simply joins the
+`transactions` table with `accounts` to expose the `institution` column
+alongside each transaction.  Because it's a regular SQL view, newly
 ingested data is immediately visible. If performance becomes an issue,
 consider converting it to a materialized view and refresh it after each
 ingest:
