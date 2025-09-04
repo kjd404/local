@@ -20,20 +20,16 @@ class IngestServiceViewTest {
     void writesToTransactionsView(String institution, @TempDir Path dir) throws Exception {
         DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
         dsl.execute("drop view if exists transactions_view");
-        dsl.execute("drop table if exists chase_transactions");
-        dsl.execute("drop table if exists capital_one_transactions");
+        dsl.execute("drop table if exists transactions");
         dsl.execute("drop table if exists accounts");
 
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
         dsl.execute("create unique index on accounts(institution, external_id)");
 
-        dsl.execute("create table chase_transactions (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
-        dsl.execute("create unique index on chase_transactions(account_id, hash)");
+        dsl.execute("create table transactions (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
+        dsl.execute("create unique index on transactions(account_id, hash)");
 
-        dsl.execute("create table capital_one_transactions (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
-        dsl.execute("create unique index on capital_one_transactions(account_id, hash)");
-
-        dsl.execute("create view transactions_view as select * from chase_transactions union all select * from capital_one_transactions");
+        dsl.execute("create view transactions_view as select t.*, a.institution from transactions t join accounts a on a.id = t.account_id");
 
         AccountResolver resolver = new AccountResolver(dsl);
         TransactionCsvReader reader = mock(TransactionCsvReader.class);

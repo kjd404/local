@@ -1,5 +1,6 @@
 package org.artificers.ingest;
 
+import org.artificers.jooq.tables.Transactions;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
@@ -26,15 +27,11 @@ public class IngestService {
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
     private final Map<String, TransactionCsvReader> readers;
-    private final Map<String, String> tables;
 
     public IngestService(DSLContext dsl, AccountResolver accountResolver, List<TransactionCsvReader> readers) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
         this.readers = readers.stream().collect(Collectors.toMap(TransactionCsvReader::institution, r -> r));
-        this.tables = Map.of(
-                "ch", "chase_transactions",
-                "co", "capital_one_transactions");
     }
 
     public void scanAndIngest(Path input) throws IOException {
@@ -96,26 +93,22 @@ public class IngestService {
     }
 
     private void upsert(DSLContext ctx, TransactionRecord t, ResolvedAccount account) {
-        String table = tables.get(account.institution());
-        if (table == null) {
-            throw new TransactionIngestException(t, new IllegalArgumentException("Unknown institution " + account.institution()));
-        }
         try {
-            ctx.insertInto(DSL.table(DSL.name(table)))
-                    .set(DSL.field(DSL.name(table, "account_id"), Long.class), account.id())
-                    .set(DSL.field(DSL.name(table, "occurred_at"), OffsetDateTime.class), toOffsetDateTime(t.occurredAt()))
-                    .set(DSL.field(DSL.name(table, "posted_at"), OffsetDateTime.class), toOffsetDateTime(t.postedAt()))
-                    .set(DSL.field(DSL.name(table, "amount_cents"), Long.class), t.amountCents())
-                    .set(DSL.field(DSL.name(table, "currency"), String.class), t.currency())
-                    .set(DSL.field(DSL.name(table, "merchant"), String.class), t.merchant())
-                    .set(DSL.field(DSL.name(table, "category"), String.class), t.category())
-                    .set(DSL.field(DSL.name(table, "txn_type"), String.class), t.type())
-                    .set(DSL.field(DSL.name(table, "memo"), String.class), t.memo())
-                    .set(DSL.field(DSL.name(table, "hash"), String.class), t.hash())
-                    .set(DSL.field(DSL.name(table, "raw_json"), JSONB.class), JSONB.valueOf(t.rawJson()))
+            ctx.insertInto(Transactions.TRANSACTIONS)
+                    .set(Transactions.TRANSACTIONS.ACCOUNT_ID, account.id())
+                    .set(Transactions.TRANSACTIONS.OCCURRED_AT, toOffsetDateTime(t.occurredAt()))
+                    .set(Transactions.TRANSACTIONS.POSTED_AT, toOffsetDateTime(t.postedAt()))
+                    .set(Transactions.TRANSACTIONS.AMOUNT_CENTS, t.amountCents())
+                    .set(Transactions.TRANSACTIONS.CURRENCY, t.currency())
+                    .set(Transactions.TRANSACTIONS.MERCHANT, t.merchant())
+                    .set(Transactions.TRANSACTIONS.CATEGORY, t.category())
+                    .set(Transactions.TRANSACTIONS.TXN_TYPE, t.type())
+                    .set(Transactions.TRANSACTIONS.MEMO, t.memo())
+                    .set(Transactions.TRANSACTIONS.HASH, t.hash())
+                    .set(Transactions.TRANSACTIONS.RAW_JSON, JSONB.valueOf(t.rawJson()))
                     .onConflict(
-                            DSL.field(DSL.name(table, "account_id"), Long.class),
-                            DSL.field(DSL.name(table, "hash"), String.class)
+                            Transactions.TRANSACTIONS.ACCOUNT_ID,
+                            Transactions.TRANSACTIONS.HASH
                     )
                     .doNothing()
                     .execute();

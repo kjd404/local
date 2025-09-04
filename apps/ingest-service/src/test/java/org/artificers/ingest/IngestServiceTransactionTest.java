@@ -16,16 +16,15 @@ import static org.mockito.Mockito.*;
 
 class IngestServiceTransactionTest {
     @ParameterizedTest
-    @CsvSource({"ch,chase_transactions", "co,capital_one_transactions"})
-    void ignoresDuplicateTransactions(String institution, String table, @TempDir Path dir) throws Exception {
+    @CsvSource({"ch", "co"})
+    void ignoresDuplicateTransactions(String institution, @TempDir Path dir) throws Exception {
         DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
-        dsl.execute("drop table if exists chase_transactions");
-        dsl.execute("drop table if exists capital_one_transactions");
+        dsl.execute("drop table if exists transactions");
         dsl.execute("drop table if exists accounts");
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
         dsl.execute("create unique index on accounts(institution, external_id)");
-        dsl.execute("create table " + table + " (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
-        dsl.execute("create unique index on " + table + "(account_id, hash)");
+        dsl.execute("create table transactions (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
+        dsl.execute("create unique index on transactions(account_id, hash)");
 
         AccountResolver resolver = new AccountResolver(dsl);
         TransactionCsvReader reader = mock(TransactionCsvReader.class);
@@ -39,6 +38,6 @@ class IngestServiceTransactionTest {
         boolean ok = service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
 
         assertThat(ok).isTrue();
-        assertThat(dsl.fetchCount(DSL.table(table))).isEqualTo(1);
+        assertThat(dsl.fetchCount(DSL.table("transactions"))).isEqualTo(1);
     }
 }
