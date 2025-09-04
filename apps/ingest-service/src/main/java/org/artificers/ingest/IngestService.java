@@ -119,24 +119,6 @@ public class IngestService {
                     )
                     .doNothing()
                     .execute();
-            ctx.insertInto(DSL.table(DSL.name("transactions")))
-                    .set(DSL.field(DSL.name("transactions", "account_id"), Long.class), account.id())
-                    .set(DSL.field(DSL.name("transactions", "occurred_at"), OffsetDateTime.class), toOffsetDateTime(t.occurredAt()))
-                    .set(DSL.field(DSL.name("transactions", "posted_at"), OffsetDateTime.class), toOffsetDateTime(t.postedAt()))
-                    .set(DSL.field(DSL.name("transactions", "amount_cents"), Long.class), t.amountCents())
-                    .set(DSL.field(DSL.name("transactions", "currency"), String.class), t.currency())
-                    .set(DSL.field(DSL.name("transactions", "merchant"), String.class), t.merchant())
-                    .set(DSL.field(DSL.name("transactions", "category"), String.class), t.category())
-                    .set(DSL.field(DSL.name("transactions", "txn_type"), String.class), t.type())
-                    .set(DSL.field(DSL.name("transactions", "memo"), String.class), t.memo())
-                    .set(DSL.field(DSL.name("transactions", "hash"), String.class), t.hash())
-                    .set(DSL.field(DSL.name("transactions", "raw_json"), JSONB.class), JSONB.valueOf(t.rawJson()))
-                    .onConflict(
-                            DSL.field(DSL.name("transactions", "account_id"), Long.class),
-                            DSL.field(DSL.name("transactions", "hash"), String.class)
-                    )
-                    .doNothing()
-                    .execute();
         } catch (DataAccessException e) {
             throw new TransactionIngestException(t, e);
         }
