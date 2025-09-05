@@ -28,7 +28,8 @@ class IngestServiceTransactionTest {
         dsl.execute("create table transactions (id serial primary key, account_id bigint not null references accounts(id), occurred_at timestamp, posted_at timestamp, amount_cents bigint not null, currency varchar not null, merchant varchar, category varchar, txn_type varchar, memo varchar, hash varchar not null, raw_json clob)");
         dsl.execute("create unique index on transactions(account_id, hash)");
 
-        AccountResolver resolver = new AccountResolver(dsl);
+        AccountShorthandParser parser = new AccountShorthandParser();
+        AccountResolver resolver = new AccountResolver(dsl, parser);
         TransactionCsvReader reader = mock(TransactionCsvReader.class);
         when(reader.institution()).thenReturn(institution);
         TransactionRecord t1 = new GenericTransaction("a", null, null, 100, "USD", "m", "c", null, null, "h1", "{}");
@@ -38,7 +39,7 @@ class IngestServiceTransactionTest {
         Files.writeString(dir.resolve(institution + "1234.csv"), "id,amount\n1,10");
         TransactionRepository repo = new TransactionRepository();
         MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
-        IngestService service = new IngestService(dsl, resolver, Set.of(reader), repo, refresher);
+        IngestService service = new IngestService(dsl, resolver, parser, Set.of(reader), repo, refresher);
         boolean ok = service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
 
         assertThat(ok).isTrue();

@@ -10,7 +10,6 @@ import java.nio.file.WatchService;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 import javax.inject.Singleton;
 import org.artificers.ingest.cli.NewAccountCli;
 import org.jooq.DSLContext;
@@ -26,8 +25,14 @@ public interface ServiceModule {
 
     @Provides
     @Singleton
-    static AccountResolver accountResolver(DSLContext dsl) {
-        return new AccountResolver(dsl);
+    static AccountShorthandParser accountShorthandParser() {
+        return new AccountShorthandParser();
+    }
+
+    @Provides
+    @Singleton
+    static AccountResolver accountResolver(DSLContext dsl, AccountShorthandParser parser) {
+        return new AccountResolver(dsl, parser);
     }
 
     @Provides
@@ -46,22 +51,17 @@ public interface ServiceModule {
     @Singleton
     static IngestService ingestService(DSLContext dsl,
                                        AccountResolver resolver,
+                                       AccountShorthandParser parser,
                                        Set<TransactionCsvReader> readers,
                                        TransactionRepository repo,
                                        MaterializedViewRefresher refresher) {
-        return new IngestService(dsl, resolver, readers, repo, refresher);
-    }
-
-    @Provides
-    @Singleton
-    static Function<Path, String> shorthandParser() {
-        return AccountResolver::extractShorthand;
+        return new IngestService(dsl, resolver, parser, readers, repo, refresher);
     }
 
     @Provides
     @Singleton
     static FileIngestionService fileIngestionService(IngestService service,
-                                                     Function<Path, String> parser) {
+                                                     AccountShorthandParser parser) {
         return new FileIngestionService(service, parser);
     }
 
@@ -92,7 +92,7 @@ public interface ServiceModule {
                                                        IngestConfig cfg,
                                                        ExecutorService executor,
                                                        WatchService watchService,
-                                                       Function<Path, String> parser) {
+                                                       AccountShorthandParser parser) {
         return new DirectoryWatchService(fileService, cfg.ingestDir(), executor, watchService, parser);
     }
 

@@ -19,17 +19,20 @@ public class IngestService {
 
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
+    private final AccountShorthandParser shorthandParser;
     private final Map<String, TransactionCsvReader> readers;
     private final TransactionRepository repository;
     private final MaterializedViewRefresher viewRefresher;
 
     public IngestService(DSLContext dsl,
                          AccountResolver accountResolver,
+                         AccountShorthandParser shorthandParser,
                          Set<TransactionCsvReader> readers,
                          TransactionRepository repository,
                          MaterializedViewRefresher viewRefresher) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
+        this.shorthandParser = shorthandParser;
         this.readers = readers.stream().collect(Collectors.toMap(TransactionCsvReader::institution, r -> r));
         this.repository = repository;
         this.viewRefresher = viewRefresher;
@@ -38,7 +41,7 @@ public class IngestService {
     public boolean ingestFile(Path file, String shorthand) {
         log.info("Ingesting file {} for shorthand {}", file, shorthand);
         try {
-            AccountResolver.ParsedShorthand ids = AccountResolver.parse(shorthand);
+            AccountShorthandParser.ParsedShorthand ids = shorthandParser.parse(shorthand);
             TransactionCsvReader reader = readers.get(ids.institution());
             if (reader == null) {
                 log.error("No reader for institution {}", ids.institution());

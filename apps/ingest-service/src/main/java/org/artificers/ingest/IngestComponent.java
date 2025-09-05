@@ -13,6 +13,7 @@ public interface IngestComponent {
     FileIngestionService fileIngestionService();
     DirectoryWatchService directoryWatchService();
     NewAccountCli newAccountCli();
+    AccountShorthandParser accountShorthandParser();
 
     @Component.Builder
     interface Builder {
