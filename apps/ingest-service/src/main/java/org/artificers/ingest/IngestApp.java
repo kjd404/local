@@ -19,8 +19,9 @@ public final class IngestApp implements Callable<Integer> {
     @Option(names = "--file", description = "Path to a CSV file")
     Path file;
 
-    @Option(names = "--mode", description = "Execution mode")
-    String mode;
+    @Option(names = "--mode", description = "Execution mode", type = ExecutionMode.class,
+            defaultValue = "WATCH")
+    ExecutionMode mode;
 
     @Option(names = "--input", description = "Directory to scan")
     Path input;
@@ -56,7 +57,7 @@ public final class IngestApp implements Callable<Integer> {
             }
             return 0;
         }
-        if ("scan".equals(mode)) {
+        if (mode == ExecutionMode.SCAN) {
             Path dir = input != null ? input : config.ingestDir();
             fileService.scanAndIngest(dir);
             return 0;
@@ -96,7 +97,9 @@ public final class IngestApp implements Callable<Integer> {
         FileIngestionService fileService = component.fileIngestionService();
         DirectoryWatchService watch = component.directoryWatchService();
         AccountShorthandParser parser = component.accountShorthandParser();
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute(args);
+        CommandLine cmd = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser));
+        cmd.setCaseInsensitiveEnumValuesAllowed(true);
+        int code = cmd.execute(args);
         System.exit(code);
     }
 
