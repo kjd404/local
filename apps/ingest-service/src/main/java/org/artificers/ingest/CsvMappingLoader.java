@@ -1,17 +1,15 @@
 package org.artificers.ingest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Loads CSV reader mappings from JSON files and registers a {@link TransactionCsvReader}
@@ -20,22 +18,18 @@ import java.io.IOException;
  */
 @Component
 public class CsvMappingLoader implements BeanDefinitionRegistryPostProcessor {
-    private final ObjectMapper mapper;
-    private final ResourcePatternResolver resolver;
+    private final MappingFileLocator locator;
 
-    public CsvMappingLoader(ObjectMapper mapper, ResourcePatternResolver resolver) {
-        this.mapper = mapper;
-        this.resolver = resolver;
+    public CsvMappingLoader(MappingFileLocator locator) {
+        this.locator = locator;
     }
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         try {
-            Resource[] resources = resolver.getResources("classpath:mappings/*.json");
+            List<ConfigurableCsvReader.Mapping> mappings = locator.locate();
             GenericApplicationContext context = (GenericApplicationContext) registry;
-            for (Resource r : resources) {
-                ConfigurableCsvReader.Mapping mapping =
-                        mapper.readValue(r.getInputStream(), ConfigurableCsvReader.Mapping.class);
+            for (ConfigurableCsvReader.Mapping mapping : mappings) {
                 ConfigurableCsvReader reader = new ConfigurableCsvReader(mapping);
                 context.registerBean(mapping.institution() + "CsvReader", TransactionCsvReader.class, () -> reader);
             }
