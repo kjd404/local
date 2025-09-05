@@ -7,18 +7,19 @@ import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.*;
 
 public class ConfigurableCsvReader extends BaseCsvReader implements TransactionCsvReader {
     private final String institution;
     private final Map<String, FieldSpec> fields;
     private final ObjectMapper mapper;
+    private final Map<FieldTarget, FieldHandler> handlers;
 
     public ConfigurableCsvReader(ObjectMapper mapper, Mapping mapping) {
         this.mapper = mapper;
         this.institution = mapping.institution();
         this.fields = mapping.fields();
+        this.handlers = initHandlers();
     }
 
     @Override
@@ -38,62 +39,54 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
     }
 
     private TransactionRecord mapRow(String accountId, String[] header, String[] row) {
-        Map<String, String> raw = new LinkedHashMap<>();
-        Instant occurredAt = null;
-        Instant postedAt = null;
-        long amountCents = 0;
-        String currency = "USD";
-        String merchant = null;
-        String category = null;
-        String type = null;
-        String memo = null;
-
+        RowBuilder builder = new RowBuilder(accountId, mapper);
         for (int i = 0; i < header.length && i < row.length; i++) {
             String h = header[i];
             String v = row[i];
             FieldSpec spec = fields.get(h);
             if (spec != null) {
-                switch (spec.target()) {
-                    case OCCURRED_AT -> occurredAt = parseTimestamp(v, spec.format());
-                    case POSTED_AT -> postedAt = parseTimestamp(v, spec.format());
-                    case AMOUNT_CENTS -> {
-                        if ("currency".equals(spec.type())) {
-                            long cents = parseAmount(v);
-                            if (h.contains("debit")) {
-                                amountCents -= cents;
-                            } else {
-                                amountCents += cents;
-                            }
-                        } else if ("int".equals(spec.type())) {
-                            long cents = Long.parseLong(v);
-                            if (h.contains("debit")) {
-                                amountCents -= cents;
-                            } else {
-                                amountCents += cents;
-                            }
-                        }
-                    }
-                    case CURRENCY -> currency = v;
-                    case MERCHANT -> merchant = v;
-                    case CATEGORY -> category = v;
-                    case TYPE -> type = v;
-                    case MEMO -> memo = v;
-                    case RAW -> raw.put(h, v);
+                FieldHandler handler = handlers.get(spec.target());
+                if (handler != null) {
+                    handler.handle(h, v, spec, builder);
                 }
             } else {
-                raw.put(h, v);
+                builder.raw(h, v);
             }
         }
-
-        String rawJson = mapper.valueToTree(raw).toString();
-        String hash = HashGenerator.sha256(accountId, amountCents, occurredAt, merchant);
-        TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amountCents,
-                currency, merchant, category, type, memo, hash, rawJson);
-        TransactionValidator.validate(tx);
-        return tx;
+        return builder.build();
     }
 
     public record Mapping(String institution, Map<String, FieldSpec> fields) {}
 
     public record FieldSpec(FieldTarget target, String type, String format) {}
+
+    private Map<FieldTarget, FieldHandler> initHandlers() {
+        Map<FieldTarget, FieldHandler> map = new EnumMap<>(FieldTarget.class);
+        map.put(FieldTarget.OCCURRED_AT, (h, v, spec, b) -> b.occurredAt(parseTimestamp(v, spec.format())));
+        map.put(FieldTarget.POSTED_AT, (h, v, spec, b) -> b.postedAt(parseTimestamp(v, spec.format())));
+        map.put(FieldTarget.AMOUNT_CENTS, (h, v, spec, b) -> {
+            if ("currency".equals(spec.type())) {
+                long cents = parseAmount(v);
+                if (h.contains("debit")) {
+                    b.addAmount(-cents);
+                } else {
+                    b.addAmount(cents);
+                }
+            } else if ("int".equals(spec.type())) {
+                long cents = Long.parseLong(v);
+                if (h.contains("debit")) {
+                    b.addAmount(-cents);
+                } else {
+                    b.addAmount(cents);
+                }
+            }
+        });
+        map.put(FieldTarget.CURRENCY, (h, v, spec, b) -> b.currency(v));
+        map.put(FieldTarget.MERCHANT, (h, v, spec, b) -> b.merchant(v));
+        map.put(FieldTarget.CATEGORY, (h, v, spec, b) -> b.category(v));
+        map.put(FieldTarget.TYPE, (h, v, spec, b) -> b.type(v));
+        map.put(FieldTarget.MEMO, (h, v, spec, b) -> b.memo(v));
+        map.put(FieldTarget.RAW, (h, v, spec, b) -> b.raw(h, v));
+        return map;
+    }
 }

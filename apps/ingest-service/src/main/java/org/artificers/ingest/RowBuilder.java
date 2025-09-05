@@ -1,0 +1,72 @@
+package org.artificers.ingest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+class RowBuilder {
+    private final String accountId;
+    private final ObjectMapper mapper;
+    private final Map<String, String> raw = new LinkedHashMap<>();
+    private Instant occurredAt;
+    private Instant postedAt;
+    private long amountCents;
+    private String currency = "USD";
+    private String merchant;
+    private String category;
+    private String type;
+    private String memo;
+
+    RowBuilder(String accountId, ObjectMapper mapper) {
+        this.accountId = accountId;
+        this.mapper = mapper;
+    }
+
+    void occurredAt(Instant v) {
+        this.occurredAt = v;
+    }
+
+    void postedAt(Instant v) {
+        this.postedAt = v;
+    }
+
+    void addAmount(long cents) {
+        this.amountCents += cents;
+    }
+
+    void currency(String v) {
+        if (v != null && !v.isBlank()) {
+            this.currency = v;
+        }
+    }
+
+    void merchant(String v) {
+        this.merchant = v;
+    }
+
+    void category(String v) {
+        this.category = v;
+    }
+
+    void type(String v) {
+        this.type = v;
+    }
+
+    void memo(String v) {
+        this.memo = v;
+    }
+
+    void raw(String h, String v) {
+        raw.put(h, v);
+    }
+
+    TransactionRecord build() {
+        String rawJson = mapper.valueToTree(raw).toString();
+        String hash = HashGenerator.sha256(accountId, amountCents, occurredAt, merchant);
+        TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amountCents,
+                currency, merchant, category, type, memo, hash, rawJson);
+        TransactionValidator.validate(tx);
+        return tx;
+    }
+}
