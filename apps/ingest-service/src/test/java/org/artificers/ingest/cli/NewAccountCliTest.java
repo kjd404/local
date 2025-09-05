@@ -10,6 +10,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.artificers.ingest.DbConfig;
+import org.artificers.ingest.DaggerIngestComponent;
+import org.artificers.ingest.IngestComponent;
+import org.artificers.ingest.IngestConfig;
 
 class NewAccountCliTest {
     @Test
@@ -41,5 +45,17 @@ class NewAccountCliTest {
         long id2 = NewAccountCli.insertAccount(dsl, "ch", "1234", "ignored");
         assertThat(id1).isEqualTo(id2);
         assertThat(dsl.fetchCount(DSL.table("accounts"))).isEqualTo(1);
+    }
+
+    @Test
+    void daggerConstructsCli() throws IOException {
+        Path configDir = Files.createTempDirectory("ingest-test");
+        DbConfig db = new DbConfig("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), configDir);
+        IngestComponent component = DaggerIngestComponent.builder()
+                .dbConfig(db)
+                .ingestConfig(cfg)
+                .build();
+        assertThat(component.newAccountCli()).isNotNull();
     }
 }

@@ -1,18 +1,14 @@
 package org.artificers.ingest.cli;
 
-import com.zaxxer.hikari.HikariDataSource;
 import org.artificers.jooq.tables.Accounts;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
-import org.jooq.impl.DSL;
-import org.jooq.SQLDialect;
 import picocli.CommandLine;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.OffsetDateTime;
 import java.util.Scanner;
@@ -24,42 +20,24 @@ public class NewAccountCli implements Callable<Integer> {
     boolean force;
 
     private final DSLContext dsl;
-    private final AutoCloseable closeable;
     private final Path configDir;
 
-    public NewAccountCli() {
-        HikariDataSource ds = new HikariDataSource();
-        ds.setJdbcUrl(normalizeUrl(System.getenv("DB_URL")));
-        ds.setUsername(System.getenv("DB_USER"));
-        ds.setPassword(System.getenv("DB_PASSWORD"));
-        this.dsl = DSL.using(ds, SQLDialect.POSTGRES);
-        this.closeable = ds;
-        this.configDir = Paths.get(System.getenv().getOrDefault("INGEST_CONFIG_DIR",
-                System.getProperty("user.home") + "/.config/ingest"));
-    }
-
-    // For tests
     public NewAccountCli(DSLContext dsl, Path configDir) {
         this.dsl = dsl;
-        this.closeable = () -> {};
         this.configDir = configDir;
     }
 
     @Override
     public Integer call() throws Exception {
-        try {
-            Scanner scanner = new Scanner(System.in);
-            String institution = prompt(scanner, "Institution code");
-            String externalId = prompt(scanner, "Last-four external ID");
-            String displayName = prompt(scanner, "Display name");
-            String currency = prompt(scanner, "Currency (optional)");
+        Scanner scanner = new Scanner(System.in);
+        String institution = prompt(scanner, "Institution code");
+        String externalId = prompt(scanner, "Last-four external ID");
+        String displayName = prompt(scanner, "Display name");
+        String currency = prompt(scanner, "Currency (optional)");
 
-            long id = insertAccount(dsl, institution, externalId, displayName);
-            System.out.printf("Account ID: %d%n", id);
-            copyTemplate(configDir, institution, force);
-        } finally {
-            closeable.close();
-        }
+        long id = insertAccount(dsl, institution, externalId, displayName);
+        System.out.printf("Account ID: %d%n", id);
+        copyTemplate(configDir, institution, force);
         return 0;
     }
 
@@ -105,15 +83,5 @@ public class NewAccountCli implements Callable<Integer> {
         return target;
     }
 
-    private static String normalizeUrl(String url) {
-        if (url == null) return null;
-        if (url.startsWith("jdbc:")) return url;
-        String normalized = url.replaceFirst("^postgres://", "postgresql://");
-        return "jdbc:" + normalized;
-    }
-
-    public static void main(String[] args) {
-        int code = new CommandLine(new NewAccountCli()).execute(args);
-        System.exit(code);
-    }
+    
 }

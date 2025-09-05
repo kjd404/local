@@ -98,5 +98,5 @@ jar {
 
 tasks.register('newAccount', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'org.artificers.ingest.cli.NewAccountCli'
+    mainClass = 'org.artificers.ingest.cli.NewAccountCliLauncher'
 }
