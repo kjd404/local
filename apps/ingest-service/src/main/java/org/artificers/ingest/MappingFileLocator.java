@@ -18,31 +18,40 @@ import java.util.List;
  */
 public class MappingFileLocator {
     private final ObjectMapper mapper;
+    private final Path baseDir;
 
     public MappingFileLocator(ObjectMapper mapper) {
+        this(mapper, null);
+    }
+
+    public MappingFileLocator(ObjectMapper mapper, Path baseDir) {
         this.mapper = mapper;
+        this.baseDir = baseDir;
     }
 
     /**
-     * Find all JSON mapping files under {@code classpath:mappings}.
+     * Find all JSON mapping files either under the provided directory or {@code classpath:mappings}.
      */
     public List<ConfigurableCsvReader.Mapping> locate() throws IOException {
         List<ConfigurableCsvReader.Mapping> mappings = new ArrayList<>();
-        URL url = getClass().getClassLoader().getResource("mappings");
-        if (url == null) {
-            return mappings;
+        Path dir = baseDir;
+        if (dir == null) {
+            URL url = getClass().getClassLoader().getResource("mappings");
+            if (url == null) {
+                return mappings;
+            }
+            try {
+                dir = Paths.get(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new IOException("Invalid mappings path", e);
+            }
         }
-        try {
-            Path dir = Paths.get(url.toURI());
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
-                for (Path p : stream) {
-                    try (InputStream in = Files.newInputStream(p)) {
-                        mappings.add(mapper.readValue(in, ConfigurableCsvReader.Mapping.class));
-                    }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
+            for (Path p : stream) {
+                try (InputStream in = Files.newInputStream(p)) {
+                    mappings.add(mapper.readValue(in, ConfigurableCsvReader.Mapping.class));
                 }
             }
-        } catch (URISyntaxException e) {
-            throw new IOException("Invalid mappings path", e);
         }
         return mappings;
     }

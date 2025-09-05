@@ -26,7 +26,7 @@ class DirectoryWatchServiceIntegrationTest {
     void ingestsAndMovesNewCsvFiles(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any(), any())).thenReturn(true);
-        watcher = new DirectoryWatchService(ingestService, dir.toString());
+        watcher = new DirectoryWatchService(ingestService, dir);
         watcher.start();
 
         Path file = dir.resolve("ch1234-example.csv");
@@ -45,7 +45,7 @@ class DirectoryWatchServiceIntegrationTest {
     void movesFailedFilesAndContinuesWatching(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any(), any())).thenReturn(false, true);
-        watcher = new DirectoryWatchService(ingestService, dir.toString());
+        watcher = new DirectoryWatchService(ingestService, dir);
         watcher.start();
 
         Path bad = dir.resolve("ch1234-bad.csv");
@@ -74,7 +74,7 @@ class DirectoryWatchServiceIntegrationTest {
         Path file = dir.resolve("ch1234-existing.csv");
         Files.writeString(file, "id,amount\n1,10");
 
-        watcher = new DirectoryWatchService(ingestService, dir.toString());
+        watcher = new DirectoryWatchService(ingestService, dir);
         watcher.start();
 
         Path processed = dir.resolve("processed").resolve("ch1234-existing.csv");

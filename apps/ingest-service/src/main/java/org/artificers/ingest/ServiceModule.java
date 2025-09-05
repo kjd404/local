@@ -3,8 +3,6 @@ package org.artificers.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dagger.Module;
 import dagger.Provides;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
 import javax.inject.Singleton;
 import org.artificers.ingest.cli.NewAccountCli;
@@ -33,16 +31,13 @@ public interface ServiceModule {
 
     @Provides
     @Singleton
-    static DirectoryWatchService directoryWatchService(IngestService service) {
-        String dir = System.getenv().getOrDefault("INGEST_DIR", "storage/incoming");
-        return new DirectoryWatchService(service, dir);
+    static DirectoryWatchService directoryWatchService(IngestService service, IngestConfig cfg) {
+        return new DirectoryWatchService(service, cfg.ingestDir());
     }
 
     @Provides
     @Singleton
-    static NewAccountCli newAccountCli(DSLContext dsl) {
-        Path configDir = Paths.get(System.getenv().getOrDefault("INGEST_CONFIG_DIR",
-                System.getProperty("user.home") + "/.config/ingest"));
-        return new NewAccountCli(dsl, configDir);
+    static NewAccountCli newAccountCli(DSLContext dsl, IngestConfig cfg) {
+        return new NewAccountCli(dsl, cfg.configDir());
     }
 }

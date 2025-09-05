@@ -1,5 +1,6 @@
 package org.artificers.ingest;
 
+import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 import org.artificers.ingest.cli.NewAccountCli;
@@ -11,4 +12,11 @@ public interface IngestComponent {
     IngestService ingestService();
     DirectoryWatchService directoryWatchService();
     NewAccountCli newAccountCli();
+
+    @Component.Builder
+    interface Builder {
+        @BindsInstance Builder dbConfig(DbConfig cfg);
+        @BindsInstance Builder ingestConfig(IngestConfig cfg);
+        IngestComponent build();
+    }
 }
