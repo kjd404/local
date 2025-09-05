@@ -13,10 +13,12 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
     private final String institution;
     private final Map<String, FieldSpec> fields;
     private final ObjectMapper mapper;
+    private final TransactionValidator validator;
     private final Map<FieldTarget, FieldHandler> handlers;
 
-    public ConfigurableCsvReader(ObjectMapper mapper, Mapping mapping) {
+    public ConfigurableCsvReader(ObjectMapper mapper, TransactionValidator validator, Mapping mapping) {
         this.mapper = mapper;
+        this.validator = validator;
         this.institution = mapping.institution();
         this.fields = mapping.fields();
         this.handlers = initHandlers();
@@ -39,7 +41,7 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
     }
 
     private TransactionRecord mapRow(String accountId, String[] header, String[] row) {
-        RowBuilder builder = new RowBuilder(accountId, mapper);
+        RowBuilder builder = new RowBuilder(accountId, mapper, validator);
         for (int i = 0; i < header.length && i < row.length; i++) {
             String h = header[i];
             String v = row[i];

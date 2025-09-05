@@ -25,6 +25,12 @@ public interface ServiceModule {
 
     @Provides
     @Singleton
+    static TransactionValidator transactionValidator() {
+        return new BasicTransactionValidator();
+    }
+
+    @Provides
+    @Singleton
     static AccountShorthandParser accountShorthandParser() {
         return new AccountShorthandParser();
     }

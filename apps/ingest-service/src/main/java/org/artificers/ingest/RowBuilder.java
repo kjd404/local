@@ -8,6 +8,7 @@ import java.util.Map;
 class RowBuilder {
     private final String accountId;
     private final ObjectMapper mapper;
+    private final TransactionValidator validator;
     private final Map<String, String> raw = new LinkedHashMap<>();
     private Instant occurredAt;
     private Instant postedAt;
@@ -17,9 +18,10 @@ class RowBuilder {
     private String type;
     private String memo;
 
-    RowBuilder(String accountId, ObjectMapper mapper) {
+    RowBuilder(String accountId, ObjectMapper mapper, TransactionValidator validator) {
         this.accountId = accountId;
         this.mapper = mapper;
+        this.validator = validator;
     }
 
     void occurredAt(Instant v) {
@@ -65,7 +67,7 @@ class RowBuilder {
         String hash = HashGenerator.sha256(accountId, amount, occurredAt, merchant);
         TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amount,
                 merchant, category, type, memo, hash, rawJson);
-        TransactionValidator.validate(tx);
+        validator.validate(tx);
         return tx;
     }
 }
