@@ -3,11 +3,11 @@ package org.artificers.ingest;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class DatabaseConfigTest {
+class UrlSanitizerTest {
     @Test
     void sanitizeRemovesCredentials() {
         String url = "jdbc:postgresql://user:secret@host:5432/db";
-        String sanitized = DatabaseConfig.sanitize(url);
+        String sanitized = IngestApplication.sanitize(url);
         assertEquals("jdbc:postgresql://host:5432/db", sanitized);
     }
 }

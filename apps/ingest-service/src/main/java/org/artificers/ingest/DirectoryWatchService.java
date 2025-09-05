@@ -1,11 +1,7 @@
 package org.artificers.ingest;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -15,8 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service
-public class DirectoryWatchService {
+public class DirectoryWatchService implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(DirectoryWatchService.class);
 
     private final IngestService ingestService;
@@ -25,7 +20,7 @@ public class DirectoryWatchService {
     private WatchService watchService;
     private static final Pattern FILE_PATTERN = Pattern.compile("^([a-zA-Z]+\\d{4}).*\\.csv$");
 
-    public DirectoryWatchService(IngestService ingestService, @Value("${INGEST_DIR:storage/incoming}") String dir) {
+    public DirectoryWatchService(IngestService ingestService, String dir) {
         this.ingestService = ingestService;
         this.directory = Paths.get(dir).toAbsolutePath();
         this.executor = Executors.newSingleThreadExecutor(r -> {
@@ -36,7 +31,6 @@ public class DirectoryWatchService {
         });
     }
 
-    @PostConstruct
     public void start() throws IOException {
         Files.createDirectories(directory);
         log.info("Watching directory {} for new files", directory);
@@ -46,12 +40,16 @@ public class DirectoryWatchService {
         executor.submit(this::processEvents);
     }
 
-    @PreDestroy
     public void stop() throws IOException {
         executor.shutdownNow();
         if (watchService != null) {
             watchService.close();
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        stop();
     }
 
     private void processEvents() {
