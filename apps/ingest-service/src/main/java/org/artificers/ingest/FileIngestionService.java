@@ -8,16 +8,15 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.function.Function;
 
 /** Handles scanning directories and moving ingested files. */
 public class FileIngestionService {
     private static final Logger log = LoggerFactory.getLogger(FileIngestionService.class);
     private final IngestService ingestService;
-    private final Function<Path, String> shorthandParser;
+    private final AccountShorthandParser shorthandParser;
 
     public FileIngestionService(IngestService ingestService,
-                                Function<Path, String> shorthandParser) {
+                                AccountShorthandParser shorthandParser) {
         this.ingestService = ingestService;
         this.shorthandParser = shorthandParser;
     }
@@ -27,7 +26,7 @@ public class FileIngestionService {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(input, "*.csv")) {
             for (Path file : stream) {
                 log.info("Found file {}", file);
-                String shorthand = shorthandParser.apply(file);
+                String shorthand = shorthandParser.extract(file);
                 if (shorthand == null) {
                     log.warn("Skipping file {} with unrecognized name", file);
                     continue;

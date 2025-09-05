@@ -26,6 +26,7 @@ class FileIngestionServiceTest {
         MockDataProvider provider = ctx -> new MockResult[0];
         DSLContext dsl = DSL.using(new MockConnection(provider), SQLDialect.POSTGRES);
         AccountResolver resolver = mock(AccountResolver.class);
+        AccountShorthandParser parser = new AccountShorthandParser();
         TransactionCsvReader chReader = mock(TransactionCsvReader.class);
         TransactionCsvReader coReader = mock(TransactionCsvReader.class);
         when(chReader.institution()).thenReturn("ch");
@@ -41,8 +42,8 @@ class FileIngestionServiceTest {
 
         TransactionRepository repo = new TransactionRepository();
         MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
-        IngestService service = new IngestService(dsl, resolver, Set.of(chReader, coReader), repo, refresher);
-        FileIngestionService fileService = new FileIngestionService(service, AccountResolver::extractShorthand);
+        IngestService service = new IngestService(dsl, resolver, parser, Set.of(chReader, coReader), repo, refresher);
+        FileIngestionService fileService = new FileIngestionService(service, parser);
         fileService.scanAndIngest(dir);
 
         verify(chReader).read(eq(dir.resolve("ch1234-example.csv")), any(), eq("1234"));

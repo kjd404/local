@@ -55,10 +55,11 @@ class IngestServiceViewTest {
         dsl.execute("create unique index on transactions(account_id, hash)");
 
         ConfigurableCsvReader reader = reader(institution);
-        AccountResolver resolver = new AccountResolver(dsl);
+        AccountShorthandParser parser = new AccountShorthandParser();
+        AccountResolver resolver = new AccountResolver(dsl, parser);
         TransactionRepository repo = new TransactionRepository();
         MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
-        IngestService service = new IngestService(dsl, resolver, Set.of(reader), repo, refresher);
+        IngestService service = new IngestService(dsl, resolver, parser, Set.of(reader), repo, refresher);
 
         Path file = copyResource("/examples/" + fileName, dir);
         boolean ok = service.ingestFile(file, institution + externalId);

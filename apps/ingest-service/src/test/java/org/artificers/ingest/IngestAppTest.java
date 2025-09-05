@@ -17,8 +17,9 @@ class IngestAppTest {
         when(service.ingestFile(any(), any())).thenReturn(true);
         DirectoryWatchService watch = mock(DirectoryWatchService.class);
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
+        AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg)).execute("--file=/tmp/ch1234.csv");
+        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--file=/tmp/ch1234.csv");
 
         verify(service).ingestFile(Path.of("/tmp/ch1234.csv"), "ch1234");
         assertThat(code).isZero();
@@ -30,8 +31,9 @@ class IngestAppTest {
         FileIngestionService fileService = mock(FileIngestionService.class);
         DirectoryWatchService watch = mock(DirectoryWatchService.class);
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
+        AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg)).execute("--mode=scan", "--input=/tmp/in");
+        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--mode=scan", "--input=/tmp/in");
 
         verify(fileService).scanAndIngest(Path.of("/tmp/in"));
         assertThat(code).isZero();
@@ -43,8 +45,9 @@ class IngestAppTest {
         FileIngestionService fileService = mock(FileIngestionService.class);
         DirectoryWatchService watch = mock(DirectoryWatchService.class);
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
+        AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg)).execute("--mode=scan");
+        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--mode=scan");
 
         verify(fileService).scanAndIngest(Path.of("storage/incoming"));
         assertThat(code).isZero();

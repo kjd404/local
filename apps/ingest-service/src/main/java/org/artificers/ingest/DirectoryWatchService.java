@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 public class DirectoryWatchService implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(DirectoryWatchService.class);
@@ -16,13 +15,13 @@ public class DirectoryWatchService implements AutoCloseable {
     private final ExecutorService executor;
     private final WatchService watchService;
     private final FileIngestionService fileService;
-    private final Function<Path, String> shorthandParser;
+    private final AccountShorthandParser shorthandParser;
 
     public DirectoryWatchService(FileIngestionService fileService,
                                  Path dir,
                                  ExecutorService executor,
                                  WatchService watchService,
-                                 Function<Path, String> shorthandParser) {
+                                 AccountShorthandParser shorthandParser) {
         this.fileService = fileService;
         this.directory = dir.toAbsolutePath();
         this.executor = executor;
@@ -58,7 +57,7 @@ public class DirectoryWatchService implements AutoCloseable {
                         if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                             Path filename = (Path) event.context();
                             Path file = directory.resolve(filename);
-                            String shorthand = shorthandParser.apply(file);
+                            String shorthand = shorthandParser.extract(file);
                             if (shorthand != null) {
                                 try {
                                     fileService.ingestFile(file, shorthand);

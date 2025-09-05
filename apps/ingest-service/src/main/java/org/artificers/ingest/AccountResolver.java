@@ -4,39 +4,23 @@ import org.artificers.jooq.tables.Accounts;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 
-import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class AccountResolver {
-    private static final Pattern SHORTHAND = Pattern.compile("^([A-Za-z]+)(\\d{4})$");
-    private static final Pattern FILE_PATTERN = Pattern.compile("^([A-Za-z]+\\d{4}).*\\.csv$");
-
-    public static String extractShorthand(Path path) {
-        Matcher m = FILE_PATTERN.matcher(path.getFileName().toString());
-        return m.matches() ? m.group(1).toLowerCase() : null;
-    }
-
-    public static ParsedShorthand parse(String shorthand) {
-        if (shorthand == null) throw new IllegalArgumentException("Missing account shorthand");
-        Matcher m = SHORTHAND.matcher(shorthand.toLowerCase());
-        if (!m.matches()) throw new IllegalArgumentException("Invalid account shorthand");
-        return new ParsedShorthand(m.group(1), m.group(2));
-    }
-
-    public record ParsedShorthand(String institution, String externalId) {}
-
     private final DSLContext dsl;
+    private final AccountShorthandParser parser;
 
-    public AccountResolver(DSLContext dsl) { this.dsl = dsl; }
+    public AccountResolver(DSLContext dsl, AccountShorthandParser parser) {
+        this.dsl = dsl;
+        this.parser = parser;
+    }
 
     public ResolvedAccount resolve(String shorthand) {
         return resolve(this.dsl, shorthand);
     }
 
     public ResolvedAccount resolve(DSLContext ctx, String shorthand) {
-        ParsedShorthand ids = parse(shorthand);
+        AccountShorthandParser.ParsedShorthand ids = parser.parse(shorthand);
         Record1<Long> existing = ctx.select(Accounts.ACCOUNTS.ID)
                 .from(Accounts.ACCOUNTS)
                 .where(Accounts.ACCOUNTS.INSTITUTION.eq(ids.institution())

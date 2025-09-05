@@ -23,7 +23,8 @@ public class AccountResolverTest {
     @Test
     void insertsWhenMissing() {
         DSLContext dsl = initDsl();
-        AccountResolver resolver = new AccountResolver(dsl);
+        AccountShorthandParser parser = new AccountShorthandParser();
+        AccountResolver resolver = new AccountResolver(dsl, parser);
         long id1 = resolver.resolve("bank1234").id();
         long id2 = resolver.resolve("bank1234").id();
         assertEquals(id1, id2);
@@ -32,7 +33,8 @@ public class AccountResolverTest {
     @Test
     void throwsOnInvalidShorthand() {
         DSLContext dsl = initDsl();
-        AccountResolver resolver = new AccountResolver(dsl);
+        AccountShorthandParser parser = new AccountShorthandParser();
+        AccountResolver resolver = new AccountResolver(dsl, parser);
         assertThrows(IllegalArgumentException.class, () -> resolver.resolve("invalid"));
     }
 }

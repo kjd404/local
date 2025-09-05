@@ -27,19 +27,22 @@ public final class IngestApp implements Callable<Integer> {
     private final FileIngestionService fileService;
     private final DirectoryWatchService watchService;
     private final IngestConfig config;
+    private final AccountShorthandParser shorthandParser;
 
     public IngestApp(IngestService service, FileIngestionService fileService,
-                     DirectoryWatchService watchService, IngestConfig config) {
+                     DirectoryWatchService watchService, IngestConfig config,
+                     AccountShorthandParser shorthandParser) {
         this.service = service;
         this.fileService = fileService;
         this.watchService = watchService;
         this.config = config;
+        this.shorthandParser = shorthandParser;
     }
 
     @Override
     public Integer call() throws Exception {
         if (file != null) {
-            String shorthand = AccountResolver.extractShorthand(file);
+            String shorthand = shorthandParser.extract(file);
             boolean ok = shorthand != null && service.ingestFile(file, shorthand);
             if (!ok) {
                 log.warn("Ingestion failed for {}", file);
@@ -77,7 +80,8 @@ public final class IngestApp implements Callable<Integer> {
         IngestService service = component.ingestService();
         FileIngestionService fileService = component.fileIngestionService();
         DirectoryWatchService watch = component.directoryWatchService();
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg)).execute(args);
+        AccountShorthandParser parser = component.accountShorthandParser();
+        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute(args);
         System.exit(code);
     }
 

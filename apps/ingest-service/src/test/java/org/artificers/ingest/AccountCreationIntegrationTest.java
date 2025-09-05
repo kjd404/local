@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AccountCreationIntegrationTest {
     private DSLContext dsl;
     private AccountResolver resolver;
+    private AccountShorthandParser parser;
 
     @BeforeEach
     void setup() {
@@ -25,7 +26,8 @@ public class AccountCreationIntegrationTest {
         dsl.execute("drop table if exists accounts");
         dsl.execute("create table accounts (id serial primary key, institution varchar not null, external_id varchar not null, display_name varchar not null, created_at timestamp, updated_at timestamp)");
         dsl.execute("create unique index on accounts(institution, external_id)");
-        resolver = new AccountResolver(dsl);
+        parser = new AccountShorthandParser();
+        resolver = new AccountResolver(dsl, parser);
     }
 
     private Path copyResource(String resource) throws IOException {
