@@ -2,71 +2,54 @@ package org.artificers.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 class RowBuilder {
-    private final String accountId;
-    private final ObjectMapper mapper;
     private final TransactionValidator validator;
-    private final Map<String, String> raw = new LinkedHashMap<>();
-    private Instant occurredAt;
-    private Instant postedAt;
-    private Money amount = new Money(0, "USD");
-    private String merchant;
-    private String category;
-    private String type;
-    private String memo;
+    private GenericTransaction.Builder builder;
 
     RowBuilder(String accountId, ObjectMapper mapper, TransactionValidator validator) {
-        this.accountId = accountId;
-        this.mapper = mapper;
         this.validator = validator;
+        this.builder = new GenericTransaction.Builder(accountId, mapper);
     }
 
     void occurredAt(Instant v) {
-        this.occurredAt = v;
+        builder = builder.withOccurredAt(v);
     }
 
     void postedAt(Instant v) {
-        this.postedAt = v;
+        builder = builder.withPostedAt(v);
     }
 
     void addAmount(long cents) {
-        this.amount = new Money(this.amount.cents() + cents, this.amount.currency());
+        builder = builder.addAmount(cents);
     }
 
     void currency(String v) {
-        if (v != null && !v.isBlank()) {
-            this.amount = new Money(this.amount.cents(), v);
-        }
+        builder = builder.withCurrency(v);
     }
 
     void merchant(String v) {
-        this.merchant = v;
+        builder = builder.withMerchant(v);
     }
 
     void category(String v) {
-        this.category = v;
+        builder = builder.withCategory(v);
     }
 
     void type(String v) {
-        this.type = v;
+        builder = builder.withType(v);
     }
 
     void memo(String v) {
-        this.memo = v;
+        builder = builder.withMemo(v);
     }
 
     void raw(String h, String v) {
-        raw.put(h, v);
+        builder = builder.withRaw(h, v);
     }
 
     TransactionRecord build() {
-        String rawJson = mapper.valueToTree(raw).toString();
-        String hash = HashGenerator.sha256(accountId, amount, occurredAt, merchant);
-        TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amount,
-                merchant, category, type, memo, hash, rawJson);
+        TransactionRecord tx = builder.build();
         validator.validate(tx);
         return tx;
     }
