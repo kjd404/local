@@ -7,7 +7,7 @@ class UrlSanitizerTest {
     @Test
     void sanitizeRemovesCredentials() {
         String url = "jdbc:postgresql://user:secret@host:5432/db";
-        String sanitized = IngestApplication.sanitize(url);
+        String sanitized = IngestApp.sanitize(url);
         assertEquals("jdbc:postgresql://host:5432/db", sanitized);
     }
 }
