@@ -2,11 +2,14 @@ package org.artificers.ingest;
 
 import java.time.Instant;
 
-public class Account {
-    public long id;
-    public String institution;
-    public String externalId;
-    public String displayName;
-    public Instant createdAt;
-    public Instant updatedAt;
-}
+/**
+ * Immutable account record.
+ */
+public record Account(
+        long id,
+        String institution,
+        String externalId,
+        String displayName,
+        Instant createdAt,
+        Instant updatedAt
+) {}
