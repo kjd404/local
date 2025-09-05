@@ -21,7 +21,7 @@ class IngestServiceViewTest {
         try (InputStream in = getClass().getResourceAsStream("/mappings/" + institution + ".json")) {
             ConfigurableCsvReader.Mapping mapping =
                     new ObjectMapper().readValue(in, ConfigurableCsvReader.Mapping.class);
-            return new ConfigurableCsvReader(mapping);
+            return new ConfigurableCsvReader(new ObjectMapper(), mapping);
         }
     }
 

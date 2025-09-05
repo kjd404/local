@@ -53,4 +53,18 @@ abstract class BaseCsvReader {
                 .replaceAll("_+", "_")
                 .replaceAll("^_|_$", "");
     }
+
+    protected Instant parseTimestamp(String v, String format) {
+        if (v == null || v.isBlank()) return null;
+        if (format != null && !format.isBlank()) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern(format).withZone(ZoneOffset.UTC);
+            try {
+                return Instant.from(fmt.parse(v));
+            } catch (DateTimeParseException e) {
+                LocalDate d = LocalDate.parse(v, fmt);
+                return d.atStartOfDay(ZoneOffset.UTC).toInstant();
+            }
+        }
+        return parseDate(v);
+    }
 }

@@ -22,7 +22,7 @@ public final class CsvReaderModule {
     CsvReaderModule(ObjectMapper mapper) {
         try {
             this.readers = new MappingFileLocator(mapper).locate().stream()
-                    .map(ConfigurableCsvReader::new)
+                    .map(m -> new ConfigurableCsvReader(mapper, m))
                     .collect(Collectors.toUnmodifiableSet());
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load CSV mappings", e);

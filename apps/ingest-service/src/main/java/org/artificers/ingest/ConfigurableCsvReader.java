@@ -3,23 +3,20 @@ package org.artificers.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class ConfigurableCsvReader extends BaseCsvReader implements TransactionCsvReader {
     private final String institution;
     private final Map<String, FieldSpec> fields;
+    private final ObjectMapper mapper;
 
-    public ConfigurableCsvReader(Mapping mapping) {
+    public ConfigurableCsvReader(ObjectMapper mapper, Mapping mapping) {
+        this.mapper = mapper;
         this.institution = mapping.institution();
         this.fields = mapping.fields();
     }
@@ -91,27 +88,12 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
             }
         }
 
-        String rawJson = new ObjectMapper().valueToTree(raw).toString();
-        String occurred = occurredAt == null ? "" : occurredAt.toString();
-        String hash = DigestUtils.sha256Hex(accountId + amountCents + occurred + merchant);
+        String rawJson = mapper.valueToTree(raw).toString();
+        String hash = HashGenerator.sha256(accountId, amountCents, occurredAt, merchant);
         TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amountCents,
                 currency, merchant, category, type, memo, hash, rawJson);
         TransactionValidator.validate(tx);
         return tx;
-    }
-
-    private Instant parseTimestamp(String v, String format) {
-        if (v == null || v.isBlank()) return null;
-        if (format != null && !format.isBlank()) {
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern(format).withZone(ZoneOffset.UTC);
-            try {
-                return Instant.from(fmt.parse(v));
-            } catch (DateTimeParseException e) {
-                LocalDate d = LocalDate.parse(v, fmt);
-                return d.atStartOfDay(ZoneOffset.UTC).toInstant();
-            }
-        }
-        return parseDate(v);
     }
 
     public record Mapping(String institution, Map<String, FieldSpec> fields) {}
