@@ -6,45 +6,41 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.Function;
 
 public class DirectoryWatchService implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(DirectoryWatchService.class);
 
-    private final IngestService ingestService;
     private final Path directory;
     private final ExecutorService executor;
-    private WatchService watchService;
-    private static final Pattern FILE_PATTERN = Pattern.compile("^([a-zA-Z]+\\d{4}).*\\.csv$");
+    private final WatchService watchService;
+    private final FileIngestionService fileService;
+    private final Function<Path, String> shorthandParser;
 
-    public DirectoryWatchService(IngestService ingestService, Path dir) {
-        this.ingestService = ingestService;
+    public DirectoryWatchService(FileIngestionService fileService,
+                                 Path dir,
+                                 ExecutorService executor,
+                                 WatchService watchService,
+                                 Function<Path, String> shorthandParser) {
+        this.fileService = fileService;
         this.directory = dir.toAbsolutePath();
-        this.executor = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            t.setName("directory-watch");
-            return t;
-        });
+        this.executor = executor;
+        this.watchService = watchService;
+        this.shorthandParser = shorthandParser;
     }
 
     public void start() throws IOException {
         Files.createDirectories(directory);
         log.info("Watching directory {} for new files", directory);
-        watchService = FileSystems.getDefault().newWatchService();
         directory.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
-        scanDirectory();
+        fileService.scanAndIngest(directory);
         executor.submit(this::processEvents);
     }
 
     public void stop() throws IOException {
         executor.shutdownNow();
-        if (watchService != null) {
-            watchService.close();
-        }
+        watchService.close();
     }
 
     @Override
@@ -61,16 +57,24 @@ public class DirectoryWatchService implements AutoCloseable {
                     for (WatchEvent<?> event : key.pollEvents()) {
                         if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                             Path filename = (Path) event.context();
-                            Matcher m = FILE_PATTERN.matcher(filename.toString());
-                            if (m.matches()) {
-                                String shorthand = m.group(1).toLowerCase();
-                                handleFile(filename, shorthand);
+                            Path file = directory.resolve(filename);
+                            String shorthand = shorthandParser.apply(file);
+                            if (shorthand != null) {
+                                try {
+                                    fileService.ingestFile(file, shorthand);
+                                } catch (IOException e) {
+                                    log.error("Failed to ingest file {}", file, e);
+                                }
                             }
                         }
                     }
                     key.reset();
                 }
-                scanDirectory();
+                try {
+                    fileService.scanAndIngest(directory);
+                } catch (IOException e) {
+                    log.error("Failed to scan directory {}", directory, e);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
@@ -78,32 +82,4 @@ public class DirectoryWatchService implements AutoCloseable {
             }
         }
     }
-
-    private void scanDirectory() {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.csv")) {
-            for (Path file : stream) {
-                Matcher m = FILE_PATTERN.matcher(file.getFileName().toString());
-                if (m.matches()) {
-                    handleFile(file.getFileName(), m.group(1).toLowerCase());
-                }
-            }
-        } catch (IOException e) {
-            log.error("Failed to scan directory {}", directory, e);
-        }
-    }
-
-    private void handleFile(Path filename, String shorthand) {
-        Path file = directory.resolve(filename);
-        log.info("Processing file {} with shorthand {}", file, shorthand);
-        boolean ok = ingestService.ingestFile(file, shorthand);
-        log.info("Finished processing file {}: {}", file, ok ? "success" : "failure");
-        Path target = directory.resolve(ok ? "processed" : "error");
-        try {
-            Files.createDirectories(target);
-            Files.move(file, target.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            log.error("Failed to move file {} to {}", file, target, e);
-        }
-    }
 }
-

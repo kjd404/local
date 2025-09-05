@@ -4,8 +4,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.WatchService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +30,10 @@ class DirectoryWatchServiceIntegrationTest {
     void ingestsAndMovesNewCsvFiles(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any(), any())).thenReturn(true);
-        watcher = new DirectoryWatchService(ingestService, dir);
+        FileIngestionService fileService = new FileIngestionService(ingestService, AccountResolver::extractShorthand);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        watcher = new DirectoryWatchService(fileService, dir, executor, watchService, AccountResolver::extractShorthand);
         watcher.start();
 
         Path file = dir.resolve("ch1234-example.csv");
@@ -45,7 +52,10 @@ class DirectoryWatchServiceIntegrationTest {
     void movesFailedFilesAndContinuesWatching(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
         when(ingestService.ingestFile(any(), any())).thenReturn(false, true);
-        watcher = new DirectoryWatchService(ingestService, dir);
+        FileIngestionService fileService = new FileIngestionService(ingestService, AccountResolver::extractShorthand);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        watcher = new DirectoryWatchService(fileService, dir, executor, watchService, AccountResolver::extractShorthand);
         watcher.start();
 
         Path bad = dir.resolve("ch1234-bad.csv");
@@ -74,7 +84,10 @@ class DirectoryWatchServiceIntegrationTest {
         Path file = dir.resolve("ch1234-existing.csv");
         Files.writeString(file, "id,amount\n1,10");
 
-        watcher = new DirectoryWatchService(ingestService, dir);
+        FileIngestionService fileService = new FileIngestionService(ingestService, AccountResolver::extractShorthand);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        watcher = new DirectoryWatchService(fileService, dir, executor, watchService, AccountResolver::extractShorthand);
         watcher.start();
 
         Path processed = dir.resolve("processed").resolve("ch1234-existing.csv");

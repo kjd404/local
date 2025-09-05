@@ -42,7 +42,7 @@ class FileIngestionServiceTest {
         TransactionRepository repo = new TransactionRepository();
         MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
         IngestService service = new IngestService(dsl, resolver, Set.of(chReader, coReader), repo, refresher);
-        FileIngestionService fileService = new FileIngestionService(service);
+        FileIngestionService fileService = new FileIngestionService(service, AccountResolver::extractShorthand);
         fileService.scanAndIngest(dir);
 
         verify(chReader).read(eq(dir.resolve("ch1234-example.csv")), any(), eq("1234"));
