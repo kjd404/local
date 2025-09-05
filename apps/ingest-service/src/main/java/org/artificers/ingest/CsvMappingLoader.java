@@ -6,17 +6,17 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
- * Loads CSV reader mappings from JSON files and registers a {@link TransactionCsvReader}
- * bean for each mapping. Dependencies are injected so that the loader can be
- * tested in isolation and to follow constructor-based immutability.
+ * BeanDefinitionRegistryPostProcessor that loads CSV reader mappings from JSON
+ * files and registers a {@link TransactionCsvReader} bean for each mapping. It
+ * is registered via a configuration class to enable constructor-based
+ * dependency injection even though BeanDefinitionRegistryPostProcessor
+ * instances are created very early in the Spring lifecycle.
  */
-@Component
 public class CsvMappingLoader implements BeanDefinitionRegistryPostProcessor {
     private final MappingFileLocator locator;
 
