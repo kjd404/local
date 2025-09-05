@@ -25,10 +25,20 @@ make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=ingest DB
 Alternatively, run the CLI directly:
 
 ```bash
-./apps/ingest-service/gradlew -p apps/ingest-service bootRun --args='--mode=scan'  # defaults to storage/incoming
+java -jar apps/ingest-service/build/libs/ingest-service-0.0.1-SNAPSHOT.jar --mode=scan  # defaults to storage/incoming
+java -jar apps/ingest-service/build/libs/ingest-service-0.0.1-SNAPSHOT.jar --file=/path/to/ch1234-example.csv
 ```
 
 Stop the database with `docker compose down` when finished.
+
+### Environment Variables
+
+The CLI reads the following variables (via the shell or `.env`):
+
+- `DB_URL` – JDBC URL of the PostgreSQL database.
+- `DB_USER` – database username.
+- `DB_PASSWORD` – database password.
+- `INGEST_DIR` – optional directory to scan for CSV files (defaults to `storage/incoming`).
 
 ## Schema
 
