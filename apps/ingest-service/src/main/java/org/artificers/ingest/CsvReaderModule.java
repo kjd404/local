@@ -12,23 +12,27 @@ import javax.inject.Singleton;
 
 /** Module for CSV reader configuration. */
 @Module
-public interface CsvReaderModule {
-    @Provides
-    @Singleton
-    static MappingFileLocator mappingFileLocator(ObjectMapper mapper) {
-        return new MappingFileLocator(mapper);
+public final class CsvReaderModule {
+    private final Set<TransactionCsvReader> readers;
+
+    public CsvReaderModule() {
+        this(new ObjectMapper());
+    }
+
+    CsvReaderModule(ObjectMapper mapper) {
+        try {
+            this.readers = new MappingFileLocator(mapper).locate().stream()
+                    .map(ConfigurableCsvReader::new)
+                    .collect(Collectors.toUnmodifiableSet());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to load CSV mappings", e);
+        }
     }
 
     @Provides
     @Singleton
     @ElementsIntoSet
-    static Set<TransactionCsvReader> csvReaders(MappingFileLocator locator) {
-        try {
-            return locator.locate().stream()
-                    .map(ConfigurableCsvReader::new)
-                    .collect(Collectors.toSet());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to load CSV mappings", e);
-        }
+    Set<TransactionCsvReader> csvReaders() {
+        return readers;
     }
 }

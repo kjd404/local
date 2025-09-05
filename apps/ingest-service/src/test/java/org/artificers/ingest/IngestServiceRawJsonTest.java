@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,7 @@ class IngestServiceRawJsonTest {
             }
         };
         DSLContext dsl = DSL.using(new MockConnection(provider), SQLDialect.POSTGRES);
-        IngestService service = new IngestService(dsl, null, List.of());
+        IngestService service = new IngestService(dsl, null, Set.of());
         TransactionRecord tx = new GenericTransaction("a", null, null, 100, "USD", "m", "c", null, null, "h", "{}");
         ResolvedAccount account = new ResolvedAccount(1, "co", "a");
 
