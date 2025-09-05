@@ -32,8 +32,8 @@ class IngestServiceTransactionTest {
         AccountResolver resolver = new AccountResolver(dsl, parser);
         TransactionCsvReader reader = mock(TransactionCsvReader.class);
         when(reader.institution()).thenReturn(institution);
-        TransactionRecord t1 = new GenericTransaction("a", null, null, 100, "USD", "m", "c", null, null, "h1", "{}");
-        TransactionRecord t2 = new GenericTransaction("a", null, null, 200, "USD", "m", "c", null, null, "h1", "{}");
+        TransactionRecord t1 = new GenericTransaction("a", null, null, new Money(100, "USD"), "m", "c", null, null, "h1", "{}");
+        TransactionRecord t2 = new GenericTransaction("a", null, null, new Money(200, "USD"), "m", "c", null, null, "h1", "{}");
         when(reader.read(any(), any(), eq("1234"))).thenReturn(List.of(t1, t2));
 
         Files.writeString(dir.resolve(institution + "1234.csv"), "id,amount\n1,10");

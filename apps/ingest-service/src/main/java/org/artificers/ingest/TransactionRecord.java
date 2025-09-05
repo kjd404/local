@@ -6,8 +6,7 @@ public interface TransactionRecord {
     String accountId();
     Instant occurredAt();
     Instant postedAt();
-    long amountCents();
-    String currency();
+    Money amount();
     String merchant();
     String category();
     String type();

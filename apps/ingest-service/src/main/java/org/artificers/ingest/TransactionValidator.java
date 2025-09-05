@@ -7,7 +7,10 @@ final class TransactionValidator {
         if (tx.accountId() == null || tx.accountId().isBlank()) {
             throw new IllegalArgumentException("accountId is required");
         }
-        if (tx.currency() == null || tx.currency().length() != 3) {
+        if (tx.amount() == null) {
+            throw new IllegalArgumentException("amount is required");
+        }
+        if (tx.amount().currency() == null || tx.amount().currency().length() != 3) {
             throw new IllegalArgumentException("currency must be 3-letter code");
         }
         if (tx.hash() == null || tx.hash().isBlank()) {
