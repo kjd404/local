@@ -17,6 +17,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IngestService {
@@ -26,7 +27,7 @@ public class IngestService {
     private final AccountResolver accountResolver;
     private final Map<String, TransactionCsvReader> readers;
 
-    public IngestService(DSLContext dsl, AccountResolver accountResolver, List<TransactionCsvReader> readers) {
+    public IngestService(DSLContext dsl, AccountResolver accountResolver, Set<TransactionCsvReader> readers) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
         this.readers = readers.stream().collect(Collectors.toMap(TransactionCsvReader::institution, r -> r));

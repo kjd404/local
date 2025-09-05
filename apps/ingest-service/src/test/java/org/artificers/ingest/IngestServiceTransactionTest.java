@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -35,7 +36,7 @@ class IngestServiceTransactionTest {
         when(reader.read(any(), any(), eq("1234"))).thenReturn(List.of(t1, t2));
 
         Files.writeString(dir.resolve(institution + "1234.csv"), "id,amount\n1,10");
-        IngestService service = new IngestService(dsl, resolver, List.of(reader));
+        IngestService service = new IngestService(dsl, resolver, Set.of(reader));
         boolean ok = service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
 
         assertThat(ok).isTrue();

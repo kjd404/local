@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -38,7 +39,7 @@ class IngestServiceTest {
         copyResource("ch1234-example.csv", dir.resolve("ch1234-example.csv"));
         copyResource("co1828-example.csv", dir.resolve("co1828-example.csv"));
 
-        IngestService service = new IngestService(dsl, resolver, List.of(chReader, coReader));
+        IngestService service = new IngestService(dsl, resolver, Set.of(chReader, coReader));
         service.scanAndIngest(dir);
 
         verify(chReader).read(eq(dir.resolve("ch1234-example.csv")), any(), eq("1234"));

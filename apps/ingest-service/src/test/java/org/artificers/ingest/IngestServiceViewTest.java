@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +56,7 @@ class IngestServiceViewTest {
 
         ConfigurableCsvReader reader = reader(institution);
         AccountResolver resolver = new AccountResolver(dsl);
-        IngestService service = new IngestService(dsl, resolver, List.of(reader));
+        IngestService service = new IngestService(dsl, resolver, Set.of(reader));
 
         Path file = copyResource("/examples/" + fileName, dir);
         boolean ok = service.ingestFile(file, institution + externalId);

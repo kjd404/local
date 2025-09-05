@@ -26,7 +26,7 @@ public interface ServiceModule {
     @Provides
     @Singleton
     static IngestService ingestService(DSLContext dsl, AccountResolver resolver, Set<TransactionCsvReader> readers) {
-        return new IngestService(dsl, resolver, readers.stream().toList());
+        return new IngestService(dsl, resolver, readers);
     }
 
     @Provides
