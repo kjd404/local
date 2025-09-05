@@ -4,7 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.ClosedWatchServiceException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -33,49 +39,62 @@ public class DirectoryWatchService implements AutoCloseable {
         Files.createDirectories(directory);
         log.info("Watching directory {} for new files", directory);
         directory.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
-        fileService.scanAndIngest(directory);
+        rescanDirectory();
         executor.submit(this::processEvents);
     }
 
-    public void stop() throws IOException {
+    private void rescanDirectory() {
+        try {
+            fileService.scanAndIngest(directory);
+        } catch (IOException e) {
+            log.error("Failed to scan directory {}", directory, e);
+        }
+    }
+
+    public void stop() {
         executor.shutdownNow();
-        watchService.close();
+        try (WatchService ignored = watchService) {
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            log.error("Failed to close watch service", e);
+        }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         stop();
     }
 
     private void processEvents() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                log.debug("Polling {} for changes", directory);
-                WatchKey key = watchService.poll(5, TimeUnit.SECONDS);
-                if (key != null) {
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                            Path filename = (Path) event.context();
-                            Path file = directory.resolve(filename);
-                            String shorthand = shorthandParser.extract(file);
-                            if (shorthand != null) {
-                                try {
-                                    fileService.ingestFile(file, shorthand);
-                                } catch (IOException e) {
-                                    log.error("Failed to ingest file {}", file, e);
-                                }
+                WatchKey key = watchService.take();
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                        Path filename = (Path) event.context();
+                        Path file = directory.resolve(filename);
+                        String shorthand = shorthandParser.extract(file);
+                        if (shorthand != null) {
+                            try {
+                                fileService.ingestFile(file, shorthand);
+                            } catch (IOException e) {
+                                log.error("Failed to ingest file {}", file, e);
                             }
                         }
                     }
-                    key.reset();
                 }
-                try {
-                    fileService.scanAndIngest(directory);
-                } catch (IOException e) {
-                    log.error("Failed to scan directory {}", directory, e);
+                boolean valid = key.reset();
+                rescanDirectory();
+                if (!valid) {
+                    break;
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
+            } catch (ClosedWatchServiceException e) {
+                break;
             } catch (Exception e) {
                 log.error("Watch service error", e);
             }
