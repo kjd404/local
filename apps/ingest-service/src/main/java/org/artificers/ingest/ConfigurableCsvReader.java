@@ -53,11 +53,10 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
             String v = row[i];
             FieldSpec spec = fields.get(h);
             if (spec != null) {
-                String target = spec.target();
-                switch (target) {
-                    case "occurred_at" -> occurredAt = parseTimestamp(v, spec.format());
-                    case "posted_at" -> postedAt = parseTimestamp(v, spec.format());
-                    case "amount_cents" -> {
+                switch (spec.target()) {
+                    case OCCURRED_AT -> occurredAt = parseTimestamp(v, spec.format());
+                    case POSTED_AT -> postedAt = parseTimestamp(v, spec.format());
+                    case AMOUNT_CENTS -> {
                         if ("currency".equals(spec.type())) {
                             long cents = parseAmount(v);
                             if (h.contains("debit")) {
@@ -74,14 +73,12 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
                             }
                         }
                     }
-                    case "currency" -> currency = v;
-                    case "merchant" -> merchant = v;
-                    case "category" -> category = v;
-                    case "type" -> type = v;
-                    case "memo" -> memo = v;
-                    default -> {
-                        raw.put(h, v);
-                    }
+                    case CURRENCY -> currency = v;
+                    case MERCHANT -> merchant = v;
+                    case CATEGORY -> category = v;
+                    case TYPE -> type = v;
+                    case MEMO -> memo = v;
+                    case RAW -> raw.put(h, v);
                 }
             } else {
                 raw.put(h, v);
@@ -98,5 +95,5 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
 
     public record Mapping(String institution, Map<String, FieldSpec> fields) {}
 
-    public record FieldSpec(String target, String type, String format) {}
+    public record FieldSpec(FieldTarget target, String type, String format) {}
 }

@@ -65,9 +65,9 @@ class ConfigurableCsvReaderTest {
         String mapping = "{" +
                 "\"institution\":\"xx\"," +
                 "\"fields\":{" +
-                "\"date\":{\"target\":\"occurred_at\",\"type\":\"timestamp\"}," +
-                "\"debit\":{\"target\":\"amount_cents\",\"type\":\"int\"}," +
-                "\"credit\":{\"target\":\"amount_cents\",\"type\":\"int\"}" +
+                "\"date\":{\"target\":\"OCCURRED_AT\",\"type\":\"timestamp\"}," +
+                "\"debit\":{\"target\":\"AMOUNT_CENTS\",\"type\":\"int\"}," +
+                "\"credit\":{\"target\":\"AMOUNT_CENTS\",\"type\":\"int\"}" +
                 "}}";
         ConfigurableCsvReader.Mapping m = new ObjectMapper().readValue(mapping, ConfigurableCsvReader.Mapping.class);
         ConfigurableCsvReader reader = new ConfigurableCsvReader(new ObjectMapper(), m);
