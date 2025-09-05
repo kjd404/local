@@ -14,7 +14,7 @@ class ConfigurableCsvReaderTest {
     private ConfigurableCsvReader reader(String name, ObjectMapper mapper) throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/mappings/" + name + ".json")) {
             ConfigurableCsvReader.Mapping mapping = new ObjectMapper().readValue(in, ConfigurableCsvReader.Mapping.class);
-            return new ConfigurableCsvReader(mapper, mapping);
+            return new ConfigurableCsvReader(mapper, new BasicTransactionValidator(), mapping);
         }
     }
 
@@ -70,7 +70,7 @@ class ConfigurableCsvReaderTest {
                 "\"credit\":{\"target\":\"AMOUNT_CENTS\",\"type\":\"int\"}" +
                 "}}";
         ConfigurableCsvReader.Mapping m = new ObjectMapper().readValue(mapping, ConfigurableCsvReader.Mapping.class);
-        ConfigurableCsvReader reader = new ConfigurableCsvReader(new ObjectMapper(), m);
+        ConfigurableCsvReader reader = new ConfigurableCsvReader(new ObjectMapper(), new BasicTransactionValidator(), m);
         String csv = "date,debit,credit\n" +
                 "2025-04-30,100,0\n" +
                 "2025-04-29,0,200\n";

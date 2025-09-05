@@ -44,7 +44,8 @@ public class AccountCreationIntegrationTest {
         try (InputStream in = getClass().getResourceAsStream("/mappings/" + institution + ".json")) {
             ConfigurableCsvReader.Mapping mapping =
                     new com.fasterxml.jackson.databind.ObjectMapper().readValue(in, ConfigurableCsvReader.Mapping.class);
-            return new ConfigurableCsvReader(new com.fasterxml.jackson.databind.ObjectMapper(), mapping);
+            return new ConfigurableCsvReader(new com.fasterxml.jackson.databind.ObjectMapper(),
+                    new BasicTransactionValidator(), mapping);
         }
     }
 
