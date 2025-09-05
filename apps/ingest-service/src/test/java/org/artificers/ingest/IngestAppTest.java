@@ -14,7 +14,7 @@ class IngestAppTest {
     void ingestsFileWhenFileOptionPresent() throws Exception {
         IngestService service = mock(IngestService.class);
         FileIngestionService fileService = mock(FileIngestionService.class);
-        when(service.ingestFile(any(), any())).thenReturn(true);
+        doNothing().when(service).ingestFile(any(), any());
         DirectoryWatchService watch = mock(DirectoryWatchService.class);
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
         AccountShorthandParser parser = new AccountShorthandParser();

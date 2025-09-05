@@ -43,9 +43,14 @@ public final class IngestApp implements Callable<Integer> {
     public Integer call() throws Exception {
         if (file != null) {
             String shorthand = shorthandParser.extract(file);
-            boolean ok = shorthand != null && service.ingestFile(file, shorthand);
-            if (!ok) {
-                log.warn("Ingestion failed for {}", file);
+            if (shorthand != null) {
+                try {
+                    service.ingestFile(file, shorthand);
+                } catch (Exception e) {
+                    log.warn("Ingestion failed for {}", file, e);
+                }
+            } else {
+                log.warn("Skipping file {} with unrecognized name", file);
             }
             return 0;
         }
