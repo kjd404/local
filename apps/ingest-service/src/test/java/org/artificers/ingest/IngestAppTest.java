@@ -19,7 +19,9 @@ class IngestAppTest {
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
         AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--file=/tmp/ch1234.csv");
+        CommandLine cmd = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser));
+        cmd.setCaseInsensitiveEnumValuesAllowed(true);
+        int code = cmd.execute("--file=/tmp/ch1234.csv");
 
         verify(service).ingestFile(Path.of("/tmp/ch1234.csv"), "ch1234");
         assertThat(code).isZero();
@@ -33,7 +35,9 @@ class IngestAppTest {
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
         AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--mode=scan", "--input=/tmp/in");
+        CommandLine cmd = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser));
+        cmd.setCaseInsensitiveEnumValuesAllowed(true);
+        int code = cmd.execute("--mode=scan", "--input=/tmp/in");
 
         verify(fileService).scanAndIngest(Path.of("/tmp/in"));
         assertThat(code).isZero();
@@ -47,7 +51,9 @@ class IngestAppTest {
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), Path.of("cfg"));
         AccountShorthandParser parser = new AccountShorthandParser();
 
-        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser)).execute("--mode=scan");
+        CommandLine cmd = new CommandLine(new IngestApp(service, fileService, watch, cfg, parser));
+        cmd.setCaseInsensitiveEnumValuesAllowed(true);
+        int code = cmd.execute("--mode=scan");
 
         verify(fileService).scanAndIngest(Path.of("storage/incoming"));
         assertThat(code).isZero();
