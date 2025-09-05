@@ -4,13 +4,20 @@ import com.zaxxer.hikari.HikariDataSource;
 import dagger.Module;
 import dagger.Provides;
 import javax.inject.Singleton;
+import java.io.Closeable;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Module providing database access objects. */
+/**
+ * Module providing database access objects.
+ *
+ * <p>The {@link HikariDataSource} is a singleton that must be closed when the
+ * application shuts down. A {@link Closeable} handle is exposed so callers can
+ * register a shutdown hook or otherwise ensure the datasource is closed.
+ */
 @Module
 public interface DataModule {
     Logger LOG = LoggerFactory.getLogger(DataModule.class);
@@ -24,6 +31,12 @@ public interface DataModule {
         ds.setUsername(cfg.user());
         ds.setPassword(cfg.password());
         return ds;
+    }
+
+    @Provides
+    @Singleton
+    static Closeable dataSourceCloser(HikariDataSource ds) {
+        return ds::close;
     }
 
     @Provides

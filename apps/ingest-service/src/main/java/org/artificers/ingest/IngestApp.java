@@ -6,6 +6,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
@@ -82,6 +84,14 @@ public final class IngestApp implements Callable<Integer> {
                 .dbConfig(dbCfg)
                 .ingestConfig(cfg)
                 .build();
+        Closeable ds = component.dataSourceCloseable();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                ds.close();
+            } catch (IOException e) {
+                log.warn("Error closing datasource", e);
+            }
+        }));
         IngestService service = component.ingestService();
         FileIngestionService fileService = component.fileIngestionService();
         DirectoryWatchService watch = component.directoryWatchService();
