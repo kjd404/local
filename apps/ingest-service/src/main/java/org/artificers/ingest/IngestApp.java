@@ -1,0 +1,73 @@
+package org.artificers.ingest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+
+import java.nio.file.Path;
+import java.util.concurrent.Callable;
+
+/** Application entry point using Dagger and Picocli. */
+@Command(name = "ingest", mixinStandardHelpOptions = true)
+public final class IngestApp implements Callable<Integer> {
+    private static final Logger log = LoggerFactory.getLogger(IngestApp.class);
+
+    @Option(names = "--file", description = "Path to a CSV file")
+    Path file;
+
+    @Option(names = "--mode", description = "Execution mode")
+    String mode;
+
+    @Option(names = "--input", description = "Directory to scan")
+    Path input;
+
+    private final IngestService service;
+    private final DirectoryWatchService watchService;
+
+    public IngestApp(IngestService service, DirectoryWatchService watchService) {
+        this.service = service;
+        this.watchService = watchService;
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        if (file != null) {
+            String shorthand = AccountResolver.extractShorthand(file);
+            boolean ok = shorthand != null && service.ingestFile(file, shorthand);
+            if (!ok) {
+                log.warn("Ingestion failed for {}", file);
+            }
+            return 0;
+        }
+        if ("scan".equals(mode)) {
+            Path dir = input != null ? input : Path.of("storage/incoming");
+            service.scanAndIngest(dir);
+            return 0;
+        }
+        try (DirectoryWatchService watch = watchService) {
+            watch.start();
+            Thread.currentThread().join();
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String rawUrl = System.getenv("DB_URL");
+        String user = System.getenv("DB_USER");
+        log.info("Starting with DB_URL={} DB_USER={}", sanitize(rawUrl), user);
+        IngestComponent component = DaggerIngestComponent.create();
+        IngestService service = component.ingestService();
+        DirectoryWatchService watch = component.directoryWatchService();
+        int code = new CommandLine(new IngestApp(service, watch)).execute(args);
+        System.exit(code);
+    }
+
+    static String sanitize(String url) {
+        if (url == null) {
+            return "";
+        }
+        return url.replaceAll("(?<=//)[^/@]+:[^@]+@", "");
+    }
+}
