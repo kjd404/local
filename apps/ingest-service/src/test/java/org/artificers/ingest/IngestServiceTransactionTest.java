@@ -40,9 +40,7 @@ class IngestServiceTransactionTest {
         TransactionRepository repo = new TransactionRepository();
         MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
         IngestService service = new IngestService(dsl, resolver, parser, Set.of(reader), repo, refresher);
-        boolean ok = service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
-
-        assertThat(ok).isTrue();
+        service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
         assertThat(dsl.fetchCount(DSL.table("transactions"))).isEqualTo(1);
     }
 }

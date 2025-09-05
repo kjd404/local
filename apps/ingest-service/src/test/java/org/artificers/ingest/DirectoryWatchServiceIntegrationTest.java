@@ -29,7 +29,7 @@ class DirectoryWatchServiceIntegrationTest {
     @Test
     void ingestsAndMovesNewCsvFiles(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
-        when(ingestService.ingestFile(any(), any())).thenReturn(true);
+        doNothing().when(ingestService).ingestFile(any(), any());
         AccountShorthandParser parser = new AccountShorthandParser();
         FileIngestionService fileService = new FileIngestionService(ingestService, parser);
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -52,7 +52,8 @@ class DirectoryWatchServiceIntegrationTest {
     @Test
     void movesFailedFilesAndContinuesWatching(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
-        when(ingestService.ingestFile(any(), any())).thenReturn(false, true);
+        doThrow(new IngestException("fail")).doNothing()
+                .when(ingestService).ingestFile(any(), any());
         AccountShorthandParser parser = new AccountShorthandParser();
         FileIngestionService fileService = new FileIngestionService(ingestService, parser);
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -82,7 +83,7 @@ class DirectoryWatchServiceIntegrationTest {
     @Test
     void processesExistingFilesOnStartup(@TempDir Path dir) throws Exception {
         IngestService ingestService = mock(IngestService.class);
-        when(ingestService.ingestFile(any(), any())).thenReturn(true);
+        doNothing().when(ingestService).ingestFile(any(), any());
         Path file = dir.resolve("ch1234-existing.csv");
         Files.writeString(file, "id,amount\n1,10");
 

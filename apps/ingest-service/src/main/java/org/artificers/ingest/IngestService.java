@@ -5,6 +5,7 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
@@ -38,43 +39,53 @@ public class IngestService {
         this.viewRefresher = viewRefresher;
     }
 
-    public boolean ingestFile(Path file, String shorthand) {
+    public void ingestFile(Path file, String shorthand) throws IngestException, IOException {
         log.info("Ingesting file {} for shorthand {}", file, shorthand);
+        AccountShorthandParser.ParsedShorthand ids;
         try {
-            AccountShorthandParser.ParsedShorthand ids = shorthandParser.parse(shorthand);
-            TransactionCsvReader reader = readers.get(ids.institution());
-            if (reader == null) {
-                log.error("No reader for institution {}", ids.institution());
-                return false;
-            }
-            String csv = Files.readString(file);
-            try (Reader r = new StringReader(csv)) {
-                List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
-                if (txs.isEmpty()) {
-                    log.warn("No transactions found in {}", file);
-                    return false;
-                }
-                txs.forEach(t -> log.info("Read transaction: {}", t));
-                try {
-                    dsl.transaction(conf -> {
-                        DSLContext ctx = DSL.using(conf);
-                        ResolvedAccount account = accountResolver.resolve(ctx, shorthand);
-                        txs.forEach(t -> repository.upsert(ctx, t, account));
-                    });
-                    viewRefresher.refreshTransactionsView();
-                } catch (TransactionIngestException e) {
-                    log.error("Transaction ingest failed for {}", e.record(), e);
-                    return false;
-                }
-                log.info("Successfully ingested {} transactions from {}", txs.size(), file);
-                return true;
-            }
+            ids = shorthandParser.parse(shorthand);
         } catch (IllegalArgumentException e) {
-            log.error("Invalid shorthand {} for file {}", shorthand, file, e);
-        } catch (Exception e) {
-            log.error("Failed to ingest {}", file, e);
+            throw new IngestException("Invalid account shorthand " + shorthand, e);
         }
-        return false;
+        List<TransactionRecord> txs = parseTransactions(file, ids);
+        persistTransactions(shorthand, txs);
+        refreshViews();
+        log.info("Successfully ingested {} transactions from {}", txs.size(), file);
+    }
+
+    private List<TransactionRecord> parseTransactions(Path file,
+                                                      AccountShorthandParser.ParsedShorthand ids)
+            throws IOException, IngestException {
+        TransactionCsvReader reader = readers.get(ids.institution());
+        if (reader == null) {
+            throw new IngestException("No reader for institution " + ids.institution());
+        }
+        String csv = Files.readString(file);
+        try (Reader r = new StringReader(csv)) {
+            List<TransactionRecord> txs = reader.read(file, r, ids.externalId());
+            if (txs.isEmpty()) {
+                throw new IngestException("No transactions found in " + file);
+            }
+            txs.forEach(t -> log.info("Read transaction: {}", t));
+            return txs;
+        }
+    }
+
+    private void persistTransactions(String shorthand, List<TransactionRecord> txs)
+            throws IngestException {
+        try {
+            dsl.transaction(conf -> {
+                DSLContext ctx = DSL.using(conf);
+                ResolvedAccount account = accountResolver.resolve(ctx, shorthand);
+                txs.forEach(t -> repository.upsert(ctx, t, account));
+            });
+        } catch (TransactionIngestException e) {
+            throw new IngestException("Transaction ingest failed for " + e.record(), e);
+        }
+    }
+
+    private void refreshViews() {
+        viewRefresher.refreshTransactionsView();
     }
 
 }

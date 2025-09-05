@@ -37,9 +37,15 @@ public class FileIngestionService {
     }
 
     public void ingestFile(Path file, String shorthand) throws IOException {
-        boolean ok = ingestService.ingestFile(file, shorthand);
-        log.info("Ingestion {} for file {}", ok ? "succeeded" : "failed", file);
-        Path targetDir = file.getParent().resolve(ok ? "processed" : "error");
+        Path targetDir;
+        try {
+            ingestService.ingestFile(file, shorthand);
+            log.info("Ingestion succeeded for file {}", file);
+            targetDir = file.getParent().resolve("processed");
+        } catch (Exception e) {
+            log.info("Ingestion failed for file {}", file, e);
+            targetDir = file.getParent().resolve("error");
+        }
         Files.createDirectories(targetDir);
         Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
     }

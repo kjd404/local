@@ -62,9 +62,7 @@ class IngestServiceViewTest {
         IngestService service = new IngestService(dsl, resolver, parser, Set.of(reader), repo, refresher);
 
         Path file = copyResource("/examples/" + fileName, dir);
-        boolean ok = service.ingestFile(file, institution + externalId);
-
-        assertThat(ok).isTrue();
+        service.ingestFile(file, institution + externalId);
         assertThat(
                 dsl.fetchCount(
                         DSL.table("transactions"),
