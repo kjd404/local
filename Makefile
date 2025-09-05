@@ -9,7 +9,7 @@ endif
 
 build-app:
 	cd ops/proto && buf generate
-	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew bootJar
+	cd apps/ingest-service && (test -f gradle/wrapper/gradle-wrapper.jar || gradle wrapper --gradle-version 8.4) && ./gradlew build
 
 # Build the ingest-service Docker image
 # Example usage: `make docker-build`
