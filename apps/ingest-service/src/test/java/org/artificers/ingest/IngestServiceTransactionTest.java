@@ -36,7 +36,9 @@ class IngestServiceTransactionTest {
         when(reader.read(any(), any(), eq("1234"))).thenReturn(List.of(t1, t2));
 
         Files.writeString(dir.resolve(institution + "1234.csv"), "id,amount\n1,10");
-        IngestService service = new IngestService(dsl, resolver, Set.of(reader));
+        TransactionRepository repo = new TransactionRepository();
+        MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
+        IngestService service = new IngestService(dsl, resolver, Set.of(reader), repo, refresher);
         boolean ok = service.ingestFile(dir.resolve(institution + "1234.csv"), institution + "1234");
 
         assertThat(ok).isTrue();

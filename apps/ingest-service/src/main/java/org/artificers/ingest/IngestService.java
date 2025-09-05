@@ -1,20 +1,14 @@
 package org.artificers.ingest;
 
-import org.artificers.jooq.tables.Transactions;
 import org.jooq.DSLContext;
-import org.jooq.JSONB;
-import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.file.*;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,30 +20,19 @@ public class IngestService {
     private final DSLContext dsl;
     private final AccountResolver accountResolver;
     private final Map<String, TransactionCsvReader> readers;
+    private final TransactionRepository repository;
+    private final MaterializedViewRefresher viewRefresher;
 
-    public IngestService(DSLContext dsl, AccountResolver accountResolver, Set<TransactionCsvReader> readers) {
+    public IngestService(DSLContext dsl,
+                         AccountResolver accountResolver,
+                         Set<TransactionCsvReader> readers,
+                         TransactionRepository repository,
+                         MaterializedViewRefresher viewRefresher) {
         this.dsl = dsl;
         this.accountResolver = accountResolver;
         this.readers = readers.stream().collect(Collectors.toMap(TransactionCsvReader::institution, r -> r));
-    }
-
-    public void scanAndIngest(Path input) throws IOException {
-        log.info("Scanning directory {}", input.toAbsolutePath());
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(input, "*.csv")) {
-            for (Path file : stream) {
-                log.info("Found file {}", file);
-                String shorthand = AccountResolver.extractShorthand(file);
-                if (shorthand == null) {
-                    log.warn("Skipping file {} with unrecognized name", file);
-                    continue;
-                }
-                boolean ok = ingestFile(file, shorthand);
-                log.info("Ingestion {} for file {}", ok ? "succeeded" : "failed", file);
-                Path targetDir = input.resolveSibling(ok ? "processed" : "error");
-                Files.createDirectories(targetDir);
-                Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
+        this.repository = repository;
+        this.viewRefresher = viewRefresher;
     }
 
     public boolean ingestFile(Path file, String shorthand) {
@@ -73,9 +56,9 @@ public class IngestService {
                     dsl.transaction(conf -> {
                         DSLContext ctx = DSL.using(conf);
                         ResolvedAccount account = accountResolver.resolve(ctx, shorthand);
-                        txs.forEach(t -> upsert(ctx, t, account));
+                        txs.forEach(t -> repository.upsert(ctx, t, account));
                     });
-                    refreshMaterializedView();
+                    viewRefresher.refreshTransactionsView();
                 } catch (TransactionIngestException e) {
                     log.error("Transaction ingest failed for {}", e.record(), e);
                     return false;
@@ -91,47 +74,4 @@ public class IngestService {
         return false;
     }
 
-    private void upsert(DSLContext ctx, TransactionRecord t, ResolvedAccount account) {
-        try {
-            ctx.insertInto(Transactions.TRANSACTIONS)
-                    .set(Transactions.TRANSACTIONS.ACCOUNT_ID, account.id())
-                    .set(Transactions.TRANSACTIONS.OCCURRED_AT, toOffsetDateTime(t.occurredAt()))
-                    .set(Transactions.TRANSACTIONS.POSTED_AT, toOffsetDateTime(t.postedAt()))
-                    .set(Transactions.TRANSACTIONS.AMOUNT_CENTS, t.amountCents())
-                    .set(Transactions.TRANSACTIONS.CURRENCY, t.currency())
-                    .set(Transactions.TRANSACTIONS.MERCHANT, t.merchant())
-                    .set(Transactions.TRANSACTIONS.CATEGORY, t.category())
-                    .set(Transactions.TRANSACTIONS.TXN_TYPE, t.type())
-                    .set(Transactions.TRANSACTIONS.MEMO, t.memo())
-                    .set(Transactions.TRANSACTIONS.HASH, t.hash())
-                    .set(Transactions.TRANSACTIONS.RAW_JSON, JSONB.valueOf(t.rawJson()))
-                    .onConflict(
-                            Transactions.TRANSACTIONS.ACCOUNT_ID,
-                            Transactions.TRANSACTIONS.HASH
-                    )
-                    .doNothing()
-                    .execute();
-        } catch (DataAccessException e) {
-            throw new TransactionIngestException(t, e);
-        }
-    }
-
-    private OffsetDateTime toOffsetDateTime(Instant i) {
-        return i == null ? null : OffsetDateTime.ofInstant(i, ZoneOffset.UTC);
-    }
-
-    private void refreshMaterializedView() {
-        try {
-            boolean exists = dsl.fetchExists(
-                    DSL.selectOne()
-                            .from("pg_matviews")
-                            .where(DSL.field("matviewname").eq("transactions_view"))
-            );
-            if (exists) {
-                dsl.execute("REFRESH MATERIALIZED VIEW transactions_view");
-            }
-        } catch (Exception e) {
-            log.debug("Skipping materialized view refresh: {}", e.getMessage());
-        }
-    }
 }

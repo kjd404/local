@@ -10,6 +10,7 @@ import org.artificers.ingest.cli.NewAccountCli;
 @Component(modules = {DataModule.class, CsvReaderModule.class, ServiceModule.class})
 public interface IngestComponent {
     IngestService ingestService();
+    FileIngestionService fileIngestionService();
     DirectoryWatchService directoryWatchService();
     NewAccountCli newAccountCli();
 
