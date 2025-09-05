@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'nu.studer.jooq' version '9.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'org.artificers'
@@ -78,6 +79,21 @@ jooq {
 
 tasks.withType(Test) {
     useJUnitPlatform()
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    manifest {
+        attributes 'Main-Class': 'org.artificers.ingest.IngestApp'
+    }
+}
+
+tasks.build {
+    dependsOn shadowJar
+}
+
+jar {
+    enabled = false
 }
 
 tasks.register('newAccount', JavaExec) {
