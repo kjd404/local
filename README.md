@@ -72,13 +72,13 @@ normalized header to a target field and type:
 institution: xx
 fields:
   transaction_date:
-    target: occurred_at
+    target: OCCURRED_AT
     type: timestamp
   amount:
-    target: amount_cents
+    target: AMOUNT_CENTS
     type: currency
   description:
-    target: merchant
+    target: MERCHANT
     type: string
 ```
 

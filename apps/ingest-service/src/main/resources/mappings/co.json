@@ -1,11 +1,11 @@
 {
   "institution": "co",
   "fields": {
-    "transaction_date": {"target": "occurred_at", "type": "timestamp"},
-    "posted_date": {"target": "posted_at", "type": "timestamp"},
-    "description": {"target": "merchant", "type": "string"},
-    "category": {"target": "category", "type": "string"},
-    "debit": {"target": "amount_cents", "type": "currency"},
-    "credit": {"target": "amount_cents", "type": "currency"}
+    "transaction_date": {"target": "OCCURRED_AT", "type": "timestamp"},
+    "posted_date": {"target": "POSTED_AT", "type": "timestamp"},
+    "description": {"target": "MERCHANT", "type": "string"},
+    "category": {"target": "CATEGORY", "type": "string"},
+    "debit": {"target": "AMOUNT_CENTS", "type": "currency"},
+    "credit": {"target": "AMOUNT_CENTS", "type": "currency"}
   }
 }
