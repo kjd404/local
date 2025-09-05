@@ -1,7 +1,6 @@
 package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.DefaultApplicationArguments;
 
 import java.nio.file.Path;
 
@@ -14,10 +13,9 @@ class IngestApplicationTest {
     void ingestsFileWhenFileOptionPresent() throws Exception {
         IngestService service = mock(IngestService.class);
         when(service.ingestFile(any(), any())).thenReturn(true);
-        DefaultApplicationArguments args = new DefaultApplicationArguments("--file=/tmp/ch1234.csv");
-        IngestApplication app = new IngestApplication();
+        String[] args = {"--file=/tmp/ch1234.csv"};
 
-        boolean shouldExit = app.processArgs(service, args);
+        boolean shouldExit = IngestApplication.processArgs(service, args);
 
         verify(service).ingestFile(Path.of("/tmp/ch1234.csv"), "ch1234");
         assertThat(shouldExit).isTrue();
@@ -26,10 +24,9 @@ class IngestApplicationTest {
     @Test
     void scansDirectoryWhenModeScanWithInput() throws Exception {
         IngestService service = mock(IngestService.class);
-        DefaultApplicationArguments args = new DefaultApplicationArguments("--mode=scan", "--input=/tmp/in");
-        IngestApplication app = new IngestApplication();
+        String[] args = {"--mode=scan", "--input=/tmp/in"};
 
-        boolean shouldExit = app.processArgs(service, args);
+        boolean shouldExit = IngestApplication.processArgs(service, args);
 
         verify(service).scanAndIngest(Path.of("/tmp/in"));
         assertThat(shouldExit).isTrue();
@@ -38,10 +35,9 @@ class IngestApplicationTest {
     @Test
     void scansDefaultDirectoryWhenInputMissing() throws Exception {
         IngestService service = mock(IngestService.class);
-        DefaultApplicationArguments args = new DefaultApplicationArguments("--mode=scan");
-        IngestApplication app = new IngestApplication();
+        String[] args = {"--mode=scan"};
 
-        boolean shouldExit = app.processArgs(service, args);
+        boolean shouldExit = IngestApplication.processArgs(service, args);
 
         verify(service).scanAndIngest(Path.of("storage/incoming"));
         assertThat(shouldExit).isTrue();

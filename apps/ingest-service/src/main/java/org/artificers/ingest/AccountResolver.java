@@ -3,14 +3,12 @@ package org.artificers.ingest;
 import org.artificers.jooq.tables.Accounts;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
-import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
 public class AccountResolver {
     private static final Pattern SHORTHAND = Pattern.compile("^([A-Za-z]+)(\\d{4})$");
     private static final Pattern FILE_PATTERN = Pattern.compile("^([A-Za-z]+\\d{4}).*\\.csv$");

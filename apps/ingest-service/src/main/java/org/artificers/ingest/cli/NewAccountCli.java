@@ -39,7 +39,7 @@ public class NewAccountCli implements Callable<Integer> {
     }
 
     // For tests
-    NewAccountCli(DSLContext dsl, Path configDir) {
+    public NewAccountCli(DSLContext dsl, Path configDir) {
         this.dsl = dsl;
         this.closeable = () -> {};
         this.configDir = configDir;
