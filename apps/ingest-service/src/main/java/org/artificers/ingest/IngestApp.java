@@ -25,10 +25,12 @@ public final class IngestApp implements Callable<Integer> {
 
     private final IngestService service;
     private final DirectoryWatchService watchService;
+    private final IngestConfig config;
 
-    public IngestApp(IngestService service, DirectoryWatchService watchService) {
+    public IngestApp(IngestService service, DirectoryWatchService watchService, IngestConfig config) {
         this.service = service;
         this.watchService = watchService;
+        this.config = config;
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class IngestApp implements Callable<Integer> {
             return 0;
         }
         if ("scan".equals(mode)) {
-            Path dir = input != null ? input : Path.of("storage/incoming");
+            Path dir = input != null ? input : config.ingestDir();
             service.scanAndIngest(dir);
             return 0;
         }
@@ -56,11 +58,22 @@ public final class IngestApp implements Callable<Integer> {
     public static void main(String[] args) throws Exception {
         String rawUrl = System.getenv("DB_URL");
         String user = System.getenv("DB_USER");
+        String password = System.getenv("DB_PASSWORD");
+        Path ingestDir = Path.of(System.getenv().getOrDefault("INGEST_DIR", "storage/incoming"));
+        Path configDir = Path.of(System.getenv().getOrDefault("INGEST_CONFIG_DIR",
+                System.getProperty("user.home") + "/.config/ingest"));
         log.info("Starting with DB_URL={} DB_USER={}", sanitize(rawUrl), user);
-        IngestComponent component = DaggerIngestComponent.create();
+
+        DbConfig dbCfg = new DbConfig(rawUrl, user, password);
+        IngestConfig cfg = new IngestConfig(ingestDir, configDir);
+
+        IngestComponent component = DaggerIngestComponent.builder()
+                .dbConfig(dbCfg)
+                .ingestConfig(cfg)
+                .build();
         IngestService service = component.ingestService();
         DirectoryWatchService watch = component.directoryWatchService();
-        int code = new CommandLine(new IngestApp(service, watch)).execute(args);
+        int code = new CommandLine(new IngestApp(service, watch, cfg)).execute(args);
         System.exit(code);
     }
 

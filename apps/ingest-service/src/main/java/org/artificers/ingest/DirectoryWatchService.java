@@ -20,9 +20,9 @@ public class DirectoryWatchService implements AutoCloseable {
     private WatchService watchService;
     private static final Pattern FILE_PATTERN = Pattern.compile("^([a-zA-Z]+\\d{4}).*\\.csv$");
 
-    public DirectoryWatchService(IngestService ingestService, String dir) {
+    public DirectoryWatchService(IngestService ingestService, Path dir) {
         this.ingestService = ingestService;
-        this.directory = Paths.get(dir).toAbsolutePath();
+        this.directory = dir.toAbsolutePath();
         this.executor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r);
             t.setDaemon(true);
