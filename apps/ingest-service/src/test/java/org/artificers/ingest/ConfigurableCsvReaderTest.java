@@ -27,12 +27,12 @@ class ConfigurableCsvReaderTest {
         List<TransactionRecord> txs = reader.read(null, new StringReader(csv), "1234");
         assertEquals(2, txs.size());
         TransactionRecord t0 = txs.get(0);
-        assertEquals(1862, t0.amountCents());
+        assertEquals(1862, t0.amount().cents());
         assertEquals("Payment Thank You-Mobile", t0.merchant());
         assertEquals("Payment", t0.type());
         assertEquals(Instant.parse("2025-04-30T00:00:00Z"), t0.occurredAt());
         TransactionRecord t1 = txs.get(1);
-        assertEquals(-1862, t1.amountCents());
+        assertEquals(-1862, t1.amount().cents());
         assertEquals("JetBrains Americas INC", t1.merchant());
         assertEquals("Sale", t1.type());
         assertEquals("Shopping", t1.category());
@@ -48,12 +48,12 @@ class ConfigurableCsvReaderTest {
         List<TransactionRecord> txs = reader.read(null, new StringReader(csv), "1828");
         assertEquals(2, txs.size());
         TransactionRecord t0 = txs.get(0);
-        assertEquals(60000, t0.amountCents());
+        assertEquals(60000, t0.amount().cents());
         assertEquals("CAPITAL ONE MOBILE PYMT", t0.merchant());
         assertEquals(Instant.parse("2025-04-30T00:00:00Z"), t0.occurredAt());
         assertTrue(t0.rawJson().contains("\"card_no\":\"1828\""));
         TransactionRecord t1 = txs.get(1);
-        assertEquals(-1412, t1.amountCents());
+        assertEquals(-1412, t1.amount().cents());
         assertEquals("TST*ROYAL BAKEHOUSE", t1.merchant());
         assertEquals("Dining", t1.category());
         assertEquals(Instant.parse("2025-04-28T00:00:00Z"), t1.occurredAt());
@@ -76,8 +76,8 @@ class ConfigurableCsvReaderTest {
                 "2025-04-29,0,200\n";
         List<TransactionRecord> txs = reader.read(null, new StringReader(csv), "1");
         assertEquals(2, txs.size());
-        assertEquals(-100, txs.get(0).amountCents());
-        assertEquals(200, txs.get(1).amountCents());
+        assertEquals(-100, txs.get(0).amount().cents());
+        assertEquals(200, txs.get(1).amount().cents());
     }
 
     @Test

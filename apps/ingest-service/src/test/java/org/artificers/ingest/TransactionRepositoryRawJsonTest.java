@@ -26,7 +26,7 @@ class TransactionRepositoryRawJsonTest {
         };
         DSLContext dsl = DSL.using(new MockConnection(provider), SQLDialect.POSTGRES);
         TransactionRepository repo = new TransactionRepository();
-        TransactionRecord tx = new GenericTransaction("a", null, null, 100, "USD", "m", "c", null, null, "h", "{}");
+        TransactionRecord tx = new GenericTransaction("a", null, null, new Money(100, "USD"), "m", "c", null, null, "h", "{}");
         ResolvedAccount account = new ResolvedAccount(1, "co", "a");
 
         repo.upsert(dsl, tx, account);

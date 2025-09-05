@@ -31,7 +31,7 @@ class FileIngestionServiceTest {
         TransactionCsvReader coReader = mock(TransactionCsvReader.class);
         when(chReader.institution()).thenReturn("ch");
         when(coReader.institution()).thenReturn("co");
-        TransactionRecord dummy = new GenericTransaction("id", null, null, 1, "USD", "m", "c", null, null, "h", "{}");
+        TransactionRecord dummy = new GenericTransaction("id", null, null, new Money(1, "USD"), "m", "c", null, null, "h", "{}");
         when(chReader.read(any(), any(), eq("1234"))).thenReturn(List.of(dummy));
         when(coReader.read(any(), any(), eq("1828"))).thenReturn(List.of(dummy));
         when(resolver.resolve(any(DSLContext.class), eq("ch1234"))).thenReturn(new ResolvedAccount(1L, "ch", "1234"));

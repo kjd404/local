@@ -11,8 +11,7 @@ class RowBuilder {
     private final Map<String, String> raw = new LinkedHashMap<>();
     private Instant occurredAt;
     private Instant postedAt;
-    private long amountCents;
-    private String currency = "USD";
+    private Money amount = new Money(0, "USD");
     private String merchant;
     private String category;
     private String type;
@@ -32,12 +31,12 @@ class RowBuilder {
     }
 
     void addAmount(long cents) {
-        this.amountCents += cents;
+        this.amount = new Money(this.amount.cents() + cents, this.amount.currency());
     }
 
     void currency(String v) {
         if (v != null && !v.isBlank()) {
-            this.currency = v;
+            this.amount = new Money(this.amount.cents(), v);
         }
     }
 
@@ -63,9 +62,9 @@ class RowBuilder {
 
     TransactionRecord build() {
         String rawJson = mapper.valueToTree(raw).toString();
-        String hash = HashGenerator.sha256(accountId, amountCents, occurredAt, merchant);
-        TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amountCents,
-                currency, merchant, category, type, memo, hash, rawJson);
+        String hash = HashGenerator.sha256(accountId, amount, occurredAt, merchant);
+        TransactionRecord tx = new GenericTransaction(accountId, occurredAt, postedAt, amount,
+                merchant, category, type, memo, hash, rawJson);
         TransactionValidator.validate(tx);
         return tx;
     }
