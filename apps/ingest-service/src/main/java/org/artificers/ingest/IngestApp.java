@@ -24,11 +24,14 @@ public final class IngestApp implements Callable<Integer> {
     Path input;
 
     private final IngestService service;
+    private final FileIngestionService fileService;
     private final DirectoryWatchService watchService;
     private final IngestConfig config;
 
-    public IngestApp(IngestService service, DirectoryWatchService watchService, IngestConfig config) {
+    public IngestApp(IngestService service, FileIngestionService fileService,
+                     DirectoryWatchService watchService, IngestConfig config) {
         this.service = service;
+        this.fileService = fileService;
         this.watchService = watchService;
         this.config = config;
     }
@@ -45,7 +48,7 @@ public final class IngestApp implements Callable<Integer> {
         }
         if ("scan".equals(mode)) {
             Path dir = input != null ? input : config.ingestDir();
-            service.scanAndIngest(dir);
+            fileService.scanAndIngest(dir);
             return 0;
         }
         try (DirectoryWatchService watch = watchService) {
@@ -72,8 +75,9 @@ public final class IngestApp implements Callable<Integer> {
                 .ingestConfig(cfg)
                 .build();
         IngestService service = component.ingestService();
+        FileIngestionService fileService = component.fileIngestionService();
         DirectoryWatchService watch = component.directoryWatchService();
-        int code = new CommandLine(new IngestApp(service, watch, cfg)).execute(args);
+        int code = new CommandLine(new IngestApp(service, fileService, watch, cfg)).execute(args);
         System.exit(code);
     }
 

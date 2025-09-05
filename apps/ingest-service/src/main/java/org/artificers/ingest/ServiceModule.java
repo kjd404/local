@@ -25,8 +25,30 @@ public interface ServiceModule {
 
     @Provides
     @Singleton
-    static IngestService ingestService(DSLContext dsl, AccountResolver resolver, Set<TransactionCsvReader> readers) {
-        return new IngestService(dsl, resolver, readers);
+    static TransactionRepository transactionRepository() {
+        return new TransactionRepository();
+    }
+
+    @Provides
+    @Singleton
+    static MaterializedViewRefresher materializedViewRefresher(DSLContext dsl) {
+        return new MaterializedViewRefresher(dsl);
+    }
+
+    @Provides
+    @Singleton
+    static IngestService ingestService(DSLContext dsl,
+                                       AccountResolver resolver,
+                                       Set<TransactionCsvReader> readers,
+                                       TransactionRepository repo,
+                                       MaterializedViewRefresher refresher) {
+        return new IngestService(dsl, resolver, readers, repo, refresher);
+    }
+
+    @Provides
+    @Singleton
+    static FileIngestionService fileIngestionService(IngestService service) {
+        return new FileIngestionService(service);
     }
 
     @Provides

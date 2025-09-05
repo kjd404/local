@@ -56,7 +56,9 @@ class IngestServiceViewTest {
 
         ConfigurableCsvReader reader = reader(institution);
         AccountResolver resolver = new AccountResolver(dsl);
-        IngestService service = new IngestService(dsl, resolver, Set.of(reader));
+        TransactionRepository repo = new TransactionRepository();
+        MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
+        IngestService service = new IngestService(dsl, resolver, Set.of(reader), repo, refresher);
 
         Path file = copyResource("/examples/" + fileName, dir);
         boolean ok = service.ingestFile(file, institution + externalId);

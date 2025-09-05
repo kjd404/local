@@ -20,7 +20,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class IngestServiceTest {
+class FileIngestionServiceTest {
     @Test
     void routesByFilenameAndCreatesAccounts(@TempDir Path dir) throws Exception {
         MockDataProvider provider = ctx -> new MockResult[0];
@@ -39,8 +39,11 @@ class IngestServiceTest {
         copyResource("ch1234-example.csv", dir.resolve("ch1234-example.csv"));
         copyResource("co1828-example.csv", dir.resolve("co1828-example.csv"));
 
-        IngestService service = new IngestService(dsl, resolver, Set.of(chReader, coReader));
-        service.scanAndIngest(dir);
+        TransactionRepository repo = new TransactionRepository();
+        MaterializedViewRefresher refresher = new MaterializedViewRefresher(dsl);
+        IngestService service = new IngestService(dsl, resolver, Set.of(chReader, coReader), repo, refresher);
+        FileIngestionService fileService = new FileIngestionService(service);
+        fileService.scanAndIngest(dir);
 
         verify(chReader).read(eq(dir.resolve("ch1234-example.csv")), any(), eq("1234"));
         verify(coReader).read(eq(dir.resolve("co1828-example.csv")), any(), eq("1828"));
