@@ -3,7 +3,14 @@ package org.artificers.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dagger.Module;
 import dagger.Provides;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchService;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
 import javax.inject.Singleton;
 import org.artificers.ingest.cli.NewAccountCli;
 import org.jooq.DSLContext;
@@ -47,14 +54,46 @@ public interface ServiceModule {
 
     @Provides
     @Singleton
-    static FileIngestionService fileIngestionService(IngestService service) {
-        return new FileIngestionService(service);
+    static Function<Path, String> shorthandParser() {
+        return AccountResolver::extractShorthand;
     }
 
     @Provides
     @Singleton
-    static DirectoryWatchService directoryWatchService(IngestService service, IngestConfig cfg) {
-        return new DirectoryWatchService(service, cfg.ingestDir());
+    static FileIngestionService fileIngestionService(IngestService service,
+                                                     Function<Path, String> parser) {
+        return new FileIngestionService(service, parser);
+    }
+
+    @Provides
+    @Singleton
+    static ExecutorService directoryWatchExecutor() {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.setName("directory-watch");
+            return t;
+        });
+    }
+
+    @Provides
+    @Singleton
+    static WatchService watchService() {
+        try {
+            return FileSystems.getDefault().newWatchService();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Provides
+    @Singleton
+    static DirectoryWatchService directoryWatchService(FileIngestionService fileService,
+                                                       IngestConfig cfg,
+                                                       ExecutorService executor,
+                                                       WatchService watchService,
+                                                       Function<Path, String> parser) {
+        return new DirectoryWatchService(fileService, cfg.ingestDir(), executor, watchService, parser);
     }
 
     @Provides
