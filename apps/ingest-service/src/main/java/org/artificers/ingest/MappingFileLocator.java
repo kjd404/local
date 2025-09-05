@@ -3,14 +3,18 @@ package org.artificers.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Locates mapping definition files on the classpath and converts them to
@@ -34,18 +38,32 @@ public class MappingFileLocator {
      */
     public List<ConfigurableCsvReader.Mapping> locate() throws IOException {
         List<ConfigurableCsvReader.Mapping> mappings = new ArrayList<>();
-        Path dir = baseDir;
-        if (dir == null) {
-            URL url = getClass().getClassLoader().getResource("mappings");
-            if (url == null) {
-                return mappings;
-            }
-            try {
-                dir = Paths.get(url.toURI());
-            } catch (URISyntaxException e) {
-                throw new IOException("Invalid mappings path", e);
-            }
+        if (baseDir != null) {
+            readMappings(baseDir, mappings);
+            return mappings;
         }
+
+        URL url = getClass().getClassLoader().getResource("mappings");
+        if (url == null) {
+            return mappings;
+        }
+
+        try {
+            URI uri = url.toURI();
+            if ("jar".equals(uri.getScheme())) {
+                try (FileSystem fs = FileSystems.newFileSystem(uri, Map.of())) {
+                    readMappings(fs.getPath("mappings"), mappings);
+                }
+            } else {
+                readMappings(Paths.get(uri), mappings);
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException("Invalid mappings path", e);
+        }
+        return mappings;
+    }
+
+    private void readMappings(Path dir, List<ConfigurableCsvReader.Mapping> mappings) throws IOException {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
             for (Path p : stream) {
                 try (InputStream in = Files.newInputStream(p)) {
@@ -53,7 +71,6 @@ public class MappingFileLocator {
                 }
             }
         }
-        return mappings;
     }
 }
 
