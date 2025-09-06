@@ -1,6 +1,7 @@
 package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.di.JdbcUrl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,4 +26,3 @@ class JdbcUrlTest {
         assertNull(JdbcUrl.from(null));
     }
 }
-

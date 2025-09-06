@@ -3,6 +3,8 @@ package org.artificers.ingest;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.service.AccountResolver;
+import org.artificers.ingest.service.AccountShorthandParser;
 
 import java.nio.file.Path;
 import java.util.List;

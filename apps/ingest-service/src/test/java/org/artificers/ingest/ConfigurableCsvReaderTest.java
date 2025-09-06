@@ -2,6 +2,9 @@ package org.artificers.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.csv.ConfigurableCsvReader;
+import org.artificers.ingest.model.TransactionRecord;
+import org.artificers.ingest.validation.BasicTransactionValidator;
 
 import java.io.InputStream;
 import java.io.StringReader;

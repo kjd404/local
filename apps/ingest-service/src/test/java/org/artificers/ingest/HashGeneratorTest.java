@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.model.Money;
+import org.artificers.ingest.service.HashGenerator;
 
 class HashGeneratorTest {
 
@@ -23,4 +25,3 @@ class HashGeneratorTest {
         assertEquals(nullHash1, nullHash2);
     }
 }
-

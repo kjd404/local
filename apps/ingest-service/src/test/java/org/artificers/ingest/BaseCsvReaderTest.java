@@ -1,6 +1,7 @@
 package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.csv.BaseCsvReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 

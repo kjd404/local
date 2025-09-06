@@ -31,6 +31,18 @@ java -jar apps/ingest-service/build/libs/ingest-service-0.0.1-SNAPSHOT.jar --fil
 
 Stop the database with `docker compose down` when finished.
 
+## Package Structure
+
+The ingest-service Java code is organized into cohesive packages:
+
+- `org.artificers.ingest.app`: CLI entrypoint and app wiring
+- `org.artificers.ingest.csv`: CSV parsing and mapping utilities
+- `org.artificers.ingest.model`: Immutable domain records and interfaces
+- `org.artificers.ingest.service`: Core services (ingest, repository, watch, resolvers)
+- `org.artificers.ingest.di`: Dagger modules and component
+- `org.artificers.ingest.validation`: Transaction validation contracts and basics
+- `org.artificers.ingest.error`: Domain exceptions
+
 ### Environment Variables
 
 The CLI reads the following variables (via the shell or `.env`):
@@ -130,4 +142,3 @@ Secrets like database credentials live in a local `.env` file. Start from `.env-
 ```bash
 docker compose down
 ```
-

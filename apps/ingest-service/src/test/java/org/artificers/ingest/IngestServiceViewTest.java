@@ -6,6 +6,13 @@ import org.jooq.impl.DSL;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.artificers.ingest.csv.ConfigurableCsvReader;
+import org.artificers.ingest.validation.BasicTransactionValidator;
+import org.artificers.ingest.service.AccountResolver;
+import org.artificers.ingest.service.AccountShorthandParser;
+import org.artificers.ingest.service.IngestService;
+import org.artificers.ingest.service.MaterializedViewRefresher;
+import org.artificers.ingest.service.TransactionRepository;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -88,4 +95,3 @@ class IngestServiceViewTest {
         assertThat(viewTotal).isEqualTo(sum);
     }
 }
-
