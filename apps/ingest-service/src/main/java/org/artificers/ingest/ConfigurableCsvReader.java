@@ -45,14 +45,13 @@ public class ConfigurableCsvReader extends BaseCsvReader implements TransactionC
         for (int i = 0; i < header.length && i < row.length; i++) {
             String h = header[i];
             String v = row[i];
+            builder.raw(h, v);
             FieldSpec spec = fields.get(h);
             if (spec != null) {
                 FieldHandler handler = handlers.get(spec.target());
                 if (handler != null) {
                     handler.handle(h, v, spec, builder);
                 }
-            } else {
-                builder.raw(h, v);
             }
         }
         return builder.build();
