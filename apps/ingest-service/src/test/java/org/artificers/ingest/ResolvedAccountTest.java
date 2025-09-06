@@ -2,6 +2,7 @@ package org.artificers.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.model.ResolvedAccount;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,4 +22,3 @@ class ResolvedAccountTest {
         assertThat(roundTrip).isEqualTo(first);
     }
 }
-

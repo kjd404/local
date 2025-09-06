@@ -6,6 +6,11 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.service.TransactionRepository;
+import org.artificers.ingest.model.ResolvedAccount;
+import org.artificers.ingest.model.TransactionRecord;
+import org.artificers.ingest.model.GenericTransaction;
+import org.artificers.ingest.model.Money;
 
 import java.time.OffsetDateTime;
 
@@ -47,4 +52,3 @@ class TransactionRepositoryTest {
         assertEquals(2, dsl.fetchCount(Transactions.TRANSACTIONS));
     }
 }
-

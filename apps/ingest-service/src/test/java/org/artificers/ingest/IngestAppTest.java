@@ -2,6 +2,12 @@ package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
+import org.artificers.ingest.app.IngestApp;
+import org.artificers.ingest.config.IngestConfig;
+import org.artificers.ingest.service.AccountShorthandParser;
+import org.artificers.ingest.service.DirectoryWatchService;
+import org.artificers.ingest.service.FileIngestionService;
+import org.artificers.ingest.service.IngestService;
 
 import java.nio.file.Path;
 

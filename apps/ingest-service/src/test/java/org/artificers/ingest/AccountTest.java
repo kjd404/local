@@ -1,6 +1,7 @@
 package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.model.Account;
 
 import java.lang.reflect.Modifier;
 import java.time.Instant;

@@ -84,7 +84,7 @@ tasks.withType(Test) {
 shadowJar {
     archiveClassifier.set('')
     manifest {
-        attributes 'Main-Class': 'org.artificers.ingest.IngestApp'
+        attributes 'Main-Class': 'org.artificers.ingest.app.IngestApp'
     }
 }
 

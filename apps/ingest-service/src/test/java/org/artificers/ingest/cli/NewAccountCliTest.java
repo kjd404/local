@@ -10,10 +10,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.artificers.ingest.DbConfig;
-import org.artificers.ingest.DaggerIngestComponent;
-import org.artificers.ingest.IngestComponent;
-import org.artificers.ingest.IngestConfig;
+import org.artificers.ingest.config.DbConfig;
+import org.artificers.ingest.di.DaggerIngestComponent;
+import org.artificers.ingest.di.IngestComponent;
+import org.artificers.ingest.config.IngestConfig;
 
 class NewAccountCliTest {
     @Test

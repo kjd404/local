@@ -8,6 +8,11 @@ import org.jooq.tools.jdbc.MockDataProvider;
 import org.jooq.tools.jdbc.MockExecuteContext;
 import org.jooq.tools.jdbc.MockResult;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.service.TransactionRepository;
+import org.artificers.ingest.model.TransactionRecord;
+import org.artificers.ingest.model.GenericTransaction;
+import org.artificers.ingest.model.Money;
+import org.artificers.ingest.model.ResolvedAccount;
 
 import java.util.concurrent.atomic.AtomicReference;
 

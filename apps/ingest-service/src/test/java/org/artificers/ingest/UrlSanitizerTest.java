@@ -2,6 +2,7 @@ package org.artificers.ingest;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.artificers.ingest.app.IngestApp;
 
 class UrlSanitizerTest {
     @Test

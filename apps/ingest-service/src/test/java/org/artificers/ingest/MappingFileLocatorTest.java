@@ -2,6 +2,8 @@ package org.artificers.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.artificers.ingest.csv.MappingFileLocator;
+import org.artificers.ingest.csv.ConfigurableCsvReader;
 
 import java.util.List;
 
@@ -16,4 +18,3 @@ class MappingFileLocatorTest {
         assertTrue(mappings.stream().anyMatch(m -> "ch".equals(m.institution())));
     }
 }
-
