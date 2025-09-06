@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
@@ -37,16 +38,27 @@ public class FileIngestionService {
     }
 
     public void ingestFile(Path file, String shorthand) throws IOException {
+        if (!Files.exists(file)) {
+            log.warn("File {} does not exist, skipping", file);
+            return;
+        }
         Path targetDir;
         try {
             ingestService.ingestFile(file, shorthand);
             log.info("Ingestion succeeded for file {}", file);
             targetDir = file.getParent().resolve("processed");
+        } catch (NoSuchFileException e) {
+            log.warn("File {} disappeared before it could be ingested", file);
+            return;
         } catch (Exception e) {
             log.info("Ingestion failed for file {}", file, e);
             targetDir = file.getParent().resolve("error");
         }
-        Files.createDirectories(targetDir);
-        Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+        try {
+            Files.createDirectories(targetDir);
+            Files.move(file, targetDir.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+        } catch (NoSuchFileException e) {
+            log.warn("File {} disappeared before it could be moved to {}", file, targetDir);
+        }
     }
 }

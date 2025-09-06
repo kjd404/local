@@ -17,6 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -50,6 +51,16 @@ class FileIngestionServiceTest {
         verify(coReader).read(eq(dir.resolve("co1828-example.csv")), any(), eq("1828"));
         verify(resolver).resolve(any(DSLContext.class), eq("ch1234"));
         verify(resolver).resolve(any(DSLContext.class), eq("co1828"));
+    }
+
+    @Test
+    void skipsMissingFile(@TempDir Path dir) throws Exception {
+        IngestService service = mock(IngestService.class);
+        AccountShorthandParser parser = new AccountShorthandParser();
+        FileIngestionService fileService = new FileIngestionService(service, parser);
+        Path missing = dir.resolve("missing.csv");
+        assertDoesNotThrow(() -> fileService.ingestFile(missing, "ch1234"));
+        verifyNoInteractions(service);
     }
 
     private void copyResource(String resource, Path target) throws IOException {
