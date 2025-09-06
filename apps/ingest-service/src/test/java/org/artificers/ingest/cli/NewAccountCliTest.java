@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.artificers.ingest.config.DbConfig;
-import org.artificers.ingest.di.DaggerIngestComponent;
 import org.artificers.ingest.di.IngestComponent;
 import org.artificers.ingest.config.IngestConfig;
 
@@ -48,11 +47,13 @@ class NewAccountCliTest {
     }
 
     @Test
-    void daggerConstructsCli() throws IOException {
+    void daggerConstructsCli() throws Exception {
         Path configDir = Files.createTempDirectory("ingest-test");
         DbConfig db = new DbConfig("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), configDir);
-        IngestComponent component = DaggerIngestComponent.builder()
+        Class<?> comp = Class.forName("org.artificers.ingest.di.DaggerIngestComponent");
+        IngestComponent.Builder builder = (IngestComponent.Builder) comp.getMethod("builder").invoke(null);
+        IngestComponent component = builder
                 .dbConfig(db)
                 .ingestConfig(cfg)
                 .build();

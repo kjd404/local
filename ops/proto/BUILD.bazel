@@ -1,0 +1,6 @@
+filegroup(
+    name = "ingest_proto",
+    srcs = ["finance/v1/ingest.proto"],
+    visibility = ["//visibility:public"],
+)
+

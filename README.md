@@ -8,7 +8,7 @@ This project emphasizes object-oriented design with dependency injection and com
 
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
-- Java 21 (JDK) + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
+- Bazel or Bazelisk (https://bazel.build/ or https://github.com/bazelbuild/bazelisk)
 - buf (for proto codegen; install from https://buf.build/)
 
 ## Quickstart
@@ -17,7 +17,7 @@ This project emphasizes object-oriented design with dependency injection and com
 docker compose up -d    # start Postgres on localhost:5432 with a persistent volume
 cp .env-sample .env     # copy sample env
 # edit .env with DB credentials
-make build-app          # build ingest-service jar
+make build-app          # build ingest-service jar with Bazel
 make docker-build       # build Docker image
 make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=ingest DB_PASSWORD=ingest
 ```
@@ -25,8 +25,13 @@ make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=ingest DB
 Alternatively, run the CLI directly:
 
 ```bash
-java -jar apps/ingest-service/build/libs/ingest-service-0.0.1-SNAPSHOT.jar --mode=scan  # defaults to storage/incoming
-java -jar apps/ingest-service/build/libs/ingest-service-0.0.1-SNAPSHOT.jar --file=/path/to/ch1234-example.csv
+# Using Bazel (no local JDK required):
+bazel run //apps/ingest-service:ingest_app -- --mode=scan
+bazel run //apps/ingest-service:ingest_app -- --file=/path/to/ch1234-example.csv
+
+# Or run the jar produced by make build-app
+java -jar apps/ingest-service/app.jar --mode=scan
+java -jar apps/ingest-service/app.jar --file=/path/to/ch1234-example.csv
 ```
 
 Stop the database with `docker compose down` when finished.

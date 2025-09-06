@@ -52,12 +52,14 @@ and constructor-based immutability.
 ## Getting Started (human or agent)
 1. `docker compose up -d` to start Postgres.
 2. `cp .env-sample .env` and set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
-3. `make build-app` to generate the application JAR.
+3. Build with Bazel:
+   - `bazel build //apps/ingest-service:ingest_app`
+   - Run: `bazel run //apps/ingest-service:ingest_app -- --mode=scan`
 4. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
-- Run unit tests with `cd apps/ingest-service && ./gradlew test`.
 - Build the app and image with `make build-app`.
+- Bazel is enabled at the repo root via bzlmod and currently builds only `apps/ingest-service`. Bazel-based tests will be added in a follow-up.
 - **PR Checklist**
   - [ ] Tests pass and `make build-app` succeeds.
   - [ ] Migration plan noted for storage or schema changes.
@@ -71,3 +73,9 @@ and constructor-based immutability.
 - Audit existing services for alignment with the Object-Oriented Design guardrails and schedule refactors where needed.
 - Introduce dependency injection and composition patterns across modules lacking them.
 - Record design decisions and remaining work here. After completing any task, update this section with progress and new objectives.
+
+## Bazel Migration Notes
+- Scope: Bazel is configured at the repo root (bzlmod) and, for now, only indexes/builds `apps/ingest-service`. Other paths have no BUILD files and are ignored by Bazel.
+- Java toolchain: `.bazelrc` sets Java 17 with the remote toolchain.
+- Dependencies: managed with `rules_jvm_external` via `MODULE.bazel`.
+- Next steps: add Bazel tests (JUnit 5), wire jOOQ codegen as a Bazel action, and progressively onboard other services.

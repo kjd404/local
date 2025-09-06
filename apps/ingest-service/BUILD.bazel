@@ -1,0 +1,96 @@
+package(default_visibility = ["//visibility:private"])
+
+# Dagger annotation processor
+java_plugin(
+    name = "dagger_plugin",
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
+    deps = [
+        "@maven//:com_google_dagger_dagger_compiler",
+    ],
+)
+
+java_library(
+    name = "ingest_lib",
+    srcs = glob([
+        "src/main/java/**/*.java",
+        "src/generated/java/**/*.java",
+    ]),
+    resources = glob([
+        "src/main/resources/**",
+    ]),
+    resource_strip_prefix = "apps/ingest-service/src/main/resources",
+    plugins = [":dagger_plugin"],
+    deps = [
+        "@maven//:org_flywaydb_flyway_core",
+        "@maven//:org_jooq_jooq",
+        "@maven//:com_zaxxer_HikariCP",
+        "@maven//:com_opencsv_opencsv",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_apache_poi_poi_ooxml",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
+        "@maven//:commons_codec_commons_codec",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:info_picocli_picocli",
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:org_slf4j_slf4j_api",
+        "@maven//:com_google_dagger_dagger",
+        "@maven//:javax_inject_javax_inject",
+        # JDBC driver at runtime
+        "@maven//:org_postgresql_postgresql",
+    ],
+)
+
+java_binary(
+    name = "ingest_app",
+    main_class = "org.artificers.ingest.app.IngestApp",
+    runtime_deps = [":ingest_lib"],
+    visibility = ["//visibility:public"],
+)
+
+java_binary(
+    name = "new_account_cli",
+    main_class = "org.artificers.ingest.cli.NewAccountCliLauncher",
+    runtime_deps = [":ingest_lib"],
+    visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "ingest_tests_lib",
+    testonly = True,
+    srcs = glob(["src/test/java/**/*.java"]),
+    resources = glob(["src/test/resources/**"]),
+    resource_strip_prefix = "apps/ingest-service/src/test/resources",
+    deps = [
+        ":ingest_lib",
+        "@maven//:org_jooq_jooq",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:info_picocli_picocli",
+        "@maven//:org_junit_jupiter_junit_jupiter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_params",
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:org_assertj_assertj_core",
+        "@maven//:com_h2database_h2",
+    ],
+)
+
+java_test(
+    name = "ingest_tests",
+    # Use a separate test library so classes land on the runtime classpath
+    srcs = [],
+    size = "large",
+    timeout = "moderate",
+    # Use JUnit 5 ConsoleLauncher directly
+    use_testrunner = False,
+    main_class = "org.junit.platform.console.ConsoleLauncher",
+    args = [
+        "--scan-class-path=$(location :ingest_tests_lib)",
+        "--fail-if-no-tests",
+    ],
+    data = [":ingest_tests_lib"],
+    runtime_deps = [
+        ":ingest_tests_lib",
+        "@maven//:org_junit_platform_junit_platform_console_standalone",
+    ],
+    visibility = ["//visibility:public"],
+)

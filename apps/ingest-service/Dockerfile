@@ -1,4 +1,5 @@
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY build/libs/ingest-service-0.0.1-SNAPSHOT.jar app.jar
+# The Makefile copies the Bazel-built jar to apps/ingest-service/app.jar
+COPY app.jar app.jar
 ENTRYPOINT ["java","-jar","/app/app.jar"]

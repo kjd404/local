@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat >&2 <<USAGE
 Usage: $(basename "$0") [--force] [--institution XXX]
-Runs the NewAccount CLI via Gradle, sourcing .env for DB credentials.
+Runs the NewAccount CLI via Bazel, sourcing .env for DB credentials.
 Flags are forwarded to the CLI.
 USAGE
 }
@@ -21,5 +21,5 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=./export-env.sh
 source "$SCRIPT_DIR/export-env.sh"
 
-cd "$ROOT_DIR/apps/ingest-service"
-exec ./gradlew newAccount "$@"
+cd "$ROOT_DIR"
+exec bazel run //apps/ingest-service:new_account_cli -- "$@"

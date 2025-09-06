@@ -1,0 +1,6 @@
+test_suite(
+    name = "all",
+    tests = [
+        "//apps/ingest-service:ingest_tests",
+    ],
+)

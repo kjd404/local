@@ -1,0 +1,4 @@
+apps/ingest-service/.gradle
+apps/ingest-service/build
+storage
+scripts
