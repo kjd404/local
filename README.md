@@ -9,7 +9,7 @@ This project emphasizes object-oriented design with dependency injection and com
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
 - Java 21 (JDK) + Gradle (e.g., `brew install openjdk@21 gradle` or https://adoptium.net/)
-- buf (installed via `make deps`)
+- buf (for proto codegen; install from https://buf.build/)
 
 ## Quickstart
 
@@ -70,7 +70,13 @@ institution code alongside each row.
 
 1. Copy CSV files into `storage/incoming/`.
 2. Run the CLI or service to ingest them (it watches `storage/incoming/` by default, configurable via `--input` or `INGEST_DIR`).
-3. Processed files move to `storage/processed/` and records are loaded into Postgres.
+3. Processed files move to `storage/incoming/processed/` (failures to `storage/incoming/error/`) and records are loaded into Postgres.
+
+## Scripts
+
+- `scripts/new-account`: runs the New Account CLI (prompts for info; writes a mapping template). Use `--force` to overwrite.
+- `scripts/migrate.sh`: runs Flyway migrations in Docker using `.env` for DB credentials.
+- `scripts/app-logs.sh [container]`: tails logs from the running Docker container (default `ingest-service`).
 
 ### Mapping files
 

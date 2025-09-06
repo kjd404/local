@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
-DIR="$(cd "$(dirname "$0")"/.. && pwd)"
-cd "$DIR/apps/ingest-service"
-./gradlew newAccount "$@"
+
+usage() {
+  cat >&2 <<USAGE
+Usage: $(basename "$0") [--force] [--institution XXX]
+Runs the NewAccount CLI via Gradle, sourcing .env for DB credentials.
+Flags are forwarded to the CLI.
+USAGE
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Load .env for DB_URL, DB_USER, DB_PASSWORD, INGEST_CONFIG_DIR
+# shellcheck source=./export-env.sh
+source "$SCRIPT_DIR/export-env.sh"
+
+cd "$ROOT_DIR/apps/ingest-service"
+exec ./gradlew newAccount "$@"

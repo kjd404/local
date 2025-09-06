@@ -14,7 +14,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] No breaking change merges without a migration plan.
 
 ### 2) App Engineer (Ingest)
-- Builds `apps/ingest-service` (Spring Boot, JOOQ, Flyway, CSV/XLSX parsing).
+- Builds `apps/ingest-service` (Java + Dagger + Picocli, jOOQ, Flyway, CSV/XLSX parsing).
 - Ensures idempotent upserts with stable hashing.
 - Adds tests and sample data.
 
@@ -71,4 +71,3 @@ and constructor-based immutability.
 - Audit existing services for alignment with the Object-Oriented Design guardrails and schedule refactors where needed.
 - Introduce dependency injection and composition patterns across modules lacking them.
 - Record design decisions and remaining work here. After completing any task, update this section with progress and new objectives.
-
