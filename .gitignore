@@ -5,3 +5,9 @@ apps/teller-poller/.gradle/
 **/gradle-wrapper.jar
 charts/platform/values.local.yaml
 .env
+
+# Ignore runtime ingest artifacts
+storage/incoming/error/*
+storage/incoming/processed/*
+!storage/incoming/error/.gitkeep
+!storage/incoming/processed/.gitkeep
