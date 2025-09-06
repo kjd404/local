@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

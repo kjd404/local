@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.service;
 
 import org.artificers.jooq.tables.Accounts;
 import org.artificers.jooq.tables.Transactions;

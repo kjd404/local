@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.service;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

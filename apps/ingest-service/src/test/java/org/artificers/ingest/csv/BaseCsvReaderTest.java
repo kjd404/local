@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.csv;
 
 import org.junit.jupiter.api.Test;
 import org.artificers.ingest.csv.BaseCsvReader;

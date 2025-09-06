@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.app;
 
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;

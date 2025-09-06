@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.service;
 
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;

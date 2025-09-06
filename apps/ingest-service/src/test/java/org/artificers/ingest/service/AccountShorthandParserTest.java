@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

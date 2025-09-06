@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.ingest.di;
 
 import org.junit.jupiter.api.Test;
 import org.artificers.ingest.di.JdbcUrl;

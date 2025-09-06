@@ -1,4 +1,4 @@
-package org.artificers.ingest;
+package org.artificers.jooq;
 
 import org.artificers.jooq.tables.Transactions;
 import org.junit.jupiter.api.Test;
