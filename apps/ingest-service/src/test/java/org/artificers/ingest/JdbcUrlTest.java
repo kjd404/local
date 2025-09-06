@@ -19,4 +19,10 @@ class JdbcUrlTest {
     void convertsPostgresAlias() {
         assertEquals("jdbc:postgresql://host/db", JdbcUrl.from("postgres://host/db"));
     }
+
+    @Test
+    void returnsNullForNullUrl() {
+        assertNull(JdbcUrl.from(null));
+    }
 }
+

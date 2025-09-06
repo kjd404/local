@@ -97,4 +97,13 @@ class ConfigurableCsvReaderTest {
         reader.read(null, new StringReader(csv), "1234");
         assertTrue(mapper.calls > 0);
     }
+
+    @Test
+    void capturesUnmappedColumns() throws Exception {
+        String csv = "Transaction Date,Post Date,Description,Category,Type,Amount,Memo,Extra\n" +
+                "04/30/2025,04/30/2025,Payment Thank You-Mobile,,Payment,18.62,,note\n";
+        ConfigurableCsvReader reader = reader("ch", new ObjectMapper());
+        TransactionRecord tx = reader.read(null, new StringReader(csv), "1234").get(0);
+        assertTrue(tx.rawJson().contains("\"extra\":\"note\""));
+    }
 }
