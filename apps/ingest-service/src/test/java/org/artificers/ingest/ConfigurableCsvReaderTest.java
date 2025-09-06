@@ -106,4 +106,14 @@ class ConfigurableCsvReaderTest {
         TransactionRecord tx = reader.read(null, new StringReader(csv), "1234").get(0);
         assertTrue(tx.rawJson().contains("\"extra\":\"note\""));
     }
+
+    @Test
+    void capturesMappedColumns() throws Exception {
+        String csv = "Transaction Date,Post Date,Description,Category,Type,Amount,Memo\n" +
+                "04/30/2025,04/30/2025,Payment Thank You-Mobile,,Payment,18.62,\n";
+        ConfigurableCsvReader reader = reader("ch", new ObjectMapper());
+        TransactionRecord tx = reader.read(null, new StringReader(csv), "1234").get(0);
+        assertTrue(tx.rawJson().contains("\"transaction_date\":\"04/30/2025\""));
+        assertTrue(tx.rawJson().contains("\"description\":\"Payment Thank You-Mobile\""));
+    }
 }
