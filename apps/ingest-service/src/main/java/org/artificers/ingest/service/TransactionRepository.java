@@ -2,8 +2,8 @@ package org.artificers.ingest.service;
 
 import org.artificers.jooq.tables.Transactions;
 import org.jooq.DSLContext;
-import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -28,7 +28,8 @@ public class TransactionRepository {
                     .set(Transactions.TRANSACTIONS.TXN_TYPE, t.type())
                     .set(Transactions.TRANSACTIONS.MEMO, t.memo())
                     .set(Transactions.TRANSACTIONS.HASH, t.hash())
-                    .set(Transactions.TRANSACTIONS.RAW_JSON, JSONB.valueOf(t.rawJson()))
+                    .set(Transactions.TRANSACTIONS.RAW_JSON,
+                         DSL.field("cast(? as jsonb)", String.class, t.rawJson()))
                     .onConflict(
                             Transactions.TRANSACTIONS.ACCOUNT_ID,
                             Transactions.TRANSACTIONS.HASH

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<USAGE
+Usage: $(basename "$0")
+Runs the database validator via Bazel, sourcing .env for DB credentials.
+USAGE
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Load DB_URL, DB_USER, DB_PASSWORD from .env if present
+# shellcheck source=./export-env.sh
+source "$SCRIPT_DIR/export-env.sh"
+
+cd "$ROOT_DIR"
+exec bazel run //apps/ingest-service:db_validate
+

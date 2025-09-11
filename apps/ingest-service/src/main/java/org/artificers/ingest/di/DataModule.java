@@ -8,6 +8,9 @@ import java.io.Closeable;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.jooq.conf.RenderNameStyle;
+import org.jooq.conf.RenderQuotedNames;
+import org.jooq.conf.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.artificers.ingest.app.IngestApp;
@@ -45,6 +48,9 @@ public interface DataModule {
     @Provides
     @Singleton
     static DSLContext dslContext(HikariDataSource ds) {
-        return DSL.using(ds, SQLDialect.POSTGRES);
+        Settings settings = new Settings()
+                .withRenderQuotedNames(RenderQuotedNames.NEVER)
+                .withRenderNameStyle(RenderNameStyle.LOWER);
+        return DSL.using(ds, SQLDialect.POSTGRES, settings);
     }
 }

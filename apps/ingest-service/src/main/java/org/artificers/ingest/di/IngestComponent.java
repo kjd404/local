@@ -11,6 +11,7 @@ import org.artificers.ingest.service.DirectoryWatchService;
 import org.artificers.ingest.service.AccountShorthandParser;
 import org.artificers.ingest.config.DbConfig;
 import org.artificers.ingest.config.IngestConfig;
+import org.jooq.DSLContext;
 
 /** Dagger component assembling ingest services. */
 @Singleton
@@ -22,6 +23,7 @@ public interface IngestComponent {
     NewAccountCli newAccountCli();
     AccountShorthandParser accountShorthandParser();
     Closeable dataSourceCloseable();
+    DSLContext dslContext();
 
     @Component.Builder
     interface Builder {

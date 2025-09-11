@@ -47,7 +47,7 @@ class IngestServiceViewTest {
     })
     void ingestsTransactionsAndRebuildsView(String institution, String fileName, String externalId,
                                             long sum, @TempDir Path dir) throws Exception {
-        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL", "sa", "");
 
         dsl.execute("drop view if exists transactions_view");
         dsl.execute("drop table if exists transactions");

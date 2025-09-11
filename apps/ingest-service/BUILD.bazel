@@ -13,7 +13,6 @@ java_library(
     name = "ingest_lib",
     srcs = glob([
         "src/main/java/**/*.java",
-        "src/generated/java/**/*.java",
     ]),
     resources = glob([
         "src/main/resources/**",
@@ -21,11 +20,11 @@ java_library(
     resource_strip_prefix = "apps/ingest-service/src/main/resources",
     plugins = [":dagger_plugin"],
     deps = [
+        "//ops/sql:jooq_model",
         "@maven//:org_flywaydb_flyway_core",
         "@maven//:org_jooq_jooq",
         "@maven//:com_zaxxer_HikariCP",
         "@maven//:com_opencsv_opencsv",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_poi_poi_ooxml",
         "@maven//:jakarta_annotation_jakarta_annotation_api",
         "@maven//:commons_codec_commons_codec",
@@ -54,43 +53,42 @@ java_binary(
     visibility = ["//visibility:public"],
 )
 
-java_library(
-    name = "ingest_tests_lib",
-    testonly = True,
-    srcs = glob(["src/test/java/**/*.java"]),
-    resources = glob(["src/test/resources/**"]),
-    resource_strip_prefix = "apps/ingest-service/src/test/resources",
-    deps = [
-        ":ingest_lib",
-        "@maven//:org_jooq_jooq",
-        "@maven//:com_fasterxml_jackson_core_jackson_databind",
-        "@maven//:info_picocli_picocli",
-        "@maven//:org_junit_jupiter_junit_jupiter",
-        "@maven//:org_junit_jupiter_junit_jupiter_api",
-        "@maven//:org_junit_jupiter_junit_jupiter_params",
-        "@maven//:org_mockito_mockito_core",
-        "@maven//:org_assertj_assertj_core",
-        "@maven//:com_h2database_h2",
-    ],
+java_binary(
+    name = "db_validate",
+    main_class = "org.artificers.ingest.tools.DbValidator",
+    runtime_deps = [":ingest_lib"],
+    visibility = ["//visibility:public"],
 )
+
+## Docker-related helpers moved to //apps/ingest-service/docker
+
+
 
 java_test(
     name = "ingest_tests",
-    # Use a separate test library so classes land on the runtime classpath
-    srcs = [],
+    srcs = glob(["src/test/java/**/*.java"]),
+    resources = glob(["src/test/resources/**"]),
+    resource_strip_prefix = "apps/ingest-service/src/test/resources",
     size = "large",
     timeout = "moderate",
-    # Use JUnit 5 ConsoleLauncher directly
+    # Use a small custom JUnit Platform launcher
     use_testrunner = False,
-    main_class = "org.junit.platform.console.ConsoleLauncher",
-    args = [
-        "--scan-class-path=$(location :ingest_tests_lib)",
-        "--fail-if-no-tests",
-    ],
-    data = [":ingest_tests_lib"],
-    runtime_deps = [
-        ":ingest_tests_lib",
-        "@maven//:org_junit_platform_junit_platform_console_standalone",
+    main_class = "org.artificers.RunAllTests",
+    deps = [
+        ":ingest_lib",
+        "//ops/sql:jooq_model",
+        "@maven//:info_picocli_picocli",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:org_jooq_jooq",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+        "@maven//:org_junit_platform_junit_platform_engine",
+        "@maven//:org_junit_jupiter_junit_jupiter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_params",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:org_assertj_assertj_core",
+        "@maven//:com_h2database_h2",
     ],
     visibility = ["//visibility:public"],
 )

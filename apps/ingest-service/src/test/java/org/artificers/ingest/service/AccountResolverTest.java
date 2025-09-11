@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AccountResolverTest {
     private DSLContext initDsl() {
-        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL", "sa", "");
         dsl.execute("drop view if exists transactions_view");
         dsl.execute("drop table if exists transactions");
         dsl.execute("drop table if exists accounts");

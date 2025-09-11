@@ -9,17 +9,29 @@ This project emphasizes object-oriented design with dependency injection and com
 ## Prerequisites
 - Docker (https://docs.docker.com/get-docker/)
 - Bazel or Bazelisk (https://bazel.build/ or https://github.com/bazelbuild/bazelisk)
-- buf (for proto codegen; install from https://buf.build/)
 
 ## Quickstart
 
 ```bash
-docker compose up -d    # start Postgres on localhost:5432 with a persistent volume
-cp .env-sample .env     # copy sample env
-# edit .env with DB credentials
-make build-app          # build ingest-service jar with Bazel
-make docker-build       # build Docker image
-make docker-run DB_URL=jdbc:postgresql://localhost:5432/ingest DB_USER=ingest DB_PASSWORD=ingest
+docker compose up -d       # start Postgres on localhost:5432 with a persistent volume
+cp .env-sample .env        # copy sample env and edit DB credentials
+
+# Build and run with Bazel
+bazel build //apps/ingest-service:ingest_app
+bazel run //apps/ingest-service:ingest_app -- --mode=scan
+
+# Database migrations
+bazel run //ops/sql:db_migrate                                         # apply Flyway migrations
+
+# Build/run via Docker (wrappers)
+bazel run //apps/ingest-service/docker:build_image -- --tag=ingest:latest      # docker build
+bazel run //apps/ingest-service/docker:run_container -- --image=ingest:latest  # docker run (detached); no-op if already running
+bazel run //apps/ingest-service/docker:run_container -- --image=ingest:latest --host-port=8081   # specify host port
+bazel run //apps/ingest-service/docker:run_container -- --image=ingest:latest --auto-port        # auto-pick next free port
+bazel run //apps/ingest-service/docker:run_container -- --image=ingest:latest --restart  # force restart
+bazel run //apps/ingest-service/docker:run_container -- --image=ingest:latest --attach   # attach/logs if running
+bazel run //apps/ingest-service/docker:stop_container -- --name=ingest-service           # stop container
+bazel run //apps/ingest-service/docker:status -- --name=ingest-service                   # status + ports
 ```
 
 Alternatively, run the CLI directly:
@@ -29,7 +41,7 @@ Alternatively, run the CLI directly:
 bazel run //apps/ingest-service:ingest_app -- --mode=scan
 bazel run //apps/ingest-service:ingest_app -- --file=/path/to/ch1234-example.csv
 
-# Or run the jar produced by make build-app
+# Or run a staged jar
 java -jar apps/ingest-service/app.jar --mode=scan
 java -jar apps/ingest-service/app.jar --file=/path/to/ch1234-example.csv
 ```
@@ -77,11 +89,13 @@ institution code alongside each row.
 2. Run the CLI or service to ingest them (it watches `storage/incoming/` by default, configurable via `--input` or `INGEST_DIR`).
 3. Processed files move to `storage/incoming/processed/` (failures to `storage/incoming/error/`) and records are loaded into Postgres.
 
-## Scripts
+## Bazel Utilities
 
-- `scripts/new-account`: runs the New Account CLI (prompts for info; writes a mapping template). Use `--force` to overwrite.
-- `scripts/migrate.sh`: runs Flyway migrations in Docker using `.env` for DB credentials.
-- `scripts/app-logs.sh [container]`: tails logs from the running Docker container (default `ingest-service`).
+- `//apps/ingest-service:db_validate`: prints row counts, totals, per-account counts, and duplicate checks.
+- `//ops/sql:db_migrate`: runs Flyway migrations via Docker using `.env`.
+- `//apps/ingest-service/docker:build_image`: builds the Docker image via Docker CLI using the Bazel deploy jar.
+- `//apps/ingest-service/docker:run_container`: runs the Docker image locally (reads DB vars from `.env`, detached by default).
+- `//apps/ingest-service/docker:logs`: tails logs from the running container.
 
 ### Mapping files
 

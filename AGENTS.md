@@ -40,7 +40,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 ## Guardrails
 - Keep secrets only in local, git-ignored `.env` files; never commit them to the repository.
 - Changes that affect storage or schema require a migration plan in PR description.
-- Keep `make` the blessed entry point; scripts should be idempotent.
+- Bazel is the blessed entry point; helper scripts should be idempotent and invokable via `bazel run` wrappers.
 
 ## Object-Oriented Design
 
@@ -58,15 +58,16 @@ and constructor-based immutability.
 4. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
-- Build the app and image with `make build-app`.
+- Build the app with `bazel build //apps/ingest-service:ingest_app`.
+- Build the Docker image with `bazel run //apps/ingest-service/docker:build_image`.
 - Bazel is enabled at the repo root via bzlmod and currently builds only `apps/ingest-service`. Bazel-based tests will be added in a follow-up.
 - **PR Checklist**
-  - [ ] Tests pass and `make build-app` succeeds.
+  - [ ] Tests pass and `bazel build //apps/ingest-service:ingest_app` succeeds.
   - [ ] Migration plan noted for storage or schema changes.
   - [ ] PR description lists the commands executed.
 
 ## Future Extensions
-- gRPC endpoints for cross-service messaging using the existing `buf` workspace.
+- gRPC endpoints for cross-service messaging.
 - Additional services (budgeting rules, receipt OCR, alerts).
 
 ## Ongoing Design Tasks
@@ -76,6 +77,6 @@ and constructor-based immutability.
 
 ## Bazel Migration Notes
 - Scope: Bazel is configured at the repo root (bzlmod) and, for now, only indexes/builds `apps/ingest-service`. Other paths have no BUILD files and are ignored by Bazel.
-- Java toolchain: `.bazelrc` sets Java 17 with the remote toolchain.
+- Java toolchain: `.bazelrc` sets Java 21 with the remote toolchain.
 - Dependencies: managed with `rules_jvm_external` via `MODULE.bazel`.
-- Next steps: add Bazel tests (JUnit 5), wire jOOQ codegen as a Bazel action, and progressively onboard other services.
+- jOOQ codegen wired as a Bazel action; add Bazel tests (JUnit 5) and progressively onboard other services next.

@@ -35,7 +35,7 @@ class NewAccountCliTest {
 
     @Test
     void insertAccountIsIdempotent() {
-        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        DSLContext dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL", "sa", "");
         dsl.execute("drop view if exists transactions_view");
         dsl.execute("drop table if exists transactions");
         dsl.execute("drop table if exists accounts");
@@ -49,7 +49,7 @@ class NewAccountCliTest {
     @Test
     void daggerConstructsCli() throws Exception {
         Path configDir = Files.createTempDirectory("ingest-test");
-        DbConfig db = new DbConfig("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        DbConfig db = new DbConfig("jdbc:h2:mem:test;MODE=PostgreSQL", "sa", "");
         IngestConfig cfg = new IngestConfig(Path.of("storage/incoming"), configDir);
         Class<?> comp = Class.forName("org.artificers.ingest.di.DaggerIngestComponent");
         IngestComponent.Builder builder = (IngestComponent.Builder) comp.getMethod("builder").invoke(null);

@@ -3,6 +3,10 @@ module(name = "local-repo")
 # Use bzlmod to manage JVM dependencies via rules_jvm_external
 bazel_dep(name = "rules_jvm_external", version = "6.3")
 
+# Container/image rules
+bazel_dep(name = "rules_oci", version = "1.7.6")
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "maven",
@@ -10,11 +14,16 @@ maven.install(
         # Main runtime/compile deps
         "org.flywaydb:flyway-core:9.22.3",
         "org.jooq:jooq:3.18.5",
+        "org.jooq:jooq-meta:3.18.5",
+        "org.jooq:jooq-codegen:3.18.5",
+        "org.jooq:jooq-meta-extensions:3.18.5",
         "com.zaxxer:HikariCP:5.1.0",
         "com.opencsv:opencsv:5.9",
-        "com.google.protobuf:protobuf-java:4.27.2",
         "org.apache.poi:poi-ooxml:5.2.3",
         "jakarta.annotation:jakarta.annotation-api:2.1.1",
+        "jakarta.xml.bind:jakarta.xml.bind-api:3.0.1",
+        "org.glassfish.jaxb:jaxb-runtime:3.0.2",
+        "jakarta.activation:jakarta.activation-api:2.1.1",
         "org.postgresql:postgresql:42.6.0",
         "commons-codec:commons-codec:1.15",
         "com.fasterxml.jackson.core:jackson-databind:2.15.2",
@@ -26,6 +35,8 @@ maven.install(
 
         # Test deps (can be used later when adding Bazel tests)
         "org.junit.jupiter:junit-jupiter:5.10.1",
+        "org.junit.platform:junit-platform-suite-api:1.10.1",
+        "org.junit.platform:junit-platform-launcher:1.10.1",
         "org.mockito:mockito-core:5.7.0",
         "org.assertj:assertj-core:3.24.2",
         "com.h2database:h2:2.2.224",
@@ -37,3 +48,12 @@ maven.install(
     ],
 )
 use_repo(maven, "maven")
+
+# Pull base image for OCI builds
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "temurin_jre",
+    image = "docker.io/library/eclipse-temurin",
+    tag = "21-jre-alpine",
+)
+use_repo(oci, "temurin_jre")

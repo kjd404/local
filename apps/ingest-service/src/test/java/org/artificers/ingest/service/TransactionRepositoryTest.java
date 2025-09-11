@@ -21,7 +21,7 @@ class TransactionRepositoryTest {
 
     @BeforeEach
     void setup() {
-        dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_UPPER=false", "sa", "");
+        dsl = DSL.using("jdbc:h2:mem:test;MODE=PostgreSQL", "sa", "");
         dsl.execute("create domain if not exists jsonb as varchar");
         dsl.execute("drop view if exists transactions_view");
         dsl.execute("drop table if exists transactions");

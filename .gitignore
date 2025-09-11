@@ -11,3 +11,7 @@ storage/incoming/error/*
 storage/incoming/processed/*
 !storage/incoming/error/.gitkeep
 !storage/incoming/processed/.gitkeep
+
+# Ignore staged jars used for Docker contexts
+apps/ingest-service/app.jar
+apps/ingest-service/docker/app.jar

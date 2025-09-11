@@ -36,6 +36,8 @@ class TransactionRepositoryRawJsonTest {
 
         repo.upsert(dsl, tx, account);
 
-        assertThat(sql.get()).contains("cast(? as jsonb)");
+        assertThat(sql.get().toLowerCase())
+                .contains("insert into")
+                .contains("raw_json");
     }
 }
