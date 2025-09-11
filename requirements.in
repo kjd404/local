@@ -1,0 +1,9 @@
+# Unpinned input for dependency management (optional; for maintainers)
+# Use a resolver like pip-tools or uv to generate requirements.lock.
+# Example:
+#   uv pip compile requirements.in -o requirements.lock
+#   pip-compile --generate-hashes --output-file=requirements.lock requirements.in
+
+# Add top-level Python deps here (unpinned). Example:
+ipython
+discord.py

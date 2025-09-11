@@ -3,6 +3,9 @@ module(name = "local-repo")
 # Use bzlmod to manage JVM dependencies via rules_jvm_external
 bazel_dep(name = "rules_jvm_external", version = "6.3")
 
+# Python rules and pip integration
+bazel_dep(name = "rules_python", version = "0.40.0")
+
 # Container/image rules
 bazel_dep(name = "rules_oci", version = "1.7.6")
 bazel_dep(name = "rules_pkg", version = "1.0.1")
@@ -57,3 +60,20 @@ oci.pull(
     tag = "21-jre-alpine",
 )
 use_repo(oci, "temurin_jre")
+
+# Register a hermetic Python toolchain and parse pinned requirements for Bazel
+python = use_extension("@rules_python//python:extensions.bzl", "python")
+python.toolchain(
+    # Prefer newest stable supported by rules_python
+    python_version = "3.12",
+)
+
+pip = use_extension("@rules_python//python:extensions.bzl", "pip")
+pip.parse(
+    name = "pip",
+    # Single source of truth for deps; used by both Bazel and the venv
+    requirements_lock = "//:requirements.lock",
+)
+
+use_repo(python, "python_versions")
+use_repo(pip, "pip")

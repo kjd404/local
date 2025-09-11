@@ -48,6 +48,32 @@ java -jar apps/ingest-service/app.jar --file=/path/to/ch1234-example.csv
 
 Stop the database with `docker compose down` when finished.
 
+## Monorepo Layout
+
+- `apps/<service>`: application code with per-app `README.md` and `AGENTS.md`.
+- `libs/<lang>`: shared libraries by language (add as needed).
+- `ops/sql/<service>`: Flyway migrations per service; use the shared macro `flyway_migration`.
+- `tools/<lang>`: developer tooling (e.g., `tools/python`, `tools/sql`).
+- `e2e/` (optional): cross-service tests if/when needed.
+
+## Python Tooling
+
+- Create/update a repo-local virtual environment using Bazel’s hermetic Python: `bazel run //:venv`
+- Activate it: `source .venv/bin/activate` (IDE/LSP: point to `.venv/bin/python`).
+- Dependencies are pinned in a single lockfile `requirements.lock` and used by both:
+  - Local venv (`pip install -r requirements.lock` in the script).
+  - Bazel via `rules_python` (`pip.parse(requirements_lock = "//:requirements.lock")`).
+
+- Generate/refresh the lockfile from `requirements.in` with: `bazel run //:lock`
+
+This keeps interpreter and package resolution consistent across local development and Bazel builds. To change dependencies, edit `requirements.in` and re-lock to `requirements.lock` with your preferred tool (e.g., uv or pip-tools), then rerun `bazel run //:venv`.
+
+## SQL Per-Service Migrations
+
+- Reusable macro: `//tools/sql:flyway.bzl` exposes `flyway_migration(name, sql_dir, env_prefix)`.
+- Example template: `ops/sql/service-template` with `:db_migrate`.
+- Provide DB vars via `.env` using service prefixes, e.g. `SERVICE_TEMPLATE_DB_URL`.
+
 ## Package Structure
 
 The ingest-service Java code is organized into cohesive packages:
@@ -92,7 +118,8 @@ institution code alongside each row.
 ## Bazel Utilities
 
 - `//apps/ingest-service:db_validate`: prints row counts, totals, per-account counts, and duplicate checks.
-- `//ops/sql:db_migrate`: runs Flyway migrations via Docker using `.env`.
+- `//ops/sql:db_migrate`: runs core Flyway migrations via Docker using `.env`.
+- `//ops/sql/service-template:db_migrate`: example per-service migration target via the shared macro.
 - `//apps/ingest-service/docker:build_image`: builds the Docker image via Docker CLI using the Bazel deploy jar.
 - `//apps/ingest-service/docker:run_container`: runs the Docker image locally (reads DB vars from `.env`, detached by default).
 - `//apps/ingest-service/docker:logs`: tails logs from the running container.

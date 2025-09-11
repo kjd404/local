@@ -15,3 +15,6 @@ storage/incoming/processed/*
 # Ignore staged jars used for Docker contexts
 apps/ingest-service/app.jar
 apps/ingest-service/docker/app.jar
+
+# Local Python virtual environment
+.venv/

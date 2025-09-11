@@ -1,0 +1,11 @@
+alias(
+    name = "venv",
+    actual = "//tools/python:venv",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "lock",
+    actual = "//tools/python:lock",
+    visibility = ["//visibility:public"],
+)

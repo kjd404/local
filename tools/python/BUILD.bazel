@@ -1,0 +1,15 @@
+py_binary(
+    name = "venv",
+    srcs = ["venv.py"],
+    main = "venv.py",
+    srcs_version = "PY3",
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "lock",
+    srcs = ["lock.py"],
+    main = "lock.py",
+    srcs_version = "PY3",
+    visibility = ["//visibility:public"],
+)

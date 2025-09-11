@@ -1,0 +1,15 @@
+load("//tools/sql:flyway.bzl", "flyway_migration")
+
+filegroup(
+    name = "sql_files",
+    srcs = glob(["*.sql"]),
+)
+
+flyway_migration(
+    name = "db_migrate",
+    # Defaults to current package path; shown here explicitly for clarity
+    sql_dir = "ops/sql/service-template",
+    # Use a prefix to avoid colliding with other services' DB vars
+    env_prefix = "SERVICE_TEMPLATE",
+)
+

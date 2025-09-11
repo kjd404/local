@@ -13,24 +13,26 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] Each task has a crisp “done” definition.
 - [ ] No breaking change merges without a migration plan.
 
-### 2) App Engineer (Ingest)
-- Builds `apps/ingest-service` (Java + Dagger + Picocli, jOOQ, Flyway, CSV/XLSX parsing).
-- Ensures idempotent upserts with stable hashing.
-- Adds tests and sample data.
+### 2) App Engineers
+- Build and maintain services under `apps/<service>` (polyglot; e.g., Java with Dagger, Python CLIs).
+- Keep each app self‑contained with `README.md` and `AGENTS.md` in its root.
+- Ensure idempotent behavior and clear error handling; add tests and sample data.
 
 **Checklist**
-- [ ] CLI `--mode=scan` ingests sample CSV from `storage/incoming` → Postgres.
-- [ ] Unit test covers mapper edge cases (dates, negative amounts, UTF-8).
-- [ ] Docker image builds for arm64/amd64 (if feasible).
+- [ ] App builds with Bazel and runs via `bazel run` wrappers.
+- [ ] Tests colocated with the code; cover edge cases (encodings, dates, negatives).
+- [ ] Docker image builds for arm64/amd64 (if applicable).
+- [ ] App README lists env vars, run commands, and troubleshooting.
 
 ### 3) Data Engineer
-- Owns schema evolution in `ops/sql/` and JOOQ regeneration.
-- Defines canonical columns and indexes.
+- Owns schema evolution in `ops/sql/<service>` and JOOQ regeneration where used.
+- Defines canonical columns and indexes per service; coordinates cross‑service changes.
 
 **Checklist**
-- [ ] Flyway migrations are backward-compatible or include migration notes.
-- [ ] JOOQ codegen updated after schema changes.
-- [ ] Constraints/indexes keep ingest idempotent and performant.
+- [ ] Flyway migrations are backward‑compatible or include migration notes.
+- [ ] Use `flyway_migration` macro per service with env var prefixes (e.g., `SERVICEA_DB_URL`).
+- [ ] jOOQ codegen updated after schema changes (where applicable).
+- [ ] Constraints/indexes maintain idempotence and performance.
 
 
 ## Handoffs
@@ -41,6 +43,8 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - Keep secrets only in local, git-ignored `.env` files; never commit them to the repository.
 - Changes that affect storage or schema require a migration plan in PR description.
 - Bazel is the blessed entry point; helper scripts should be idempotent and invokable via `bazel run` wrappers.
+- Python is first‑class for productivity; use `bazel run //:venv` for a repo‑local venv and `bazel run //:lock` to update pinned deps shared with Bazel.
+- Python is first-class for developer productivity; use `bazel run //:venv` for a repo-local venv and `bazel run //:lock` to update pinned deps.
 
 ## Object-Oriented Design
 
@@ -52,31 +56,39 @@ and constructor-based immutability.
 ## Getting Started (human or agent)
 1. `docker compose up -d` to start Postgres.
 2. `cp .env-sample .env` and set `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
-3. Build with Bazel:
+3. Python tooling (optional):
+   - `bazel run //:venv` to create `.venv` and install pinned deps from `requirements.lock`.
+   - `bazel run //:lock` to update `requirements.lock` from `requirements.in`.
+4. Build and run an app (example: ingest-service):
    - `bazel build //apps/ingest-service:ingest_app`
-   - Run: `bazel run //apps/ingest-service:ingest_app -- --mode=scan`
-4. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
+   - `bazel run //apps/ingest-service:ingest_app -- --mode=scan`
+5. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
-- Build the app with `bazel build //apps/ingest-service:ingest_app`.
-- Build the Docker image with `bazel run //apps/ingest-service/docker:build_image`.
-- Bazel is enabled at the repo root via bzlmod and currently builds only `apps/ingest-service`. Bazel-based tests will be added in a follow-up.
+- Tests are colocated with their code; run them via `bazel test //...`.
+- Build the ingest app: `bazel build //apps/ingest-service:ingest_app`.
+- Build the Docker image: `bazel run //apps/ingest-service/docker:build_image`.
 - **PR Checklist**
-  - [ ] Tests pass and `bazel build //apps/ingest-service:ingest_app` succeeds.
-  - [ ] Migration plan noted for storage or schema changes.
+  - [ ] All relevant tests pass (`bazel test //...`).
+  - [ ] Migration plan noted for storage or schema changes (including env prefixes if multi-service).
   - [ ] PR description lists the commands executed.
 
 ## Future Extensions
-- gRPC endpoints for cross-service messaging.
-- Additional services (budgeting rules, receipt OCR, alerts).
+- Additional services onboarded into `apps/` (Rust/Java/Python as needed).
+- gRPC/HTTP endpoints for cross‑service messaging.
+- Shared libraries under `libs/<lang>` where reuse is clear.
+- E2E suite under `e2e/` once multi‑service flows exist.
 
 ## Ongoing Design Tasks
-- Audit existing services for alignment with the Object-Oriented Design guardrails and schedule refactors where needed.
-- Introduce dependency injection and composition patterns across modules lacking them.
-- Record design decisions and remaining work here. After completing any task, update this section with progress and new objectives.
+- Colocate tests with code; avoid root aggregators.
+- Adopt per‑service Flyway targets (`flyway_migration`) and document env prefixes per app.
+- Keep each app’s `README.md` and `AGENTS.md` current (build/run/env/tests).
+- Maintain jOOQ codegen targets in Bazel and refresh after schema changes.
+- Keep Python hermetic toolchain current; `requirements.lock` remains the single source of truth for packages.
+- Incrementally extract shared logic into `libs/<lang>` when justified by reuse.
 
-## Bazel Migration Notes
-- Scope: Bazel is configured at the repo root (bzlmod) and, for now, only indexes/builds `apps/ingest-service`. Other paths have no BUILD files and are ignored by Bazel.
-- Java toolchain: `.bazelrc` sets Java 21 with the remote toolchain.
-- Dependencies: managed with `rules_jvm_external` via `MODULE.bazel`.
-- jOOQ codegen wired as a Bazel action; add Bazel tests (JUnit 5) and progressively onboard other services next.
+## Monorepo Conventions
+- Structure: `apps/<service>`, `libs/<lang>/...`, `ops/sql/<service>`, `tools/<lang>/...`.
+- Tests: colocated with the code; avoid a top-level `tests/` aggregator.
+- Database migrations: use `flyway_migration` macro (`//tools/sql:flyway.bzl`) to define `:db_migrate` per service; prefer `<SERVICE>_DB_*` env vars.
+- Bazel: bzlmod at repo root; JVM deps via `rules_jvm_external`. Python packages are pinned in `requirements.lock` and consumed by both Bazel and the venv.
