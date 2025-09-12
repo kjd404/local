@@ -9,3 +9,9 @@ alias(
     actual = "//tools/python:lock",
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "format",
+    actual = "//tools/format:format",
+    visibility = ["//visibility:public"],
+)

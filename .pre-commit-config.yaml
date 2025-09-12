@@ -63,3 +63,14 @@ repos:
       - id: prettier
         files: '\\.(md|mdx|json|ya?ml|graphql)$'
         args: ["--write"]
+
+  # Java: google-java-format via local/system binary (no network)
+  - repo: local
+    hooks:
+      - id: google-java-format
+        name: google-java-format (system)
+        entry: google-java-format
+        language: system
+        files: \.java$
+        pass_filenames: true
+        args: ["--replace", "--set-exit-if-changed"]

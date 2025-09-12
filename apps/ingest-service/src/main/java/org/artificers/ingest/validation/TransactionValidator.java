@@ -4,5 +4,5 @@ import org.artificers.ingest.model.TransactionRecord;
 
 /** Validates {@link TransactionRecord} instances. */
 public interface TransactionValidator {
-    void validate(TransactionRecord tx);
+  void validate(TransactionRecord tx);
 }

@@ -5,20 +5,21 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.artificers.ingest.model.Money;
 
 public final class HashGenerator {
-    private HashGenerator() {}
+  private HashGenerator() {}
 
-    public static String sha256(String accountId, Money amount, Instant occurredAt, String merchant) {
-        String canonical = String.join(
-                "|",
-                normalize(accountId),
-                normalize(amount == null ? null : Long.toString(amount.cents())),
-                normalize(amount == null ? null : amount.currency()),
-                normalize(occurredAt == null ? null : occurredAt.toString()),
-                normalize(merchant));
-        return DigestUtils.sha256Hex(canonical);
-    }
+  public static String sha256(String accountId, Money amount, Instant occurredAt, String merchant) {
+    String canonical =
+        String.join(
+            "|",
+            normalize(accountId),
+            normalize(amount == null ? null : Long.toString(amount.cents())),
+            normalize(amount == null ? null : amount.currency()),
+            normalize(occurredAt == null ? null : occurredAt.toString()),
+            normalize(merchant));
+    return DigestUtils.sha256Hex(canonical);
+  }
 
-    private static String normalize(String value) {
-        return value == null ? "" : value;
-    }
+  private static String normalize(String value) {
+    return value == null ? "" : value;
+  }
 }

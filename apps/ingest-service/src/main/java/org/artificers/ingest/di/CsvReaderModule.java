@@ -17,16 +17,17 @@ import org.artificers.ingest.validation.TransactionValidator;
 /** Module for CSV reader configuration. */
 @Module
 public final class CsvReaderModule {
-    @Provides
-    @Singleton
-    @ElementsIntoSet
-    static Set<TransactionCsvReader> csvReaders(ObjectMapper mapper, TransactionValidator validator) {
-        try {
-            return new MappingFileLocator(mapper).locate().stream()
-                    .map(m -> new ConfigurableCsvReader(mapper, validator, m))
-                    .collect(Collectors.toUnmodifiableSet());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to load CSV mappings", e);
-        }
+  @Provides
+  @Singleton
+  @ElementsIntoSet
+  static Set<TransactionCsvReader> csvReaders(ObjectMapper mapper, TransactionValidator validator) {
+    try {
+      return new MappingFileLocator(mapper)
+          .locate().stream()
+              .map(m -> new ConfigurableCsvReader(mapper, validator, m))
+              .collect(Collectors.toUnmodifiableSet());
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to load CSV mappings", e);
     }
+  }
 }

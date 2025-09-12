@@ -77,6 +77,15 @@ The pre-commit hooks include system-formatters. Install these locally so hooks c
   - Ubuntu/Debian: `sudo apt-get install pgformatter`
   - Fedora: `sudo dnf install pgformatter`
 
+- google-java-format: formats `.java` and removes unused imports
+  - macOS (Homebrew): `brew install google-java-format`
+  - Other platforms: download the release JAR and expose a `google-java-format` command on your PATH, e.g. `alias google-java-format='java -jar /path/to/google-java-format-<ver>-all-deps.jar'`
+  - Requires a local Java runtime (JRE/JDK)
+
+To format everything at once (BUILD/Starlark, SQL, Java): `bazel run //:format`.
+This aggregates buildifier, pg_format, and runs the local google-java-format
+pre-commit hook for all Java files.
+
 If you prefer not to install system binaries, you can disable or adjust the corresponding hook in `.pre-commit-config.yaml`.
 
 ## SQL Per-Service Migrations
