@@ -58,7 +58,7 @@ repos:
 
   # Config/Docs: Prettier for common text formats
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v1.19.1
+    rev: v3.1.0
     hooks:
       - id: prettier
         files: '\\.(md|mdx|json|ya?ml|graphql)$'

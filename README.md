@@ -72,6 +72,11 @@ This keeps interpreter and package resolution consistent across local developmen
 
 The pre-commit hooks include system-formatters. Install these locally so hooks can run without errors:
 
+- buildifier: formats Bazel/Starlark files (BUILD/WORKSPACE/MODULE.bazel/*.bzl)
+  - macOS (Homebrew): `brew install buildifier`
+  - Debian/Ubuntu: `sudo apt-get install buildifier` (or install from Bazelisk releases)
+  - Else: download from https://github.com/bazelbuild/buildtools/releases
+
 - pg_format: formats `.sql` files
   - macOS (Homebrew): `brew install pgformatter`
   - Ubuntu/Debian: `sudo apt-get install pgformatter`
@@ -87,6 +92,17 @@ This aggregates buildifier, pg_format, and runs the local google-java-format
 pre-commit hook for all Java files.
 
 If you prefer not to install system binaries, you can disable or adjust the corresponding hook in `.pre-commit-config.yaml`.
+
+## Git Blame (Ignore Formatting Commits)
+
+The file `.git-blame-ignore-revs` lists formatting-only commits so they don't
+pollute `git blame` output.
+
+- Enable for this repository:
+  - `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+- Optional: set a global ignore file and manage it centrally (advanced):
+  - `git config --global blame.ignoreRevsFile ~/.config/git/ignore-revs`
+  - Append commit hashes from this repo's `.git-blame-ignore-revs` into that file.
 
 ## SQL Per-Service Migrations
 

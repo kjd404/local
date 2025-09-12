@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Aggregate formatter: BUILD/Starlark, SQL, and Java
 # - Uses buildifier and pg_format from the host if available
-# - Uses pre-commit's google-java-format mirror for Java
+# - Uses pre-commit's local/system google-java-format hook for Java
 
 format_bazel_files() {
   if command -v buildifier >/dev/null 2>&1; then
@@ -32,7 +32,7 @@ format_sql_files() {
 format_java_files() {
   # Use pre-commit's google-java-format hook (local/system) to format all Java files.
   if command -v pre-commit >/dev/null 2>&1; then
-    echo "[format] google-java-format (pre-commit mirror): formatting Java files..."
+    echo "[format] google-java-format (pre-commit local hook): formatting Java files..."
     # --all-files ensures full repo formatting when running the aggregate.
     pre-commit run google-java-format --all-files || true
   else

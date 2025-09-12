@@ -44,7 +44,6 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - Changes that affect storage or schema require a migration plan in PR description.
 - Bazel is the blessed entry point; helper scripts should be idempotent and invokable via `bazel run` wrappers.
 - Python is first‑class for productivity; use `bazel run //:venv` for a repo‑local venv and `bazel run //:lock` to update pinned deps shared with Bazel.
-- Python is first-class for developer productivity; use `bazel run //:venv` for a repo-local venv and `bazel run //:lock` to update pinned deps.
 
 ## Object-Oriented Design
 
