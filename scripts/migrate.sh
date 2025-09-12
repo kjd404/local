@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Load environment variables from .env if present
-# shellcheck source=./export-env.sh
+# shellcheck source=./export-env.sh disable=SC1091
 source "$SCRIPT_DIR/export-env.sh"
 
 if ! command -v docker >/dev/null 2>&1; then

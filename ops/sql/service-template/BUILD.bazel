@@ -12,4 +12,3 @@ flyway_migration(
     # Use a prefix to avoid colliding with other services' DB vars
     env_prefix = "SERVICE_TEMPLATE",
 )
-

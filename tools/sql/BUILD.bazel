@@ -4,4 +4,3 @@ exports_files([
     "flyway.bzl",
     "flyway_migrate.sh",
 ])
-

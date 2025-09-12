@@ -13,8 +13,9 @@ SELECT
     raw_json,
     created_at,
     account_id,
-    'chase'::TEXT AS institution
-FROM chase_transactions
+    'chase'::text AS institution
+FROM
+    chase_transactions
 UNION ALL
 SELECT
     id,
@@ -30,5 +31,6 @@ SELECT
     raw_json,
     created_at,
     account_id,
-    'capital_one'::TEXT AS institution
-FROM capital_one_transactions;
+    'capital_one'::text AS institution
+FROM
+    capital_one_transactions;

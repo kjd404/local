@@ -17,4 +17,3 @@ Notes
   `host.docker.internal` for the container to reach your host DB.
 - To create your own service, copy this folder and update `env_prefix` in
   BUILD.bazel to a unique prefix.
-

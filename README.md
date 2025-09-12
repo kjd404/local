@@ -68,6 +68,17 @@ Stop the database with `docker compose down` when finished.
 
 This keeps interpreter and package resolution consistent across local development and Bazel builds. To change dependencies, edit `requirements.in` and re-lock to `requirements.lock` with your preferred tool (e.g., uv or pip-tools), then rerun `bazel run //:venv`.
 
+## Formatter Binaries
+
+The pre-commit hooks include system-formatters. Install these locally so hooks can run without errors:
+
+- pg_format: formats `.sql` files
+  - macOS (Homebrew): `brew install pgformatter`
+  - Ubuntu/Debian: `sudo apt-get install pgformatter`
+  - Fedora: `sudo dnf install pgformatter`
+
+If you prefer not to install system binaries, you can disable or adjust the corresponding hook in `.pre-commit-config.yaml`.
+
 ## SQL Per-Service Migrations
 
 - Reusable macro: `//tools/sql:flyway.bzl` exposes `flyway_migration(name, sql_dir, env_prefix)`.

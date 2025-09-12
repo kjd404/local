@@ -21,6 +21,7 @@ def main() -> int:
     print(f"[venv] Hermetic Python: {sys.version.split()[0]} @ {sys.executable}")
 
     venv_python = venv_dir / "bin" / "python"
+
     # Create venv (prefer symlinks to keep dylib resolution intact on macOS)
     def create_venv():
         print(f"[venv] Creating virtual environment at {venv_dir}")
@@ -31,8 +32,14 @@ def main() -> int:
         try:
             if not venv_python.exists():
                 return False
-            out = subprocess.run([str(venv_python), "-V"], capture_output=True, text=True)
-            return out.returncode == 0 and out.stdout.strip().startswith("Python ") or out.stderr.strip().startswith("Python ")
+            out = subprocess.run(
+                [str(venv_python), "-V"], capture_output=True, text=True
+            )
+            return (
+                out.returncode == 0
+                and out.stdout.strip().startswith("Python ")
+                or out.stderr.strip().startswith("Python ")
+            )
         except Exception:
             return False
 
@@ -54,7 +61,9 @@ def main() -> int:
         print(f"[venv] Installing dependencies from {lock_file.name}")
         subprocess.run(venv_pip + ["install", "-r", str(lock_file)], check=True)
     else:
-        print("[venv] No requirements.lock found at repo root; skipping dependency install")
+        print(
+            "[venv] No requirements.lock found at repo root; skipping dependency install"
+        )
 
     msg = textwrap.dedent(
         """

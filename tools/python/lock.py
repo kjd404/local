@@ -41,7 +41,18 @@ def main() -> int:
         # Ensure pip is present and recent; install/upgrade for consistency
         vpy = venv_dir / "bin" / "python"
         run([str(vpy), "-m", "ensurepip", "--upgrade"])  # idempotent
-        run([str(vpy), "-m", "pip", "install", "--upgrade", "pip", "wheel", "setuptools"])  # baseline tooling
+        run(
+            [
+                str(vpy),
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "pip",
+                "wheel",
+                "setuptools",
+            ]
+        )  # baseline tooling
 
         # Install requested top-level deps
         print(f"[lock] Installing from {in_file.name}")
@@ -49,11 +60,18 @@ def main() -> int:
 
         # Freeze fully resolved versions
         print(f"[lock] Writing pinned requirements to {out_file.relative_to(ws)}")
-        result = subprocess.run([str(vpy), "-m", "pip", "freeze"], check=True, capture_output=True, text=True)
+        result = subprocess.run(
+            [str(vpy), "-m", "pip", "freeze"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         content = result.stdout
         tmp_out = tmpdir / "requirements.lock.tmp"
         with tmp_out.open("w", encoding="utf-8") as f:
-            f.write(HEADER.format(python=f"{sys.version.split()[0]} @ {sys.executable}"))
+            f.write(
+                HEADER.format(python=f"{sys.version.split()[0]} @ {sys.executable}")
+            )
             if not content.startswith("\n"):
                 f.write("\n")
             f.write(content)

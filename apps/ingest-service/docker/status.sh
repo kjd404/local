@@ -26,6 +26,7 @@ PORTS=$(docker port "$CONTAINER_NAME" 2>/dev/null || true)
 echo "name: $CONTAINER_NAME"
 echo "container_id: $CID"
 echo "state: $STATUS"
+echo "running: $RUNNING"
 echo "image: $IMAGE"
 if [[ -n "$PORTS" ]]; then
   echo "ports:"
@@ -35,4 +36,3 @@ if [[ -n "$PORTS" ]]; then
 else
   echo "ports: none"
 fi
-

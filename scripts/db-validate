@@ -22,4 +22,3 @@ source "$SCRIPT_DIR/export-env.sh"
 
 cd "$ROOT_DIR"
 exec bazel run //apps/ingest-service:db_validate
-

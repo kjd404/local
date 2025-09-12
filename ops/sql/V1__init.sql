@@ -1,19 +1,18 @@
 -- Canonical transactions schema
 CREATE TABLE IF NOT EXISTS transactions (
-    id BIGSERIAL PRIMARY KEY,
-    account_id TEXT NOT NULL,
-    occurred_at TIMESTAMPTZ,
-    posted_at TIMESTAMPTZ,
-    amount_cents BIGINT NOT NULL,
-    currency TEXT NOT NULL DEFAULT 'USD',
-    merchant TEXT,
-    category TEXT,
-    memo TEXT,
-    source TEXT NOT NULL,
+    id bigserial PRIMARY KEY,
+    account_id text NOT NULL,
+    occurred_at timestamptz,
+    posted_at timestamptz,
+    amount_cents bigint NOT NULL,
+    currency text NOT NULL DEFAULT 'USD',
+    merchant text,
+    category text,
+    memo text,
+    source text NOT NULL,
     hash TEXT NOT NULL,
-    raw_json JSONB NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
+    raw_json jsonb NOT NULL,
+    created_at timestamptz DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS transactions_account_hash_idx
-    ON transactions(account_id, hash);
+CREATE UNIQUE INDEX IF NOT EXISTS transactions_account_hash_idx ON transactions (account_id, hash);

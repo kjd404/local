@@ -32,4 +32,3 @@ cp -f "$DEPLOY_JAR" "$DOCKER_DIR/app.jar"
 
 echo "[build_image] docker build -t $TAG apps/ingest-service/docker" >&2
 exec docker build -t "$TAG" "$DOCKER_DIR"
-

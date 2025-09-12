@@ -1,4 +1,4 @@
-package(default_visibility = ["//visibility:public"]) 
+package(default_visibility = ["//visibility:public"])
 
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("@rules_oci//oci:defs.bzl", "oci_image")

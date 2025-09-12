@@ -6,4 +6,3 @@ set -euo pipefail
 
 NAME="${1:-${CONTAINER_NAME:-ingest-service}}"
 exec docker logs -f "$NAME"
-

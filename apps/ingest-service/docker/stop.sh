@@ -18,4 +18,3 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
 else
   echo "No container named ${CONTAINER_NAME} to stop." >&2
 fi
-

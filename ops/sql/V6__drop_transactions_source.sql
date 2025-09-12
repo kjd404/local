@@ -1,1 +1,2 @@
-ALTER TABLE transactions DROP COLUMN source;
+ALTER TABLE transactions
+    DROP COLUMN source;

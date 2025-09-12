@@ -6,8 +6,12 @@ ENV_FILE=".env"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo ".env missing" >&2
-  # If sourced, return; if executed, exit
-  return 1 2>/dev/null || exit 1
+  # If sourced, return; if executed, exit (avoid SC2317)
+  if [[ "${BASH_SOURCE[0]-$0}" != "$0" ]]; then
+    return 1
+  else
+    exit 1
+  fi
 fi
 
 # Export variables defined in .env, trimming CR for cross-platform compat

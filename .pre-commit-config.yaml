@@ -1,0 +1,65 @@
+repos:
+  # Hygiene and basic checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-yaml
+
+  # Python: fast formatter + linter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^(apps|libs|tools)/.+\.py$
+      - id: ruff-format
+        files: ^(apps|libs|tools)/.+\.py$
+
+  # Shell: formatter and linter
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-sr"]
+        files: \.(sh|bash)$
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        files: \.(sh|bash)$
+
+
+  # Bazel/Starlark: format BUILD/WORKSPACE/.bzl files (system binary)
+  - repo: local
+    hooks:
+      - id: buildifier
+        name: buildifier (Bazel/Starlark formatter)
+        entry: buildifier
+        language: system
+        files: '(^|/)(BUILD|WORKSPACE|MODULE\.bazel|.*\.bzl)$'
+        args: ["-mode=fix"]
+
+  # SQL: PostgreSQL formatting via pg_format (system binary)
+  - repo: local
+    hooks:
+      - id: pg-format
+        name: pg_format (PostgreSQL SQL formatter)
+        entry: pg_format
+        language: system
+        files: \.sql$
+        args: ["-i", "-L"]
+
+  # Config/Docs: Prettier for common text formats
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v1.19.1
+    hooks:
+      - id: prettier
+        files: '\\.(md|mdx|json|ya?ml|graphql)$'
+        args: ["--write"]
