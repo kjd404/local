@@ -1,0 +1,7 @@
+# Formatting-only commits to be ignored by git blame
+#
+# To enable for this repo:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Format Java with google-java-format; switch pre-commit to system hook and add aggregate formatter target
+e9b0bb4f95af58db147f0704a7f3e2fe9008a797
