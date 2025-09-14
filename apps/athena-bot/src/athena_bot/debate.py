@@ -140,64 +140,84 @@ class DebateManager:
         self, channel: discord.TextChannel, author: discord.Member
     ) -> None:
         debate = self._by_channel.get(channel.id)
-        if not debate or debate.status is not DebateStatus.ACTIVE:
-            return
-        if author.id != debate.current_turn_id:
+        if not self._can_flip(debate, author):
             return
 
         lock = self._locks[channel.id]
         async with lock:
-            # Double-check inside lock
             debate = self._by_channel.get(channel.id)
-            if not debate or debate.status is not DebateStatus.ACTIVE:
-                return
-            if author.id != debate.current_turn_id:
+            if not self._can_flip(debate, author):
                 return
 
-            # Determine next speaker
-            next_speaker_id = (
-                debate.challenged_id
-                if author.id == debate.challenger_id
-                else debate.challenger_id
+            assert debate is not None  # for type checkers
+            next_speaker_id = self._next_speaker_id(debate, author.id)
+
+            current, nxt = await self._resolve_members(
+                channel, debate.current_turn_id, next_speaker_id
             )
-
-            # Fetch Member objects for permission updates
-            guild = channel.guild
-            current = guild.get_member(debate.current_turn_id)
-            nxt = guild.get_member(next_speaker_id)
-            # Fallback to API fetch if not cached (works without Members intent for single fetches)
-            if not current:
-                try:
-                    current = await guild.fetch_member(debate.current_turn_id)
-                except Exception as e:
-                    log.warning(
-                        "fetch_member failed for current in %s: %s", channel.id, e
-                    )
-            if not nxt:
-                try:
-                    nxt = await guild.fetch_member(next_speaker_id)
-                except Exception as e:
-                    log.warning("fetch_member failed for next in %s: %s", channel.id, e)
             if not current or not nxt:
-                log.warning("Could not resolve members to flip turn in %s", channel.id)
                 return
 
-            # Update permissions: enable next, then disable current
-            try:
-                # Grant next speaker before revoking current, to minimize gaps
-                await channel.set_permissions(nxt, send_messages=True)
-                await channel.set_permissions(current, send_messages=False)
-            except Exception as e:
-                log.exception("Failed to update permissions in %s: %s", channel.id, e)
+            if not await self._apply_turn_permissions(channel, current, nxt):
                 return
 
             debate.current_turn_id = next_speaker_id
             log.info("Turn flipped in #%s: now %s", channel.name, nxt.display_name)
-            # Notify next speaker
+            await self._notify_next(channel, nxt)
+
+    def _can_flip(self, debate: Optional[Debate], author: discord.Member) -> bool:
+        return bool(
+            debate
+            and debate.status is DebateStatus.ACTIVE
+            and author.id == debate.current_turn_id
+        )
+
+    @staticmethod
+    def _next_speaker_id(debate: Debate, author_id: int) -> int:
+        return (
+            debate.challenged_id
+            if author_id == debate.challenger_id
+            else debate.challenger_id
+        )
+
+    async def _resolve_members(
+        self, channel: discord.TextChannel, current_id: int, next_id: int
+    ) -> tuple[Optional[discord.Member], Optional[discord.Member]]:
+        guild = channel.guild
+        current = guild.get_member(current_id)
+        nxt = guild.get_member(next_id)
+        if not current:
             try:
-                await channel.send(f"Your turn, {nxt.mention}")
+                current = await guild.fetch_member(current_id)
             except Exception as e:
-                log.warning("Failed to post turn message in %s: %s", channel.id, e)
+                log.warning("fetch_member failed for current in %s: %s", channel.id, e)
+        if not nxt:
+            try:
+                nxt = await guild.fetch_member(next_id)
+            except Exception as e:
+                log.warning("fetch_member failed for next in %s: %s", channel.id, e)
+        if not current or not nxt:
+            log.warning("Could not resolve members to flip turn in %s", channel.id)
+        return current, nxt
+
+    @staticmethod
+    async def _apply_turn_permissions(
+        channel: discord.TextChannel, current: discord.Member, nxt: discord.Member
+    ) -> bool:
+        try:
+            await channel.set_permissions(nxt, send_messages=True)
+            await channel.set_permissions(current, send_messages=False)
+            return True
+        except Exception as e:
+            log.exception("Failed to update permissions in %s: %s", channel.id, e)
+            return False
+
+    @staticmethod
+    async def _notify_next(channel: discord.TextChannel, nxt: discord.Member) -> None:
+        try:
+            await channel.send(f"Your turn, {nxt.mention}")
+        except Exception as e:
+            log.warning("Failed to post turn message in %s: %s", channel.id, e)
 
     async def end_debate(self, channel: discord.TextChannel) -> None:
         debate = self._by_channel.get(channel.id)
