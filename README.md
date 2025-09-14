@@ -34,6 +34,24 @@ bazel run //apps/ingest-service/docker:stop_container -- --name=ingest-service  
 bazel run //apps/ingest-service/docker:status -- --name=ingest-service                   # status + ports
 ```
 
+### Athena Bot (Discord)
+
+```bash
+# Set your Discord token in .env (DISCORD_BOT_TOKEN)
+bazel run //apps/athena-bot:bot                 # run locally
+bazel test //apps/athena-bot:bot_tests          # run tests
+
+# Docker wrappers
+bazel run //apps/athena-bot/docker:build_image -- --tag=athena-bot:latest
+bazel run //apps/athena-bot/docker:run_container -- --image=athena-bot:latest
+bazel run //apps/athena-bot/docker:logs
+```
+
+Notes
+- The bot connects outbound to Discord; no inbound ports are needed. Docker must have internet access.
+- A `/ping` slash command is included to verify connectivity; it syncs on startup.
+- Optional `DISCORD_GUILD_ID` can be set in `.env` to sync commands faster to a single server during development.
+
 Alternatively, run the CLI directly:
 
 ```bash

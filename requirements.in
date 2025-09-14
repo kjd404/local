@@ -7,3 +7,4 @@
 # Add top-level Python deps here (unpinned). Example:
 ipython
 discord.py
+pytest

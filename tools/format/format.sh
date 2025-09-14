@@ -16,16 +16,13 @@ format_bazel_files() {
 
 format_sql_files() {
   # Find .sql files excluding common build output and VCS dirs
-  mapfile -d '' sql_files < <(find . \
-    -type d \( -name '.git' -o -name 'bazel-*' -o -name '.venv' -o -name 'target' -o -name 'build' \) -prune -false -o \
-    -type f -name '*.sql' -print0)
-  if (( ${#sql_files[@]} > 0 )); then
-    if command -v pg_format >/dev/null 2>&1; then
-      echo "[format] pg_format: formatting ${#sql_files[@]} SQL file(s)..."
-      printf '%s\0' "${sql_files[@]}" | xargs -0 -n 100 pg_format -i -L
-    else
-      echo "[format] pg_format not found; skipping SQL formatting" >&2
-    fi
+  if command -v pg_format >/dev/null 2>&1; then
+    echo "[format] pg_format: formatting SQL files (if any)..."
+    find . \
+      -type d \( -name '.git' -o -name 'bazel-*' -o -name '.venv' -o -name 'target' -o -name 'build' \) -prune -false -o \
+      -type f -name '*.sql' -print0 | xargs -0 -r -n 100 pg_format -i -L || true
+  else
+    echo "[format] pg_format not found; skipping SQL formatting" >&2
   fi
 }
 

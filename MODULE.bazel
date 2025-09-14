@@ -62,15 +62,17 @@ oci.pull(
 use_repo(oci, "temurin_jre")
 
 # Register a hermetic Python toolchain and parse pinned requirements for Bazel
-python = use_extension("@rules_python//python:extensions.bzl", "python")
+# rules_python 0.40.0 defines module extensions under the python/extensions subpackage
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     # Prefer newest stable supported by rules_python
     python_version = "3.12",
 )
 
-pip = use_extension("@rules_python//python:extensions.bzl", "pip")
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    name = "pip",
+    hub_name = "pip",
+    python_version = "3.12",
     # Single source of truth for deps; used by both Bazel and the venv
     requirements_lock = "//:requirements.lock",
 )

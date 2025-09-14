@@ -1,0 +1,26 @@
+package(default_visibility = ["//visibility:public"])
+
+sh_binary(
+    name = "build_image",
+    srcs = ["build.sh"],
+)
+
+sh_binary(
+    name = "run_container",
+    srcs = ["run.sh"],
+)
+
+sh_binary(
+    name = "logs",
+    srcs = ["logs.sh"],
+)
+
+sh_binary(
+    name = "stop_container",
+    srcs = ["stop.sh"],
+)
+
+sh_binary(
+    name = "status",
+    srcs = ["status.sh"],
+)

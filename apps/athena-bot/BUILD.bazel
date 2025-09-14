@@ -1,0 +1,32 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@pip//:requirements.bzl", "requirement")
+
+py_library(
+    name = "athena_lib",
+    srcs = glob(["src/**/*.py"]),
+    imports = ["src"],
+    deps = [
+        requirement("discord.py"),
+    ],
+)
+
+py_binary(
+    name = "bot",
+    srcs = ["src/athena_bot/main.py"],
+    main = "src/athena_bot/main.py",
+    imports = ["src"],
+    deps = [":athena_lib"],
+)
+
+# PyTest runner wrapper; executes pytest against tests/ under Bazel
+py_test(
+    name = "bot_tests",
+    srcs = ["tests/run_pytest.py"],
+    main = "tests/run_pytest.py",
+    data = glob(["tests/**/*.py"]),
+    deps = [
+        ":athena_lib",
+        requirement("pytest"),
+    ],
+)
