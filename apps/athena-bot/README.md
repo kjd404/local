@@ -37,6 +37,8 @@ Discord bot (athena-bot) built in Python. Reads configuration from environment a
 - `/challenge @user <topic> [private]` – Challenge a member to a debate. The challenged user can Accept/Decline via buttons. Use `private=true` to create a hidden channel; default is public read-only for others.
 - `/debate_end` – End the current debate; makes the debate channel read-only.
 - `/sync` – Force-resync application commands (admin only; Manage Server).
+- `/bots_debate <topic> [private] [rounds] [left] [right] [temperature] [concise]` – Start an LLM-vs-LLM debate between two named personas (defaults: Alex vs Riley). Messages are posted via webhook with persona names.
+- `/bots_personas` – List available personas and short summaries.
 
 ## Debate Flow
 - When accepted, the bot creates a text channel named like `challenged-vs-challenger-topic`.
@@ -44,6 +46,40 @@ Discord bot (athena-bot) built in Python. Reads configuration from environment a
 - The challenger goes first. Each message automatically hands the turn to the other participant by flipping send permissions.
 - Either participant can end the debate with `/debate_end` which locks the channel (read-only).
 - The bot posts a small system prompt on each turn change: `Your turn, @user`.
+
+## Agent Debates (LLM vs LLM)
+- Description: Starts a fully automated debate between two LLM personas inside a dedicated channel using the same structure as human debates. Useful for demonstrations or benchmarking.
+- Command: `/bots_debate <topic> [private] [rounds] [left] [right]`
+  - `topic`: Debate topic (required).
+  - `private`: Hide channel from others (default: false).
+  - `rounds`: Number of exchanges per side (default: 6; total messages ≈ 12).
+  - `left`, `right`: Persona names. Defaults to `Alex` (left-leaning) vs `Riley` (right-leaning). Other options: `Demosthenes`, `Aeschines`, `Isocrates`, `Gorgias`, `Lysias`.
+  - `temperature`: Controls creativity (default: 0.4 for concise, grounded debate).
+  - `concise`: If true, clamps to shorter replies and lower temperature.
+- Operation: The bot creates a channel, sets read/send permissions, then posts alternating messages as each persona via a channel webhook. Openings include a one-time self‑intro; subsequent turns avoid greetings and identity restatements for a natural flow.
+- Requirements: `Manage Webhooks` permission for the bot in the server. If webhook creation fails, it falls back to normal bot messages with a name prefix.
+
+### LLM Configuration
+- `OPENAI_API_KEY` – API key for OpenAI (required to use the default provider).
+- `OPENAI_MODEL` – Model name (default: `gpt-4o-mini`).
+- Provider is pluggable; see `athena_bot/llm/` for the `ChatModel` interface and the `OpenAIChatModel` implementation. You can implement your own provider and pass it to the orchestrator.
+
+### Personas Configuration
+- Personas are defined in YAML at `athena_bot/resources/personas.yaml`. Override with `ATHENA_PERSONAS_FILE` if you want a custom file path.
+- Command `/bots_personas` shows currently loaded personas and summaries.
+ - YAML format:
+
+   personas:
+     Alex:
+       summary: "Left-leaning policy analyst; plain, evidence-led style."
+       system_prompt: |
+         You are Alex, a calm, left-leaning policy analyst...
+       avatar_url: "https://example.com/alex.png"   # optional
+
+ - When running under Bazel, the default file may not be discoverable; set `ATHENA_PERSONAS_FILE` to the absolute path of your YAML to ensure it loads.
+
+### Permissions Note
+- For agent debates, only the bot posts messages. The channel is created read-only for others (or fully private if requested). The webhook renders distinct persona names and avatars (if configured) for clarity.
 
 ## Persistence
 - Debate state is stored in the channel topic (IDs + status). On startup, the bot restores debates and infers whose turn it is from channel permissions. No external database required.

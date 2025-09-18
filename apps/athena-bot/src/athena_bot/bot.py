@@ -135,6 +135,25 @@ class AthenaBot:
             guild_obj,
         )
 
+        # LLM vs LLM agents debate
+        self._add_command(
+            app_commands.Command(
+                name="bots_debate",
+                description="Start an LLM-vs-LLM debate in a new channel",
+                callback=self._cmd_bots_debate,
+            ),
+            guild_obj,
+        )
+
+        self._add_command(
+            app_commands.Command(
+                name="bots_personas",
+                description="List available LLM personas",
+                callback=self._cmd_bots_personas,
+            ),
+            guild_obj,
+        )
+
         sync_cmd = app_commands.Command(
             name="sync",
             description="Force-resync application commands",
@@ -229,6 +248,137 @@ class AthenaBot:
                 )
         except Exception as e:
             await interaction.response.send_message(f"Sync failed: {e}", ephemeral=True)
+
+    @app_commands.describe(
+        topic="Debate topic",
+        private="Create a private channel",
+        rounds="Number of exchanges per side (1-20)",
+        left="Left persona name (e.g., Demosthenes)",
+        right="Right persona name (e.g., Aeschines)",
+        temperature="Creativity (0.0-1.0); lower is more concise",
+        concise="Concise mode: shorter, more factual replies",
+    )
+    async def _cmd_bots_debate(
+        self,
+        interaction: discord.Interaction,
+        topic: str,
+        private: bool = False,
+        rounds: int = 6,
+        left: str = "Alex",
+        right: str = "Riley",
+        temperature: float = 0.4,
+        concise: bool = False,
+    ) -> None:
+        # Lazy imports to avoid optional deps at load-time
+        from athena_bot.agent_debate import AgentDebateOrchestrator
+        from athena_bot.personas import get_personas, Persona
+        from athena_bot.llm.openai_provider import OpenAIChatModel  # type: ignore
+
+        if not interaction.guild:
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+
+        # Resolve personas
+        personas = get_personas()
+
+        def resolve(name: str) -> Persona:
+            # Case-insensitive match with sensible default
+            key = (name or "").strip()
+            if not key:
+                return (
+                    personas["Alex"]
+                    if "Alex" in personas
+                    else next(iter(personas.values()))
+                )
+            for k in personas.keys():
+                if k.lower() == key.lower():
+                    return personas[k]
+            return personas.get("Alex") or next(iter(personas.values()))
+
+        p_left = resolve(left)
+        p_right = resolve(right)
+
+        # Build providers; will error with clear message if OPENAI_API_KEY missing
+        try:
+            m_left = OpenAIChatModel()
+            m_right = OpenAIChatModel()
+        except Exception as e:
+            await interaction.response.send_message(
+                f"LLM setup failed: {e}. Set OPENAI_API_KEY and ensure 'openai' is installed (update requirements.lock).",
+                ephemeral=True,
+            )
+            return
+
+        orchestrator = AgentDebateOrchestrator(delay_seconds=0.75)
+
+        try:
+            channel = await orchestrator.create_channel(
+                interaction.guild, topic=topic, private=private
+            )
+        except discord.Forbidden:
+            await interaction.response.send_message(
+                "I lack permissions to create the debate channel. Ensure I can Manage Channels.",
+                ephemeral=True,
+            )
+            return
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Failed to create channel: {e}", ephemeral=True
+            )
+            return
+
+        await interaction.response.send_message(
+            f"Agent debate created: {channel.mention}. Starting {rounds} round(s) per side…",
+            ephemeral=False,
+        )
+
+        # Clamp style knobs if concise
+        eff_temp = temperature if not concise else min(temperature, 0.2)
+        eff_tokens = 250 if not concise else 180
+
+        async def run():
+            try:
+                await orchestrator.run_debate(
+                    channel,
+                    topic=topic,
+                    left=p_left,
+                    right=p_right,
+                    left_model=m_left,
+                    right_model=m_right,
+                    rounds=rounds,
+                    temperature=eff_temp,
+                    max_output_tokens=eff_tokens,
+                    concise=concise,
+                )
+            except Exception as e:
+                try:
+                    await channel.send(f"Debate stopped due to error: {e}")
+                except Exception:
+                    pass
+
+        import asyncio as _asyncio
+
+        _asyncio.create_task(run())
+
+    async def _cmd_bots_personas(self, interaction: discord.Interaction) -> None:
+        from athena_bot.personas import get_personas
+
+        personas = get_personas()
+        lines = []
+        for name, p in personas.items():
+            if p.summary:
+                lines.append(f"- {name}: {p.summary}")
+            else:
+                lines.append(f"- {name}")
+
+        msg = (
+            "Available personas:\n"
+            + "\n".join(lines)
+            + "\n\nUse /bots_debate with 'left' and 'right' to choose."
+        )
+        await interaction.response.send_message(msg, ephemeral=True)
 
 
 class _ChallengeView(discord.ui.View):

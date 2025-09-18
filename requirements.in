@@ -7,4 +7,6 @@
 # Add top-level Python deps here (unpinned). Example:
 ipython
 discord.py
+openai>=1.30,<2
+PyYAML>=6,<7
 pytest

@@ -6,8 +6,13 @@ py_library(
     name = "athena_lib",
     srcs = glob(["src/**/*.py"]),
     imports = ["src"],
+    data = [
+        "src/athena_bot/resources/personas.yaml",
+    ],
     deps = [
         requirement("discord.py"),
+        requirement("openai"),
+        requirement("pyyaml"),
     ],
 )
 
