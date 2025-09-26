@@ -11,13 +11,39 @@ set -euo pipefail
 
 SQL_DIR=""
 ENV_PREFIX=""
+HISTORY_TABLE=""
+SHOW_HELP=0
 for arg in "$@"; do
   case "$arg" in
     --sql-dir=*) SQL_DIR="${arg#*=}" ;;
     --env-prefix=*) ENV_PREFIX="${arg#*=}" ;;
+    --history-table=*) HISTORY_TABLE="${arg#*=}" ;;
+    --help|-h) SHOW_HELP=1 ;;
     *) echo "Unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
+
+if [[ $SHOW_HELP -eq 1 ]]; then
+  cat <<'USAGE'
+Usage: flyway_migrate.sh --sql-dir=<relative-path> [--env-prefix=PREFIX] [--history-table=TABLE]
+
+Executes Flyway migrations located under the workspace-relative SQL directory. The script reads
+database connection details from either PREFIX_DB_* variables (when --env-prefix is supplied) or
+fallback DB_* variables/.env, then runs Flyway inside a disposable Docker container.
+
+Environment:
+  BUILD_WORKSPACE_DIRECTORY  Required; set automatically when invoking via `bazel run`.
+  [PREFIX_]DB_URL            PostgreSQL JDBC/URL (jdbc: prefix optional).
+  [PREFIX_]DB_USER           Database user.
+  [PREFIX_]DB_PASSWORD       Database password.
+
+Examples:
+  bazel run //ops/sql/yong:db_migrate
+  bazel run //ops/sql/yong:db_migrate -- --env-prefix=YONG
+  bazel run //ops/sql/yong:db_migrate -- --help
+USAGE
+  exit 0
+fi
 
 if [[ -z "$SQL_DIR" ]]; then
   echo "--sql-dir is required" >&2
@@ -77,15 +103,37 @@ if [[ "$DB_URL" != jdbc:* ]]; then
 fi
 
 MOUNT_PATH="$WORKSPACE_DIR/$SQL_DIR"
+if [[ -n "$HISTORY_TABLE" ]]; then
+  HISTORY_ARGS=(-table="$HISTORY_TABLE")
+else
+  HISTORY_ARGS=()
+fi
+
 if [[ ! -d "$MOUNT_PATH" ]]; then
   echo "SQL directory not found: $MOUNT_PATH" >&2
   exit 2
 fi
 
-exec docker run --rm \
-  -v "$MOUNT_PATH":/flyway/sql \
-  flyway/flyway \
-  -url="$DB_URL" \
-  -user="$DB_USER" \
-  -password="$DB_PASSWORD" \
-  migrate
+run_flyway() {
+  docker run --rm \
+    -v "$MOUNT_PATH":/flyway/sql \
+    flyway/flyway \
+    -url="$DB_URL" \
+    -user="$DB_USER" \
+    -password="$DB_PASSWORD" \
+    "${HISTORY_ARGS[@]}" \
+    "$@"
+}
+
+if [[ -n "$HISTORY_TABLE" ]]; then
+  set +e
+  run_flyway -baselineVersion=0 baseline
+  status=$?
+  set -e
+  if [[ $status -ne 0 && $status -ne 1 ]]; then
+    echo "Flyway baseline failed (exit $status)" >&2
+    exit $status
+  fi
+fi
+
+run_flyway migrate

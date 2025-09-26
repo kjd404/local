@@ -1,4 +1,4 @@
-def flyway_migration(name, sql_dir = None, env_prefix = None):
+def flyway_migration(name, sql_dir = None, env_prefix = None, history_table = None):
     """
     Defines a Bazel `sh_binary` target to run Flyway migrations from a given directory.
 
@@ -16,6 +16,8 @@ def flyway_migration(name, sql_dir = None, env_prefix = None):
     ]
     if env_prefix:
         args.append("--env-prefix=%s" % env_prefix)
+    if history_table:
+        args.append("--history-table=%s" % history_table)
 
     runner = name + "_runner.sh"
     native.genrule(

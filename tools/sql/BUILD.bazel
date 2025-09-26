@@ -1,6 +1,19 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@pip//:requirements.bzl", "requirement")
+
 exports_files([
     "flyway.bzl",
     "flyway_migrate.sh",
+    "postgres_test.bzl",
+    "postgres_test_runner.py",
 ])
+
+py_library(
+    name = "postgres_test_runner_lib",
+    srcs = ["postgres_test_runner.py"],
+    deps = [
+        requirement("psycopg"),
+        requirement("pytest"),
+    ],
+)

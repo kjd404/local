@@ -29,19 +29,33 @@ def main() -> int:
         builder.create(venv_dir)
 
     def healthy_python() -> bool:
+        if not venv_python.exists():
+            return False
+
+        # Run sanity checks without Bazel's PYTHONPATH so we catch stale
+        # interpreters that cannot import the stdlib once used interactively.
+        env = os.environ.copy()
+        env.pop("PYTHONPATH", None)
+        env.pop("PYTHONHOME", None)
+
         try:
-            if not venv_python.exists():
-                return False
-            out = subprocess.run(
-                [str(venv_python), "-V"], capture_output=True, text=True
-            )
-            return (
-                out.returncode == 0
-                and out.stdout.strip().startswith("Python ")
-                or out.stderr.strip().startswith("Python ")
+            check = subprocess.run(
+                [
+                    str(venv_python),
+                    "-c",
+                    "import sys, encodings; sys.exit(0 if sys.prefix != '/install' else 1)",
+                ],
+                capture_output=True,
+                text=True,
+                env=env,
             )
         except Exception:
             return False
+
+        if check.returncode != 0:
+            return False
+
+        return True
 
     if not venv_dir.exists():
         create_venv()

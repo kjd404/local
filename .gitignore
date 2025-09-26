@@ -18,3 +18,7 @@ apps/ingest-service/docker/app.jar
 
 # Local Python virtual environment
 .venv/
+
+# Python bytecode artifacts
+__pycache__/
+*.py[cod]
