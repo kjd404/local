@@ -86,6 +86,14 @@ Stop the database with `docker compose down` when finished.
 
 This keeps interpreter and package resolution consistent across local development and Bazel builds. To change dependencies, edit `requirements.in` and re-lock to `requirements.lock` with your preferred tool (e.g., uv or pip-tools), then rerun `bazel run //:venv`.
 
+## PaddleOCR Utilities
+
+- Run `bazel run //:venv` and activate the environment so `paddlepaddle==3.2.0` and `paddleocr==3.2.0` install alongside other tools.
+- First run downloads the detection and recognition models to `~/.paddlex/official_models/`; delete a folder to force a refresh.
+- Example receipt check: `paddleocr ocr -i apps/yong/src/test/resources/examples/sample_receipt_photo_01.jpeg --device cpu --ocr_version PP-OCRv4 --lang en --use_doc_orientation_classify false --use_doc_unwarping false --use_textline_orientation false`.
+- Add `--save_path apps/yong/tmp` if you want to capture intermediate JSON/artifacts; omit the flags to re-enable document preprocessing once you trust the local models.
+- For offline work, copy the downloaded model directories into `~/.paddlex/official_models/` ahead of time and the CLI will reuse them without a network connection.
+
 ## Formatter Binaries
 
 The pre-commit hooks include system-formatters. Install these locally so hooks can run without errors:

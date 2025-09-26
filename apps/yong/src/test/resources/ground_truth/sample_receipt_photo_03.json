@@ -1,0 +1,129 @@
+{
+  "receipt_id": "sample_receipt_photo_03",
+  "account_external_id": "co1828",
+  "merchant": {
+    "name": "85°C Bakery Cafe",
+    "address": "14701 NE 20th St, Ste G",
+    "phone": "(425) 434-4768"
+  },
+  "transaction": {
+    "timestamp_iso8601": "2025-09-18T10:48:31-07:00",
+    "order_type": "To Go",
+    "cashier": "Owen",
+    "register": "0108-02",
+    "order_number": "2143",
+    "items_count": 3,
+    "subtotal_cents": 1100,
+    "tax_amount_cents": 49,
+    "total_amount_cents": 1149
+  },
+  "items": [
+    {
+      "description": "Marble Taro",
+      "quantity": 1,
+      "unit_price_cents": 370
+    },
+    {
+      "description": "Choco Croissant",
+      "quantity": 1,
+      "unit_price_cents": 245
+    },
+    {
+      "description": "Milk Tea (Boba)",
+      "quantity": 1,
+      "unit_price_cents": 485,
+      "taxable": true
+    }
+  ],
+  "payments": [
+    {
+      "method": "Visa Credit",
+      "amount_cents": 1149,
+      "card_last4": "6204",
+      "reference": "526100942726",
+      "auth_code": "04818I",
+      "entry_method": "EMV_CONTACTLESS"
+    }
+  ],
+  "text_lines": [
+    "85°C Bakery Cafe",
+    "14701 NE 20th St Ste G",
+    "(425) 434-4768",
+    "To Go",
+    "Chk 02143",
+    "0D3481 Owen",
+    "0108-02",
+    "1 Marble Taro 3.70",
+    "1 Choco Croissant 2.45",
+    "1 M IC Boba Milk Tea 4.85",
+    "Subtotal 11.00",
+    "Tax 0.49",
+    "Total 11.49",
+    "Credit Card 11.49",
+    "Change 0.00",
+    "Visa ************6204",
+    "Method EMV Contactless",
+    "Ref# 526100942726",
+    "Auth# 04818I",
+    "AID A0000000031010",
+    "Order AN6O2KQ7WYA8A",
+    "Your Order Number 2143"
+  ],
+  "ocr_text": "85°C Bakery Cafe\n14701 NE 20th St Ste G\n(425) 434-4768\nTo Go\nChk 02143\n0D3481 Owen\n0108-02\n1 Marble Taro 3.70\n1 Choco Croissant 2.45\n1 M IC Boba Milk Tea 4.85\nSubtotal 11.00\nTax 0.49\nTotal 11.49\nCredit Card 11.49\nChange 0.00\nVisa ************6204\nMethod EMV Contactless\nRef# 526100942726\nAuth# 04818I\nAID A0000000031010\nOrder AN6O2KQ7WYA8A\nYour Order Number 2143",
+  "expected_transaction": {
+    "account_external_id": "co1828",
+    "merchant": "85°C Bakery Cafe",
+    "occurred_at": "2025-09-18T10:48:31-07:00",
+    "amount_cents": 1149,
+    "currency": "USD",
+    "raw_json": {
+      "text_lines": [
+        "85°C Bakery Cafe",
+        "14701 NE 20th St Ste G",
+        "(425) 434-4768",
+        "To Go",
+        "Chk 02143",
+        "0D3481 Owen",
+        "0108-02",
+        "1 Marble Taro 3.70",
+        "1 Choco Croissant 2.45",
+        "1 M IC Boba Milk Tea 4.85",
+        "Subtotal 11.00",
+        "Tax 0.49",
+        "Total 11.49",
+        "Credit Card 11.49",
+        "Change 0.00",
+        "Visa ************6204",
+        "Method EMV Contactless",
+        "Ref# 526100942726",
+        "Auth# 04818I",
+        "AID A0000000031010",
+        "Order AN6O2KQ7WYA8A",
+        "Your Order Number 2143"
+      ],
+      "totals": {
+        "items_count": 3,
+        "subtotal_cents": 1100,
+        "tax_cents": 49,
+        "total_cents": 1149
+      },
+      "items": [
+        {
+          "description": "Marble Taro",
+          "quantity": 1,
+          "unit_price_cents": 370
+        },
+        {
+          "description": "Choco Croissant",
+          "quantity": 1,
+          "unit_price_cents": 245
+        },
+        {
+          "description": "Milk Tea (Boba)",
+          "quantity": 1,
+          "unit_price_cents": 485
+        }
+      ]
+    }
+  }
+}

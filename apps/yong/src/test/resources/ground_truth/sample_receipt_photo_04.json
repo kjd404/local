@@ -1,0 +1,107 @@
+{
+  "receipt_id": "sample_receipt_photo_04",
+  "account_external_id": "co1828",
+  "merchant": {
+    "name": "Trader Joe's",
+    "address": "416 116th Ave. NE, Bellevue, WA 98004",
+    "phone": "425-454-3799",
+    "store_number": "0162"
+  },
+  "transaction": {
+    "timestamp_iso8601": "2025-09-17T20:36:00-07:00",
+    "register": "9",
+    "transaction_number": "49307",
+    "items_count": 4,
+    "subtotal_cents": 1199,
+    "tax_amount_cents": 122,
+    "discount_cents": -1,
+    "total_amount_cents": 1321
+  },
+  "items": [
+    {
+      "description": "Yonder Palisades Blackberries",
+      "quantity": 4,
+      "unit_price_cents": 300,
+      "deal_price_cents": 1199
+    }
+  ],
+  "payments": [
+    {
+      "method": "Visa Credit",
+      "card_last4": "3171",
+      "auth_code": "08403D",
+      "amount_cents": 1321
+    }
+  ],
+  "text_lines": [
+    "Trader Joe's #0162",
+    "416 116th Ave NE Bellevue WA 98004",
+    "425-454-3799",
+    "Open 9:00am to 9:00pm Daily",
+    "Sale Transaction",
+    "T Yonder Palisades Blackberries 12.00",
+    "4 @ $3.00",
+    "4 for 11.99",
+    "Tax 1.22",
+    "Items in Transaction 4",
+    "Balance to Pay 13.21",
+    "Visa",
+    "Total Purchase 13.21",
+    "Visa Credit ************3171",
+    "Type Contactless",
+    "MID *******27013",
+    "Auth Code 08403D",
+    "TID ****6000",
+    "Store 0162 Till 9 Trans 49307",
+    "Date 09-17-2025 20:36",
+    "Thank You for Shopping at Trader Joe's"
+  ],
+  "ocr_text": "Trader Joe's #0162\n416 116th Ave NE Bellevue WA 98004\n425-454-3799\nOpen 9:00am to 9:00pm Daily\nSale Transaction\nT Yonder Palisades Blackberries 12.00\n4 @ $3.00\n4 for 11.99\nTax 1.22\nItems in Transaction 4\nBalance to Pay 13.21\nVisa\nTotal Purchase 13.21\nVisa Credit ************3171\nType Contactless\nMID *******27013\nAuth Code 08403D\nTID ****6000\nStore 0162 Till 9 Trans 49307\nDate 09-17-2025 20:36\nThank You for Shopping at Trader Joe's",
+  "expected_transaction": {
+    "account_external_id": "co1828",
+    "merchant": "Trader Joe's #0162",
+    "occurred_at": "2025-09-17T20:36:00-07:00",
+    "amount_cents": 1321,
+    "currency": "USD",
+    "raw_json": {
+      "text_lines": [
+        "Trader Joe's #0162",
+        "416 116th Ave NE Bellevue WA 98004",
+        "425-454-3799",
+        "Open 9:00am to 9:00pm Daily",
+        "Sale Transaction",
+        "T Yonder Palisades Blackberries 12.00",
+        "4 @ $3.00",
+        "4 for 11.99",
+        "Tax 1.22",
+        "Items in Transaction 4",
+        "Balance to Pay 13.21",
+        "Visa",
+        "Total Purchase 13.21",
+        "Visa Credit ************3171",
+        "Type Contactless",
+        "MID *******27013",
+        "Auth Code 08403D",
+        "TID ****6000",
+        "Store 0162 Till 9 Trans 49307",
+        "Date 09-17-2025 20:36",
+        "Thank You for Shopping at Trader Joe's"
+      ],
+      "totals": {
+        "items_count": 4,
+        "subtotal_cents": 1199,
+        "tax_cents": 122,
+        "discount_cents": -1,
+        "total_cents": 1321
+      },
+      "items": [
+        {
+          "description": "Yonder Palisades Blackberries",
+          "quantity": 4,
+          "unit_price_cents": 300,
+          "deal_price_cents": 1199
+        }
+      ]
+    }
+  }
+}

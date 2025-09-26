@@ -1,0 +1,149 @@
+{
+  "receipt_id": "sample_receipt_photo_01",
+  "account_external_id": "ch3171",
+  "merchant": {
+    "name": "Domino's Pizza",
+    "store_number": "7157",
+    "phone": "(425) 453-7200"
+  },
+  "transaction": {
+    "timestamp_iso8601": "2025-09-17T20:20:00-07:00",
+    "order_number": "008",
+    "items_count": 3,
+    "subtotal_cents": 2527,
+    "tax_amount_cents": 258,
+    "total_amount_cents": 2785,
+    "discount_cents": 2293
+  },
+  "items": [
+    {
+      "description": "20-oz Bottle Coke",
+      "quantity": 1,
+      "unit_price_cents": 329
+    },
+    {
+      "description": "12\" Parm Stuffed Pizza",
+      "quantity": 1,
+      "unit_price_cents": 3792,
+      "modifiers": [
+        "Extra original sauce",
+        "Extra pizza cheese",
+        "Pepperoni",
+        "Sausage",
+        "Bacon",
+        "Black olives",
+        "Green peppers",
+        "Diced tomatoes"
+      ]
+    },
+    {
+      "description": "3pc Choc Lava Cakes",
+      "quantity": 1,
+      "unit_price_cents": 699
+    }
+  ],
+  "payments": [
+    {
+      "method": "Credit Card",
+      "amount_cents": 2785
+    }
+  ],
+  "text_lines": [
+    "Domino's Pizza #7157",
+    "Ellie Choi",
+    "#1008 Paid",
+    "(425) 453-7200",
+    "Order Time 09/17/2025 8:20 PM",
+    "Est Order Ready 8:31 PM",
+    "Summary",
+    "Order #008",
+    "1 20-oz Bottle Coke",
+    "1 12\" Parm Stuffed Pizza",
+    "1 3pc Choc Lava Cakes",
+    "Total Items 3",
+    "Order: Oven",
+    "1 12\" Parm Stuffed Pizza $37.92",
+    "Extra Original Sauce",
+    "Extra Pizza Cheese",
+    "Pepperoni Sausage Bacon",
+    "Black Olives Green Peppers Diced Tomatoes",
+    "1 3pc Choc Lava Cakes $6.99",
+    "Total Boxes 2",
+    "Order: Von-Oven",
+    "1 20-oz Bottle Coke $3.29",
+    "Coupons / Adjustments",
+    "Any Crust Any Toppings $10.90 $22.93- (5250)",
+    "Subtotal $25.27",
+    "Tax 1 $2.58",
+    "Total $27.85",
+    "Payments",
+    "Amount Tendered $27.85",
+    "Balance Due $0.00"
+  ],
+  "ocr_text": "Domino's Pizza #7157\nEllie Choi\n#1008 Paid\n(425) 453-7200\nOrder Time 09/17/2025 8:20 PM\nEst Order Ready 8:31 PM\nSummary\nOrder #008\n1 20-oz Bottle Coke\n1 12\" Parm Stuffed Pizza\n1 3pc Choc Lava Cakes\nTotal Items 3\nOrder: Oven\n1 12\" Parm Stuffed Pizza $37.92\nExtra Original Sauce\nExtra Pizza Cheese\nPepperoni Sausage Bacon\nBlack Olives Green Peppers Diced Tomatoes\n1 3pc Choc Lava Cakes $6.99\nTotal Boxes 2\nOrder: Von-Oven\n1 20-oz Bottle Coke $3.29\nCoupons / Adjustments\nAny Crust Any Toppings $10.90 $22.93- (5250)\nSubtotal $25.27\nTax 1 $2.58\nTotal $27.85\nPayments\nAmount Tendered $27.85\nBalance Due $0.00",
+  "expected_transaction": {
+    "account_external_id": "ch3171",
+    "merchant": "Domino's Pizza #7157",
+    "occurred_at": "2025-09-17T20:20:00-07:00",
+    "amount_cents": 2785,
+    "currency": "USD",
+    "raw_json": {
+      "text_lines": [
+        "Domino's Pizza #7157",
+        "Ellie Choi",
+        "#1008 Paid",
+        "(425) 453-7200",
+        "Order Time 09/17/2025 8:20 PM",
+        "Est Order Ready 8:31 PM",
+        "Summary",
+        "Order #008",
+        "1 20-oz Bottle Coke",
+        "1 12\" Parm Stuffed Pizza",
+        "1 3pc Choc Lava Cakes",
+        "Total Items 3",
+        "Order: Oven",
+        "1 12\" Parm Stuffed Pizza $37.92",
+        "Extra Original Sauce",
+        "Extra Pizza Cheese",
+        "Pepperoni Sausage Bacon",
+        "Black Olives Green Peppers Diced Tomatoes",
+        "1 3pc Choc Lava Cakes $6.99",
+        "Total Boxes 2",
+        "Order: Von-Oven",
+        "1 20-oz Bottle Coke $3.29",
+        "Coupons / Adjustments",
+        "Any Crust Any Toppings $10.90 $22.93- (5250)",
+        "Subtotal $25.27",
+        "Tax 1 $2.58",
+        "Total $27.85",
+        "Payments",
+        "Amount Tendered $27.85",
+        "Balance Due $0.00"
+      ],
+      "totals": {
+        "items_count": 3,
+        "subtotal_cents": 2527,
+        "tax_cents": 258,
+        "discount_cents": 2293,
+        "total_cents": 2785
+      },
+      "items": [
+        {
+          "description": "20-oz Bottle Coke",
+          "quantity": 1,
+          "unit_price_cents": 329
+        },
+        {
+          "description": "12\" Parm Stuffed Pizza",
+          "quantity": 1,
+          "unit_price_cents": 3792
+        },
+        {
+          "description": "3pc Choc Lava Cakes",
+          "quantity": 1,
+          "unit_price_cents": 699
+        }
+      ]
+    }
+  }
+}

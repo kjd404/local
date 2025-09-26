@@ -1,0 +1,64 @@
+package(default_visibility = ["//visibility:private"])
+
+load("@pip//:requirements.bzl", "requirement")
+load("//tools/sql:postgres_test.bzl", "postgres_pytest")
+
+filegroup(
+    name = "example_receipts",
+    srcs = glob(["src/test/resources/examples/**"]),
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "yong_lib",
+    srcs = glob(["src/yong/**/*.py"]),
+    imports = ["src"],
+    deps = [
+        requirement("numpy"),
+        requirement("einops"),
+        requirement("ftfy"),
+        requirement("imagesize"),
+        requirement("Jinja2"),
+        requirement("lxml"),
+        requirement("opencv-contrib-python"),
+        requirement("paddleocr"),
+        requirement("paddlepaddle"),
+        requirement("paddlex"),
+        requirement("openpyxl"),
+        requirement("premailer"),
+        requirement("psycopg"),
+        requirement("pyclipper"),
+        requirement("pypdfium2"),
+        requirement("regex"),
+        requirement("scikit-learn"),
+        requirement("shapely"),
+        requirement("tiktoken"),
+        requirement("tokenizers"),
+        requirement("pillow"),
+    ],
+)
+
+py_binary(
+    name = "receipt_cli",
+    srcs = ["src/yong/cli/receipt_cli.py"],
+    main = "src/yong/cli/receipt_cli.py",
+    imports = ["src"],
+    deps = [":yong_lib"],
+    data = [":example_receipts"],
+    visibility = ["//visibility:public"],
+)
+
+postgres_pytest(
+    name = "yong_tests",
+    sql_dir = "ops/sql/yong",
+    env_prefix = "YONG",
+    history_table = "flyway_yong_schema_history",
+    pytest_args = ["apps/yong/tests"],
+    data = glob(["tests/**/*.py", "src/test/resources/**/*"]) + ["//ops/sql/yong:sql_files"],
+    deps = [
+        ":yong_lib",
+        requirement("numpy"),
+        requirement("pillow"),
+    ],
+    visibility = ["//visibility:public"],
+)

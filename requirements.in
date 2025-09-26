@@ -10,3 +10,7 @@ discord.py
 openai>=1.30,<2
 PyYAML>=6,<7
 pytest
+paddlepaddle==3.2.0
+paddleocr==3.2.0
+paddlex[ocr]==3.2.1
+psycopg[binary]==3.2.1

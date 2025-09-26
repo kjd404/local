@@ -1,0 +1,11 @@
+proto_library(
+    name = "receipt_proto",
+    srcs = ["receipt.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "receipt_java_proto",
+    deps = [":receipt_proto"],
+    visibility = ["//visibility:public"],
+)

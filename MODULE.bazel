@@ -35,6 +35,10 @@ maven.install(
         "org.slf4j:slf4j-api:2.0.9",
         "com.google.dagger:dagger:2.51.1",
         "com.google.dagger:dagger-compiler:2.51.1",
+        "com.drewnoakes:metadata-extractor:2.18.0",
+        "com.adobe.xmp:xmpcore:6.1.11",
+        "org.bytedeco:opencv:4.10.0-1.5.11",
+        "org.bytedeco:opencv-platform:4.10.0-1.5.11",
 
         # Test deps (can be used later when adding Bazel tests)
         "org.junit.jupiter:junit-jupiter:5.10.1",

@@ -1,0 +1,113 @@
+{
+  "receipt_id": "sample_receipt_photo_02",
+  "account_external_id": "co1828",
+  "merchant": {
+    "name": "Costco Wholesale",
+    "warehouse": "Kirkland #08",
+    "address": "8629 120th Avenue NE, Kirkland, WA 98033"
+  },
+  "transaction": {
+    "timestamp_iso8601": "2025-09-02T11:13:00-07:00",
+    "register": "4",
+    "transaction_number": "55",
+    "items_count": 4,
+    "subtotal_cents": 18986,
+    "tax_amount_cents": 0,
+    "total_amount_cents": 18986
+  },
+  "items": [
+    {
+      "sku": "761486",
+      "description": "Org Spaghetti",
+      "quantity": 1,
+      "unit_price_cents": 1289
+    },
+    {
+      "sku": "1680301",
+      "description": "Enfamil Gent",
+      "quantity": 3,
+      "unit_price_cents": 5899
+    }
+  ],
+  "payments": [
+    {
+      "method": "Visa",
+      "amount_cents": 18986,
+      "card_last4": "6204",
+      "aid": "A0000000031010",
+      "response": "APPROVED"
+    }
+  ],
+  "text_lines": [
+    "Costco Wholesale Kirkland #08",
+    "8629 120th Avenue NE Kirkland WA 98033",
+    "3M Member 11180380310",
+    "Bottom of Basket BOB Count 0",
+    "E 761486 Org Spaghetti 12.89",
+    "E 1680301 Enfamil Gent 58.99",
+    "E 1680301 Enfamil Gent 58.99",
+    "E 1680301 Enfamil Gent 58.99",
+    "Subtotal 189.86",
+    "Tax 0.00",
+    "Total 189.86",
+    "Visa Approved",
+    "Amount 189.86",
+    "09/02/2025 11:13 8 4 55 10",
+    "Total Number of Items Sold 4",
+    "Op#: 10 Name: Duang M",
+    "Thank You Please Come Again",
+    "Whse:8 Trm:4 Trn:55 Op:10",
+    "Items Sold: 4"
+  ],
+  "ocr_text": "Costco Wholesale Kirkland #08\n8629 120th Avenue NE Kirkland WA 98033\n3M Member 11180380310\nBottom of Basket BOB Count 0\nE 761486 Org Spaghetti 12.89\nE 1680301 Enfamil Gent 58.99\nE 1680301 Enfamil Gent 58.99\nE 1680301 Enfamil Gent 58.99\nSubtotal 189.86\nTax 0.00\nTotal 189.86\nVisa Approved\nAmount 189.86\n09/02/2025 11:13 8 4 55 10\nTotal Number of Items Sold 4\nOp#: 10 Name: Duang M\nThank You Please Come Again\nWhse:8 Trm:4 Trn:55 Op:10\nItems Sold: 4",
+  "expected_transaction": {
+    "account_external_id": "co1828",
+    "merchant": "Costco Wholesale Kirkland #08",
+    "occurred_at": "2025-09-02T11:13:00-07:00",
+    "amount_cents": 18986,
+    "currency": "USD",
+    "raw_json": {
+      "text_lines": [
+        "Costco Wholesale Kirkland #08",
+        "8629 120th Avenue NE Kirkland WA 98033",
+        "3M Member 11180380310",
+        "Bottom of Basket BOB Count 0",
+        "E 761486 Org Spaghetti 12.89",
+        "E 1680301 Enfamil Gent 58.99",
+        "E 1680301 Enfamil Gent 58.99",
+        "E 1680301 Enfamil Gent 58.99",
+        "Subtotal 189.86",
+        "Tax 0.00",
+        "Total 189.86",
+        "Visa Approved",
+        "Amount 189.86",
+        "09/02/2025 11:13 8 4 55 10",
+        "Total Number of Items Sold 4",
+        "Op#: 10 Name: Duang M",
+        "Thank You Please Come Again",
+        "Whse:8 Trm:4 Trn:55 Op:10",
+        "Items Sold: 4"
+      ],
+      "totals": {
+        "items_count": 4,
+        "subtotal_cents": 18986,
+        "tax_cents": 0,
+        "total_cents": 18986
+      },
+      "items": [
+        {
+          "sku": "761486",
+          "description": "Org Spaghetti",
+          "quantity": 1,
+          "unit_price_cents": 1289
+        },
+        {
+          "sku": "1680301",
+          "description": "Enfamil Gent",
+          "quantity": 3,
+          "unit_price_cents": 5899
+        }
+      ]
+    }
+  }
+}
