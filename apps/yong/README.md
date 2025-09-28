@@ -43,6 +43,9 @@ bazel test //apps/yong:yong_tests
   PyTest suite against that schema. Each test runs inside its own transaction and rolls back on
   completion, so the database stays pristine.
 - Requires Docker (or another engine compatible with the `docker` CLI) on the host.
+- CLI persistence coverage lives in `apps/yong/tests/persistence/test_receipt_cli_persistence.py`.
+  The tests invoke the real CLI end-to-end using stubbed OCR pipelines and assert database writes
+  via the reusable `RecordFactory` helper (`apps/yong/tests/util/record_factory.py`).
 
 ## CLI Preview
 ```

@@ -4,16 +4,17 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import socket
+import stat
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
-import shutil
-import stat
 
 import psycopg
 import pytest
@@ -139,30 +140,41 @@ def apply_migrations(
         script_path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     env = os.environ.copy()
-    db_url = f"postgresql://{db_settings['host']}:{db_settings['port']}/{db_settings['database']}"
-    env_vars = {
-        "DB_URL": db_url,
-        "DB_USER": db_settings["user"],
-        "DB_PASSWORD": db_settings["password"],
-    }
-    if env_prefix:
-        env_vars.update(
-            {
-                f"{env_prefix}_DB_URL": db_url,
-                f"{env_prefix}_DB_USER": db_settings["user"],
-                f"{env_prefix}_DB_PASSWORD": db_settings["password"],
-            }
-        )
-    env.update(env_vars)
-    env["BUILD_WORKSPACE_DIRECTORY"] = str(workspace_dir)
+    sql_source = workspace_dir / sql_dir
+    if not sql_source.exists():
+        raise PostgresError(f"SQL directory not found: {sql_source}")
 
-    cmd = [str(script_path), f"--sql-dir={sql_dir}"]
-    if env_prefix:
-        cmd.append(f"--env-prefix={env_prefix}")
-    if history_table:
-        cmd.append(f"--history-table={history_table}")
+    temp_dir = Path(tempfile.mkdtemp(prefix="flyway_sql_"))
+    try:
+        shutil.copytree(sql_source, temp_dir, dirs_exist_ok=True)
 
-    subprocess.run(cmd, check=True, env=env)
+        env["FLYWAY_SQL_ABS_DIR"] = str(temp_dir)
+        db_url = f"postgresql://{db_settings['host']}:{db_settings['port']}/{db_settings['database']}"
+        env_vars = {
+            "DB_URL": db_url,
+            "DB_USER": db_settings["user"],
+            "DB_PASSWORD": db_settings["password"],
+        }
+        if env_prefix:
+            env_vars.update(
+                {
+                    f"{env_prefix}_DB_URL": db_url,
+                    f"{env_prefix}_DB_USER": db_settings["user"],
+                    f"{env_prefix}_DB_PASSWORD": db_settings["password"],
+                }
+            )
+        env.update(env_vars)
+        env["BUILD_WORKSPACE_DIRECTORY"] = str(workspace_dir)
+
+        cmd = [str(script_path), f"--sql-dir={sql_dir}"]
+        if env_prefix:
+            cmd.append(f"--env-prefix={env_prefix}")
+        if history_table:
+            cmd.append(f"--history-table={history_table}")
+
+        subprocess.run(cmd, check=True, env=env)
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def resolve_workspace_dir() -> Path:

@@ -142,41 +142,7 @@ def main(argv: list[str] | None = None) -> int:
     image_bytes = image_path.read_bytes()
 
     reporter = _make_reporter()
-    preprocessor = _build_preprocessor(
-        skip_advanced=args.skip_advanced, reporter=reporter
-    )
-    if paddlex_deps is not None and not paddlex_deps.is_extra_available("ocr"):
-        missing = [
-            dep
-            for dep, flags in paddlex_deps.EXTRAS.get("ocr", {}).items()
-            if not paddlex_deps.is_dep_available(dep)
-        ]
-        reporter(
-            "deps",
-            "PaddleX OCR extras missing runtime dependencies: "
-            + (", ".join(missing) if missing else "(unknown)"),
-        )
-    ocr_kwargs = dict(
-        use_doc_orientation_classify=args.use_doc_orientation_classify,
-        use_doc_unwarping=args.use_doc_unwarping,
-        use_textline_orientation=args.use_textline_orientation,
-        ocr_version=args.ocr_version,
-        lang=args.lang,
-    )
-    if args.enable_angle_cls and not args.use_textline_orientation:
-        ocr_kwargs["use_angle_cls"] = True
-    ocr_engine = PaddleOCR(**ocr_kwargs)
-    service = PaddleReceiptOcrService(
-        ocr_engine,
-        preprocessor,
-        rotation_angles=_normalize_rotations(args.rotation),
-        step_reporter=reporter,
-    )
-
-    parser_service = HeuristicReceiptParser()
-    pipeline = ReceiptProcessingPipeline(
-        service, parser_service, step_reporter=reporter
-    )
+    pipeline = _create_pipeline(args=args, reporter=reporter)
 
     context = ReceiptProcessingContext(
         account_external_id=args.account,
@@ -221,6 +187,46 @@ def _build_preprocessor(
         fallback,
         reporter=reporter,
     )
+
+
+def _create_pipeline(
+    *, args: argparse.Namespace, reporter
+) -> ReceiptProcessingPipeline:
+    preprocessor = _build_preprocessor(
+        skip_advanced=args.skip_advanced, reporter=reporter
+    )
+    if paddlex_deps is not None and not paddlex_deps.is_extra_available("ocr"):
+        missing = [
+            dep
+            for dep, flags in paddlex_deps.EXTRAS.get("ocr", {}).items()
+            if not paddlex_deps.is_dep_available(dep)
+        ]
+        reporter(
+            "deps",
+            "PaddleX OCR extras missing runtime dependencies: "
+            + (", ".join(missing) if missing else "(unknown)"),
+        )
+
+    ocr_kwargs = dict(
+        use_doc_orientation_classify=args.use_doc_orientation_classify,
+        use_doc_unwarping=args.use_doc_unwarping,
+        use_textline_orientation=args.use_textline_orientation,
+        ocr_version=args.ocr_version,
+        lang=args.lang,
+    )
+    if args.enable_angle_cls and not args.use_textline_orientation:
+        ocr_kwargs["use_angle_cls"] = True
+
+    ocr_engine = PaddleOCR(**ocr_kwargs)
+    service = PaddleReceiptOcrService(
+        ocr_engine,
+        preprocessor,
+        rotation_angles=_normalize_rotations(args.rotation),
+        step_reporter=reporter,
+    )
+
+    parser_service = HeuristicReceiptParser()
+    return ReceiptProcessingPipeline(service, parser_service, step_reporter=reporter)
 
 
 def _guess_content_type(path: Path) -> str | None:

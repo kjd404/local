@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+import contextlib
+import io
+
 import psycopg
 from psycopg import pq
 import pytest
 
+from yong.cli import receipt_cli
 from yong.persistence import DatabaseSettings
 from yong.persistence.database import use_shared_connection
+
+from .util import RecordFactory
 
 
 @pytest.fixture(scope="session")
@@ -35,3 +42,42 @@ def transactional_db(shared_connection: psycopg.Connection) -> None:
         finally:
             if shared_connection.info.transaction_status != pq.TransactionStatus.IDLE:
                 shared_connection.rollback()
+
+
+@dataclass(frozen=True)
+class CliResult:
+    exit_code: int
+    stdout: str
+    stderr: str
+
+
+@pytest.fixture
+def record_factory(shared_connection: psycopg.Connection) -> RecordFactory:
+    return RecordFactory(shared_connection)
+
+
+@pytest.fixture
+def cli_runner(db_settings: DatabaseSettings):
+    def run_cli(argv: list[str]) -> CliResult:
+        full_argv = list(argv)
+        _ensure_cli_option(full_argv, "--db-url", db_settings.url)
+        _ensure_cli_option(full_argv, "--db-user", db_settings.user)
+        _ensure_cli_option(full_argv, "--db-password", db_settings.password)
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = receipt_cli.main(full_argv)
+        return CliResult(
+            exit_code=exit_code, stdout=stdout.getvalue(), stderr=stderr.getvalue()
+        )
+
+    return run_cli
+
+
+def _ensure_cli_option(argv: list[str], name: str, value: str | None) -> None:
+    if value is None:
+        return
+    if any(arg == name or arg.startswith(f"{name}=") for arg in argv):
+        return
+    argv.extend([name, value])

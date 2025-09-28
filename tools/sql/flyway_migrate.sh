@@ -102,7 +102,11 @@ if [[ "$DB_URL" != jdbc:* ]]; then
   DB_URL="jdbc:$DB_URL"
 fi
 
-MOUNT_PATH="$WORKSPACE_DIR/$SQL_DIR"
+if [[ -n "${FLYWAY_SQL_ABS_DIR:-}" ]]; then
+  MOUNT_PATH="$FLYWAY_SQL_ABS_DIR"
+else
+  MOUNT_PATH="$WORKSPACE_DIR/$SQL_DIR"
+fi
 if [[ -n "$HISTORY_TABLE" ]]; then
   HISTORY_ARGS=(-table="$HISTORY_TABLE")
 else
@@ -121,6 +125,7 @@ run_flyway() {
     -url="$DB_URL" \
     -user="$DB_USER" \
     -password="$DB_PASSWORD" \
+    -locations=filesystem:/flyway/sql \
     "${HISTORY_ARGS[@]}" \
     "$@"
 }
