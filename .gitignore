@@ -25,3 +25,7 @@ __pycache__/
 
 # Ignore macos files
 .DS_Store
+
+# Ignore local planning artifacts
+plans/
+prompts/
