@@ -60,6 +60,11 @@ SAMPLE_EXPECTATIONS = {
         "amount": 1199,
         "quantity": 4,
     },
+    "sample_receipt_photo_05": {
+        "item": "Enfamil Gent",
+        "amount": 5899,
+        "quantity": None,
+    },
 }
 
 

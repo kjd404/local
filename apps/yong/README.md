@@ -33,6 +33,8 @@ ported next; those Java components remain in history for reference but are no lo
      the Flyway migrations under `ops/sql/yong`, and points the tests at that database.
      Ensure Docker Desktop is running locally before launching the suite.
 3. Dry-run the OCR CLI: `bazel run //apps/yong:receipt_cli -- --image=apps/yong/src/test/resources/examples/sample_receipt_photo_01.jpeg --dry-run`.
+   - Other curated fixtures live under `src/test/resources/examples/`; try
+     `sample_receipt_photo_05.jpeg` for the Costco multi-quantity receipt added in this change.
 4. Update this README and `AGENTS.md` as new Python components come online.
 
 ## Testing

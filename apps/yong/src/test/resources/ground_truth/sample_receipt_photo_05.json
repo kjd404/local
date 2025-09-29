@@ -1,0 +1,144 @@
+{
+  "receipt_id": "sample_receipt_photo_05",
+  "account_external_id": "co1828",
+  "merchant": {
+    "name": "Costco Wholesale",
+    "warehouse": "Kirkland #08",
+    "address": "8629 120th Avenue NE, Kirkland, WA 98033"
+  },
+  "transaction": {
+    "timestamp_iso8601": "2025-09-25T19:11:00-07:00",
+    "register": "8",
+    "transaction_number": "313",
+    "items_count": 3,
+    "subtotal_cents": 17697,
+    "tax_amount_cents": 0,
+    "discount_cents": 0,
+    "total_amount_cents": 17697
+  },
+  "items": [
+    {
+      "sku": "1680301",
+      "description": "Enfamil Gent",
+      "quantity": 3,
+      "unit_price_cents": 5899
+    }
+  ],
+  "payments": [
+    {
+      "method": "Visa",
+      "amount_cents": 17697,
+      "card_last4": "0420",
+      "aid": "A0000000031010",
+      "response": "APPROVED",
+      "sequence_number": "8072",
+      "application_identifier": "04506I"
+    }
+  ],
+  "text_lines": [
+    "COSTCO",
+    "WHOLESALE",
+    "Kirkland #08",
+    "8629 120th Avenue NE",
+    "Kirkland, WA 98033",
+    "9S Member 111866068170",
+    "E 1680301 ENFAMIL GENT 58.99",
+    "E 1680301 ENFAMIL GENT 58.99",
+    "E 1680301 ENFAMIL GENT 58.99",
+    "SUBTOTAL 176.97",
+    "TAX 0.00",
+    "**** TOTAL 176.97",
+    "XXXXXXXXXXXX0420",
+    "H",
+    "AID: A0000000031010",
+    "Seq# 8072",
+    "App#: 04506I",
+    "Visa",
+    "Resp: APPROVED",
+    "Tran ID#: 526800008072...",
+    "APPROVED - Purchase",
+    "AMOUNT: $176.97",
+    "09/25/2025 19:11 8 8 313 53",
+    "Visa 176.97",
+    "CHANGE 0.00",
+    "TOTAL NUMBER OF ITEMS SOLD - 3",
+    "09/25/2025 19:11 8 8 313 53",
+    "21000800803132509251911",
+    "OP#: 53 Name: Jean-Paul V",
+    "Thank You!",
+    "Please Come Again",
+    "Whse:8 Trm:8 Trn:313 OP:53",
+    "Items Sold: 3",
+    "9S 09/25/2025 19:11"
+  ],
+  "ocr_text": "COSTCO\nWHOLESALE\nKirkland #08\n8629 120th Avenue NE\nKirkland, WA 98033\n9S Member 111866068170\nE 1680301 ENFAMIL GENT 58.99\nE 1680301 ENFAMIL GENT 58.99\nE 1680301 ENFAMIL GENT 58.99\nSUBTOTAL 176.97\nTAX 0.00\n**** TOTAL 176.97\nXXXXXXXXXXXX0420\nH\nAID: A0000000031010\nSeq# 8072\nApp#: 04506I\nVisa\nResp: APPROVED\nTran ID#: 526800008072...\nAPPROVED - Purchase\nAMOUNT: $176.97\n09/25/2025 19:11 8 8 313 53\nVisa 176.97\nCHANGE 0.00\nTOTAL NUMBER OF ITEMS SOLD - 3\n09/25/2025 19:11 8 8 313 53\n21000800803132509251911\nOP#: 53 Name: Jean-Paul V\nThank You!\nPlease Come Again\nWhse:8 Trm:8 Trn:313 OP:53\nItems Sold: 3\n9S 09/25/2025 19:11",
+  "expected_transaction": {
+    "account_external_id": "co1828",
+    "merchant": "COSTCO WHOLESALE Kirkland #08",
+    "occurred_at": "2025-09-25T19:11:00-07:00",
+    "amount_cents": 17697,
+    "currency": "USD",
+    "raw_json": {
+      "text_lines": [
+        "COSTCO",
+        "WHOLESALE",
+        "Kirkland #08",
+        "8629 120th Avenue NE",
+        "Kirkland, WA 98033",
+        "9S Member 111866068170",
+        "E 1680301 ENFAMIL GENT 58.99",
+        "E 1680301 ENFAMIL GENT 58.99",
+        "E 1680301 ENFAMIL GENT 58.99",
+        "SUBTOTAL 176.97",
+        "TAX 0.00",
+        "**** TOTAL 176.97",
+        "XXXXXXXXXXXX0420",
+        "H",
+        "AID: A0000000031010",
+        "Seq# 8072",
+        "App#: 04506I",
+        "Visa",
+        "Resp: APPROVED",
+        "Tran ID#: 526800008072...",
+        "APPROVED - Purchase",
+        "AMOUNT: $176.97",
+        "09/25/2025 19:11 8 8 313 53",
+        "Visa 176.97",
+        "CHANGE 0.00",
+        "TOTAL NUMBER OF ITEMS SOLD - 3",
+        "09/25/2025 19:11 8 8 313 53",
+        "21000800803132509251911",
+        "OP#: 53 Name: Jean-Paul V",
+        "Thank You!",
+        "Please Come Again",
+        "Whse:8 Trm:8 Trn:313 OP:53",
+        "Items Sold: 3",
+        "9S 09/25/2025 19:11"
+      ],
+      "totals": {
+        "items_count": 3,
+        "subtotal_cents": 17697,
+        "tax_cents": 0,
+        "discount_cents": 0,
+        "total_cents": 17697
+      },
+      "items": [
+        {
+          "sku": "1680301",
+          "description": "Enfamil Gent",
+          "quantity": 3,
+          "unit_price_cents": 5899
+        }
+      ],
+      "payments": [
+        {
+          "method": "Visa",
+          "amount_cents": 17697,
+          "card_last4": "0420",
+          "aid": "A0000000031010",
+          "response": "APPROVED"
+        }
+      ]
+    }
+  }
+}
