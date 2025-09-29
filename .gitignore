@@ -22,3 +22,6 @@ apps/ingest-service/docker/app.jar
 # Python bytecode artifacts
 __pycache__/
 *.py[cod]
+
+# Ignore macos files
+.DS_Store
