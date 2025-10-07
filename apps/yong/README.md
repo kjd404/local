@@ -1,30 +1,60 @@
 # Yong (Python)
 
-Yong is migrating to a Python-first implementation so the backend can adopt PaddleOCR
-without shelling out to Tesseract. The service continues to orchestrate receipt ingestion,
-OCR, and LLM-assisted parsing, with the OCR pipeline now written in Python.
+Yong now drives OCR through a Bazel-selected service binary: Apple Vision on macOS and PaddleOCR
+elsewhere, all behind the same Python pipeline. The ingest CLI, preprocessing heuristics, and
+heuristic parser remain Python-native; Bazel swaps the concrete OCR binary via the
+`//apps/yong:ocr_service_binary` alias so no runtime Bazel subprocesses are needed.
 
-- `src/yong/ocr/`: Paddle-backed OCR adapters and preprocessing pipeline.
+- `src/yong/ocr/`: Preprocessing, binary adapter (`BinaryOcrService`), and Paddle-specific helpers.
 - `src/yong/cli/`: Command-line entrypoints for exercising the pipeline locally.
-- `tests/`: PyTest suite (mirrors the former JUnit coverage during the migration).
+- `tests/`: PyTest suite, including golden JSON contracts for the Vision and Paddle binaries.
 - `src/test/resources/examples/`: Sample receipt photos used by regression tests and manual checks.
 
 ## Current Capabilities
-- `PaddleReceiptOcrService` mirrors the legacy rotation and scoring heuristics while delegating
-  to a resident `PaddleOCR` engine (angle classifier enabled by default).
-- `HybridReceiptImagePreprocessor` reuses the OpenCV normalization pipeline before falling back
-  to the Pillow-based defaults, preserving illumination correction, cropping, deskew, and contrast
-  boosts that helped noisy cellphone captures.
-- `receipt_cli` Bazel target now runs the full ingestion pipeline end-to-end (preprocessing,
-  Paddle OCR, heuristic parsing) with step-by-step trace output. When run without `--dry-run` it
-  persists the ingestion, image, transaction summary, and line items to Postgres using the
+- `BinaryOcrService` packages the preprocessing pipeline and talks to whichever OCR binary Bazel
+  selects (`Apple Vision` or `Paddle`) via a stdin/stdout JSON contract. The Python code no longer
+  imports Paddle directly unless the Paddle backend is selected.
+- `HybridReceiptImagePreprocessor` continues to reuse the OpenCV normalization pipeline before
+  falling back to the Pillow defaults, preserving illumination correction, cropping, deskew, and
+  contrast boosts that helped noisy cellphone captures.
+- `receipt_cli` Bazel target runs the ingestion pipeline end-to-end (preprocessing, OCR service
+  binary, heuristic parsing) with step-by-step trace output. When run without `--dry-run` it persists
+  the ingestion, image, transaction summary, and line items to Postgres using the
   `DB_URL`/`DB_USER`/`DB_PASSWORD` settings (read from CLI args, environment, or `.env`). OpenCV
-  preprocessing is skipped by default because Paddle's models handle denoising; pass `--use-advanced`
-  if you want to reinstate the OpenCV pipeline. Additional flags expose PaddleOCR tuning knobs such
-  as `--ocr-version`, `--use-doc-unwarping`, and `--use-textline-orientation`.
+  preprocessing is skipped by default; pass `--use-advanced` to reinstate the OpenCV path.
 
 The higher-level receipt ingestion flow (repositories, state machine, queue publishers) is being
 ported next; those Java components remain in history for reference but are no longer built.
+
+## Native macOS Vision OCR (Service Binary)
+- Requires macOS 12+ with Xcode command line tools so the Apple Vision framework is present.
+- Builds with Bazelisk/Bazel 7.1.2 or newer (pinned via `.bazelversion`).
+- Build the binary: `bazel build //apps/yong/mac_vision_ocr:ocr_service`.
+- Golden contract test (macOS hosts only): `bazel test //apps/yong/mac_vision_ocr:ocr_service_golden_test`.
+- Generate a sample JSON request and invoke the binary:
+  ```bash
+  PYTHONPATH=apps/yong/src python3 - <<'PY' > /tmp/vision_request.json
+  import base64, json
+  from pathlib import Path
+  from yong.ocr import DefaultReceiptImagePreprocessor, ReceiptImage
+  from yong.ocr.reporting import noop_reporter
+
+  image_path = Path("apps/yong/src/test/resources/examples/sample_receipt_photo_01.jpeg")
+  preprocessor = DefaultReceiptImagePreprocessor(reporter=noop_reporter)
+  image_bytes = image_path.read_bytes()
+  processed = preprocessor.preprocess(ReceiptImage(image_bytes, content_type="image/jpeg"))
+  payload = {
+      "image_png_base64": base64.b64encode(processed).decode("ascii"),
+      "locale": "en_US",
+      "minimum_confidence": 0.3,
+      "recognition_level": "accurate",
+  }
+  print(json.dumps(payload))
+  PY
+  bazel run //apps/yong/mac_vision_ocr:ocr_service < /tmp/vision_request.json
+  ```
+  - The service reads a single JSON object from stdin and writes a JSON response to stdout. See
+    `apps/yong/tests/ocr/golden/*.json` for the canonical responses.
 
 ## Development Workflow
 1. Activate the repo-local virtualenv (`bazel run //:venv`) or another Python 3.12 environment.
@@ -33,9 +63,13 @@ ported next; those Java components remain in history for reference but are no lo
      the Flyway migrations under `ops/sql/yong`, and points the tests at that database.
      Ensure Docker Desktop is running locally before launching the suite.
 3. Dry-run the OCR CLI: `bazel run //apps/yong:receipt_cli -- --image=apps/yong/src/test/resources/examples/sample_receipt_photo_01.jpeg --dry-run`.
+   - Use `--locale`, `--minimum-confidence`, or `--recognition-level` to adjust the request sent to
+     the backend. `--ocr-backend=paddle|vision|auto` controls only the expected backend log output;
+     Bazel selects the actual binary by wiring the `//apps/yong:ocr_service_binary` alias into the
+     CLI's runfiles (use `--define=ocr_backend=paddle` when invoking Bazel to force Paddle).
    - Other curated fixtures live under `src/test/resources/examples/`; try
-     `sample_receipt_photo_05.jpeg` for the Costco multi-quantity receipt added in this change.
-4. Update this README and `AGENTS.md` as new Python components come online.
+     `sample_receipt_photo_05.jpeg` for the Costco multi-quantity receipt.
+4. Update this README and `AGENTS.md` as new components come online.
 
 ## Testing
 ```
@@ -53,13 +87,11 @@ bazel test //apps/yong:yong_tests
 ```
 bazel run //apps/yong:receipt_cli -- --image=apps/yong/src/test/resources/examples/sample_receipt_photo_01.jpeg --dry-run
 ```
-- Emits a stage-by-stage trace (preprocessing, rotations, parsing) and prints the JSON payload that
-  would be stored. `--rotation 0 90` customizes evaluated angles; `--lang` selects Paddle's language
-  pack (defaults to `en`); use `--use-advanced` if you want to opt back into the OpenCV pipeline.
-- Toggle Paddle options with `--use-doc-unwarping`, `--use-doc-orientation-classify`,
-  `--use-textline-orientation`, or `--ocr-version=PP-OCRv5` when experimenting.
-- Omit `--dry-run` to persist the result; supply database credentials via CLI arguments (
-  `--db-url`, `--db-user`, `--db-password`) or ensure the environment/.env file provides them.
+- Emits a stage-by-stage trace (preprocessing, OCR backend, parsing) and prints the JSON payload that
+  would be stored. Configure the backend request with `--locale`, `--minimum-confidence`, and
+  `--recognition-level`. Use `--use-advanced` to enable the OpenCV preprocessing pipeline.
+- Omit `--dry-run` to persist the result; supply database credentials via CLI arguments
+  (`--db-url`, `--db-user`, `--db-password`) or ensure the environment/.env file provides them.
 
 ## Receipt Parser Heuristics
 - The heuristic parser now reconstructs the merchant heading by joining the first few OCR lines
@@ -71,16 +103,17 @@ bazel run //apps/yong:receipt_cli -- --image=apps/yong/src/test/resources/exampl
 - Metadata rows (`Visa Approved`, `Amount 189.86`, etc.) are filtered so totals and payment
   summaries no longer contaminate the line-item list.
 
-### Refreshing Paddle OCR Snapshots
+### Refreshing OCR Snapshots
 1. Run the CLI with `--dry-run` against the target receipt image (e.g.,
    `bazel run //apps/yong:receipt_cli -- --image=... --dry-run`).
 2. Copy the emitted `ocr_text` block from the JSON payload into the regression tests under
    `apps/yong/tests/receipts/` (or create a new fixture alongside the existing samples).
 3. Update the ground-truth fixture in `src/test/resources/ground_truth/` if the canonical metadata
    changes, and extend the PyTest coverage so the new OCR text exercises the parser heuristics.
+4. If the JSON contract changes, refresh the golden request/response pairs in
+   `apps/yong/tests/ocr/golden/` and update the corresponding tests for both backends.
 
 ## Next Up
 - Port repositories, ingestion state machine, and queue publishers from Java to Python modules.
 - Expose a gRPC/HTTP surface for native clients once the Python backend reaches feature parity.
-- Add contract tests that compare Paddle output against ground-truth fixtures to guard future
-  upgrades of Paddle or preprocessing heuristics.
+- Capture backend performance metrics (Vision vs Paddle) and surface them in the CLI/logging.

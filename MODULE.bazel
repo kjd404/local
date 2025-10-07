@@ -6,6 +6,11 @@ bazel_dep(name = "rules_jvm_external", version = "6.3")
 # Python rules and pip integration
 bazel_dep(name = "rules_python", version = "0.40.0")
 
+# Apple toolchains (macOS / Swift)
+bazel_dep(name = "rules_swift", version = "2.1.1")
+bazel_dep(name = "rules_apple", version = "3.12.0")
+bazel_dep(name = "apple_support", version = "1.15.1")
+
 # Container/image rules
 bazel_dep(name = "rules_oci", version = "1.7.6")
 bazel_dep(name = "rules_pkg", version = "1.0.1")

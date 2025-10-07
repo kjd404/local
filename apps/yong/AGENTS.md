@@ -11,17 +11,29 @@ small cohesive classes, and Bazel-first builds for backend components.
 - Update this document and `README.md` whenever new Python features land or Java parity changes.
 
 ## Testing Infrastructure
-- `bazel test //apps/yong:yong_tests` drives the PyTest suite covering OCR, preprocessing, and the
-  receipt pipeline heuristics.
+- `bazel test //apps/yong:yong_tests` drives the PyTest suite covering preprocessing, the binary
+  OCR adapter, and receipt parsing heuristics. The suite now includes golden JSON contract tests
+  that spawn the Paddle service binary when the backend is available.
+  - The Paddle binary exposes `PaddleOcrApplication` and `build_default_app()` so unit tests can
+    compose fakes without monkeypatching or touching module globals; prefer injecting stubs through
+    those constructors when exercising failure modes.
+- `bazel test //apps/yong/tests/ocr:test_paddle_service_bin` offers fast, hermetic validation of the
+  Paddle binary: it feeds the same JSON golden fixtures through a subprocess and also exercises the
+  DI seams with in-memory fakes to assert exit codes 2, 3, and 4.
 - Sample receipt photos remain under `src/test/resources/examples/`; reuse them for future
-  contract or integration tests. Plan to add slow tests guarded by an environment flag when
-  hitting the real Paddle models.
+  contract or integration tests. Golden responses live under `tests/ocr/golden/` and the JSON
+  requests are generated on the fly from those shared samples so we avoid committing large base64
+  payloads.
+- On macOS hosts, `bazel test //apps/yong/mac_vision_ocr:ocr_service_golden_test` validates the
+  Vision binary against the shared JSON fixtures. The target skips automatically on non-Darwin
+  platforms to keep CI stable.
 
 ## Progress & Next Steps
-- **Current Status**: Paddle-based OCR pipeline (preprocessing + adapter) feeds a Python CLI that
-  exercises the ingestion pipeline end-to-end with step tracing and dry-run previews. Higher-level
-  ingestion components (repositories/state machine) are being ported from Java next.
+- **Current Status**: The OCR pipeline now calls a Bazel-selected service binary (`ocr_service_binary`)
+  so macOS hosts default to Apple Vision and other platforms fall back to Paddle without runtime
+  Bazel subprocesses. The Python CLI continues to orchestrate preprocessing, OCR, parsing, and
+  optional persistence.
 - **Immediate Tasks**: Translate repositories, state machine, and CLI persistence paths to Python;
-  reintroduce database harnesses and gRPC façade once the core domain is available.
+  capture backend selection/latency metrics, and keep the JSON contract fixtures current.
 - **Upcoming Milestones**: Add an OCR microservice sidecar, document deployment ergonomics, and
-  layer contract tests that compare Paddle outputs to the historical ground-truth fixtures.
+  extend contract tests as more receipt scenarios are curated.

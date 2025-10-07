@@ -1,4 +1,4 @@
-"""Command-line utility for running PaddleOCR against receipt images."""
+"""Command-line utility for running Yong OCR via the Bazel-selected backend."""
 
 from __future__ import annotations
 
@@ -7,9 +7,6 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
-
-from paddleocr import PaddleOCR  # type: ignore[import]
 
 from yong.persistence import (
     Database,
@@ -26,10 +23,10 @@ except (
     paddlex_deps = None
 
 from yong.ocr import (
+    BinaryOcrService,
     DefaultReceiptImagePreprocessor,
     HybridReceiptImagePreprocessor,
     OpenCvReceiptImageProcessor,
-    PaddleReceiptOcrService,
 )
 from yong.receipts import (
     HeuristicReceiptParser,
@@ -41,38 +38,35 @@ from yong.receipts import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run Yong's OCR pipeline using PaddleOCR"
+        description="Run Yong's OCR pipeline via the platform-selected backend"
     )
     parser.add_argument(
         "--image", required=True, help="Path to the receipt image to parse"
     )
     parser.add_argument(
-        "--lang", default="en", help="Language code for PaddleOCR (default: en)"
+        "--locale",
+        "--lang",
+        dest="locale",
+        default="en_US",
+        help="Locale passed to the OCR backend (default: en_US)",
     )
     parser.add_argument(
-        "--enable-angle-cls",
-        action="store_true",
-        help="Enable PaddleOCR angle classifier (mutually exclusive with textline orientation)",
+        "--minimum-confidence",
+        type=float,
+        default=0.3,
+        help="Confidence threshold forwarded to the backend (default: 0.3)",
     )
     parser.add_argument(
-        "--ocr-version",
-        default="PP-OCRv4",
-        help="PaddleOCR version to load (default: PP-OCRv4)",
+        "--recognition-level",
+        choices=("accurate", "fast"),
+        default="accurate",
+        help="Recognition profile requested from the backend (default: accurate)",
     )
     parser.add_argument(
-        "--use-doc-orientation-classify",
-        action="store_true",
-        help="Enable document orientation classification stage",
-    )
-    parser.add_argument(
-        "--use-doc-unwarping",
-        action="store_true",
-        help="Enable document unwarping stage prior to recognition",
-    )
-    parser.add_argument(
-        "--use-textline-orientation",
-        action="store_true",
-        help="Enable text-line orientation detection (disabled by default)",
+        "--ocr-backend",
+        choices=("auto", "vision", "paddle"),
+        default="auto",
+        help="Expected OCR backend (auto = Bazel-selected). Use --define=ocr_backend=paddle to force Paddle",
     )
     parser.add_argument(
         "--skip-advanced",
@@ -85,13 +79,6 @@ def build_parser() -> argparse.ArgumentParser:
         dest="skip_advanced",
         action="store_false",
         help="Enable OpenCV preprocessing prior to PaddleOCR",
-    )
-    parser.add_argument(
-        "--rotation",
-        nargs="*",
-        type=int,
-        default=[0, 90, 180, 270],
-        help="Rotation angles to evaluate (degrees). Defaults to 0,90,180,270",
     )
     parser.add_argument(
         "--account",
@@ -138,6 +125,9 @@ def main(argv: list[str] | None = None) -> int:
     image_path = Path(args.image)
     if not image_path.is_file():
         parser.error(f"Receipt image not found: {image_path}")
+
+    if not 0.0 <= args.minimum_confidence <= 1.0:
+        parser.error("--minimum-confidence must be between 0.0 and 1.0")
 
     image_bytes = image_path.read_bytes()
 
@@ -195,38 +185,67 @@ def _create_pipeline(
     preprocessor = _build_preprocessor(
         skip_advanced=args.skip_advanced, reporter=reporter
     )
-    if paddlex_deps is not None and not paddlex_deps.is_extra_available("ocr"):
-        missing = [
-            dep
-            for dep, flags in paddlex_deps.EXTRAS.get("ocr", {}).items()
-            if not paddlex_deps.is_dep_available(dep)
-        ]
-        reporter(
-            "deps",
-            "PaddleX OCR extras missing runtime dependencies: "
-            + (", ".join(missing) if missing else "(unknown)"),
-        )
-
-    ocr_kwargs = dict(
-        use_doc_orientation_classify=args.use_doc_orientation_classify,
-        use_doc_unwarping=args.use_doc_unwarping,
-        use_textline_orientation=args.use_textline_orientation,
-        ocr_version=args.ocr_version,
-        lang=args.lang,
-    )
-    if args.enable_angle_cls and not args.use_textline_orientation:
-        ocr_kwargs["use_angle_cls"] = True
-
-    ocr_engine = PaddleOCR(**ocr_kwargs)
-    service = PaddleReceiptOcrService(
-        ocr_engine,
+    service = BinaryOcrService(
         preprocessor,
-        rotation_angles=_normalize_rotations(args.rotation),
+        locale=_normalize_locale(args.locale),
+        minimum_confidence=args.minimum_confidence,
+        recognition_level=args.recognition_level,
         step_reporter=reporter,
     )
 
+    _report_backend_selection(
+        service=service,
+        expected=args.ocr_backend,
+        reporter=reporter,
+    )
+    if service.backend_name == "paddle":
+        _warn_missing_paddle_deps(reporter)
+
     parser_service = HeuristicReceiptParser()
     return ReceiptProcessingPipeline(service, parser_service, step_reporter=reporter)
+
+
+def _normalize_locale(value: str) -> str:
+    if not value:
+        return "en_US"
+    normalized = value.replace("-", "_")
+    parts = normalized.split("_", 1)
+    if len(parts) == 2 and parts[0] and parts[1]:
+        return f"{parts[0].lower()}_{parts[1].upper()}"
+    if len(parts[0]) == 2:
+        return f"{parts[0].lower()}_{parts[0].upper()}"
+    return normalized
+
+
+def _report_backend_selection(
+    *, service: BinaryOcrService, expected: str, reporter
+) -> None:
+    backend = service.backend_name
+    reporter("ocr", f"Selected OCR backend: {backend}")
+    if expected != "auto" and backend != expected:
+        reporter(
+            "ocr",
+            "Requested backend '%s' but Bazel resolved to '%s'. "
+            "Use --define=ocr_backend=%s when invoking bazel run to force the target."
+            % (expected, backend, expected),
+        )
+
+
+def _warn_missing_paddle_deps(reporter) -> None:
+    if paddlex_deps is None:
+        return
+    if paddlex_deps.is_extra_available("ocr"):
+        return
+    missing = [
+        dep
+        for dep, flags in paddlex_deps.EXTRAS.get("ocr", {}).items()
+        if not paddlex_deps.is_dep_available(dep)
+    ]
+    reporter(
+        "deps",
+        "PaddleX OCR extras missing runtime dependencies: "
+        + (", ".join(missing) if missing else "(unknown)"),
+    )
 
 
 def _guess_content_type(path: Path) -> str | None:
@@ -261,17 +280,6 @@ def _parse_captured_at(value: str | None) -> datetime:
         return parsed
     except ValueError:
         raise SystemExit(f"Invalid --captured-at timestamp: {value}") from None
-
-
-def _normalize_rotations(values: Iterable[int]) -> list[int]:
-    unique = []
-    for value in values:
-        normalized = value % 360
-        if normalized not in unique:
-            unique.append(normalized)
-    if not unique:
-        unique.append(0)
-    return unique
 
 
 def _print_summary(result: ReceiptProcessingResult) -> None:

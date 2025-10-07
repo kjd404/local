@@ -1,5 +1,6 @@
 """OCR components for Yong's Python implementation."""
 
+from .binary_service import BinaryOcrService
 from .errors import OcrProcessingError
 from .interfaces import ReceiptOcrService
 from .paddle_service import PaddleReceiptOcrService
@@ -13,6 +14,7 @@ from .receipt_image import ReceiptImage
 from .result import OcrResult
 
 __all__ = [
+    "BinaryOcrService",
     "OcrProcessingError",
     "ReceiptOcrService",
     "PaddleReceiptOcrService",

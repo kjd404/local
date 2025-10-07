@@ -1,0 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "sample_receipt_photo_01_response_vision.json",
+    "sample_receipt_photo_01_response_paddle.json",
+])

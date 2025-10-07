@@ -1,7 +1,16 @@
 package(default_visibility = ["//visibility:private"])
-
 load("@pip//:requirements.bzl", "requirement")
 load("//tools/sql:postgres_test.bzl", "postgres_pytest")
+
+config_setting(
+    name = "is_macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "ocr_backend_paddle_override",
+    define_values = {"ocr_backend": "paddle"},
+)
 
 filegroup(
     name = "example_receipts",
@@ -11,9 +20,13 @@ filegroup(
 
 py_library(
     name = "yong_lib",
-    srcs = glob(["src/yong/**/*.py"]),
+    srcs = glob(
+        ["src/yong/**/*.py"],
+        exclude = ["src/yong/ocr/**/*.py"],
+    ),
     imports = ["src"],
     deps = [
+        "//apps/yong/src/yong/ocr:ocr_lib",
         requirement("numpy"),
         requirement("einops"),
         requirement("ftfy"),
@@ -21,9 +34,6 @@ py_library(
         requirement("Jinja2"),
         requirement("lxml"),
         requirement("opencv-contrib-python"),
-        requirement("paddleocr"),
-        requirement("paddlepaddle"),
-        requirement("paddlex"),
         requirement("openpyxl"),
         requirement("premailer"),
         requirement("psycopg"),
@@ -44,7 +54,27 @@ py_binary(
     main = "src/yong/cli/receipt_cli.py",
     imports = ["src"],
     deps = [":yong_lib"],
-    data = [":example_receipts"],
+    data = [
+        ":example_receipts",
+        "//apps/yong:ocr_service_binary",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "ocr_service_binary_default",
+    actual = select({
+        ":is_macos": "//apps/yong/mac_vision_ocr:ocr_service",
+        "//conditions:default": "//apps/yong/src/yong/ocr:paddle_ocr_service_bin",
+    }),
+)
+
+alias(
+    name = "ocr_service_binary",
+    actual = select({
+        ":ocr_backend_paddle_override": "//apps/yong/src/yong/ocr:paddle_ocr_service_bin",
+        "//conditions:default": "//apps/yong:ocr_service_binary_default",
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -54,7 +84,15 @@ postgres_pytest(
     env_prefix = "YONG",
     history_table = "flyway_yong_schema_history",
     pytest_args = ["apps/yong/tests"],
-    data = glob(["tests/**/*.py", "src/test/resources/**/*"]) + ["//ops/sql/yong:sql_files"],
+    data = glob([
+        "tests/**/*.py",
+        "src/test/resources/**/*",
+    ]) + [
+        "//ops/sql/yong:sql_files",
+        "//apps/yong/tests/ocr/golden:sample_receipt_photo_01_response_paddle.json",
+        "//apps/yong/tests/ocr/golden:sample_receipt_photo_01_response_vision.json",
+        "//apps/yong:ocr_service_binary",
+    ],
     deps = [
         ":yong_lib",
         requirement("numpy"),

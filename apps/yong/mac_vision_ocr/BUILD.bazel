@@ -1,0 +1,36 @@
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:macos.bzl", "macos_command_line_application")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "mac_vision_ocr_lib",
+    srcs = glob(["Sources/**/*.swift"]),
+    data = ["//apps/yong:example_receipts"],
+)
+
+macos_command_line_application(
+    name = "ocr_service",
+    deps = [":mac_vision_ocr_lib"],
+    minimum_os_version = "12.0",
+    linkopts = [
+        "-framework",
+        "Vision",
+        "-framework",
+        "CoreGraphics",
+        "-framework",
+        "ImageIO",
+    ],
+    bundle_id = "com.local.yong.macosvisionocr",
+)
+
+sh_test(
+    name = "ocr_service_golden_test",
+    srcs = ["vision_cli_smoke_test.sh"],
+    data = [
+        ":ocr_service",
+        "//apps/yong:example_receipts",
+        "//apps/yong/tests/ocr/golden:sample_receipt_photo_01_response_vision.json",
+        "@bazel_tools//tools/bash/runfiles:runfiles",
+    ],
+)
