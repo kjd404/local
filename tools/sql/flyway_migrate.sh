@@ -38,9 +38,9 @@ Environment:
   [PREFIX_]DB_PASSWORD       Database password.
 
 Examples:
-  bazel run //ops/sql/yong:db_migrate
-  bazel run //ops/sql/yong:db_migrate -- --env-prefix=YONG
-  bazel run //ops/sql/yong:db_migrate -- --help
+  bazel run //ops/sql/plutary:db_migrate
+  bazel run //ops/sql/plutary:db_migrate -- --env-prefix=PLUTARY
+  bazel run //ops/sql/plutary:db_migrate -- --help
 USAGE
   exit 0
 fi

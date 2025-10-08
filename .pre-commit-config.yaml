@@ -8,6 +8,7 @@ repos:
       - id: mixed-line-ending
       - id: check-merge-conflict
       - id: check-added-large-files
+        exclude: sample_receipt_photo_01_request_vision\.json$
       - id: check-json
       - id: check-yaml
 

@@ -1,0 +1,43 @@
+load("@pip//:requirements.bzl", "requirement")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "ocr_lib",
+    srcs = [
+        "binary_service.py",
+        "__init__.py",
+        "errors.py",
+        "interfaces.py",
+        "paddle_service.py",
+        "paddle_service_bin.py",
+        "preprocessing.py",
+        "receipt_image.py",
+        "reporting.py",
+        "result.py",
+    ],
+    imports = ["../.."],
+    deps = [
+        "@bazel_tools//tools/python/runfiles:runfiles",
+        requirement("numpy"),
+        requirement("Pillow"),
+        requirement("opencv-contrib-python"),
+    ],
+)
+
+py_binary(
+    name = "paddle_ocr_service_bin",
+    srcs = ["paddle_service_bin.py"],
+    main = "paddle_service_bin.py",
+    imports = ["../.."],
+    deps = [
+        ":ocr_lib",
+        requirement("numpy"),
+        requirement("Pillow"),
+        requirement("opencv-contrib-python"),
+        requirement("paddleocr"),
+        requirement("paddlepaddle"),
+        requirement("paddlex"),
+    ],
+    visibility = ["//visibility:public"],
+)

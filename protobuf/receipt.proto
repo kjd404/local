@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package yong.v1;
+package plutary.v1;
 
-option java_package = "org.artificers.yong.proto";
+option java_package = "org.artificers.plutary.proto";
 option java_multiple_files = true;
 
 message ReceiptUploadRequest {

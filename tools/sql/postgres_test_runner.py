@@ -224,7 +224,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--env-prefix",
         default="",
-        help="Optional prefix for DB_* env vars (e.g. YONG).",
+        help="Optional prefix for DB_* env vars (e.g. PLUTARY).",
     )
     parser.add_argument(
         "--history-table", default=None, help="Optional Flyway history table name."
