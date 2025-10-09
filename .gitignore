@@ -26,6 +26,10 @@ __pycache__/
 # Ignore macos files
 .DS_Store
 
+# Ignore Xcode user-specific settings
+**/xcuserdata/
+*.xcuserstate
+
 # Ignore local planning artifacts
 plans/
 prompts/

@@ -10,7 +10,7 @@ and constructor-based immutability.
 ## Testing
 
 - Development is test-driven; keep tests colocated with the code they cover.
-- Use Bazel for all builds and tests: `bazel test //...`.
+- Use Bazel for all builds and tests; run service suites via `bazel test //apps/<service>:<target>` and rely on `bazel test //:all_tests` when validating repo-wide changes.
 - Favor integration tests that exercise end-to-end flows; tag heavyweight tests (`integration`, `e2e`) and exclude by default in CI.
 
 ## Build & Tooling

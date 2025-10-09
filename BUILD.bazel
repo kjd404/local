@@ -15,3 +15,16 @@ alias(
     actual = "//tools/format:format",
     visibility = ["//visibility:public"],
 )
+
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//apps/athena-bot:bot_tests",
+        "//apps/ingest-service:ingest_tests",
+        "//apps/plutary:plutary_tests",
+        "//apps/plutary/mac_vision_ocr:ocr_service_golden_test",
+        "//apps/plutary/tests/ocr:test_paddle_service_bin",
+    ],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)

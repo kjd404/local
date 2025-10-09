@@ -64,11 +64,11 @@ and constructor-based immutability.
 5. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
-- Tests are colocated with their code; run them via `bazel test //...`.
+- Tests are colocated with their code; run targeted app suites (e.g., `bazel test //apps/ingest-service:ingest_tests`) and use the repo aggregator `bazel test //:all_tests` for cross-service changes.
 - Build the ingest app: `bazel build //apps/ingest-service:ingest_app`.
 - Build the Docker image: `bazel run //apps/ingest-service/docker:build_image`.
 - **PR Checklist**
-  - [ ] All relevant tests pass (`bazel test //...`).
+  - [ ] All relevant tests pass (targeted app suites and `bazel test //:all_tests` for cross-cutting changes).
   - [ ] Migration plan noted for storage or schema changes (including env prefixes if multi-service).
   - [ ] PR description lists the commands executed.
 
@@ -79,7 +79,7 @@ and constructor-based immutability.
 - E2E suite under `e2e/` once multi‑service flows exist.
 
 ## Ongoing Design Tasks
-- Colocate tests with code; avoid root aggregators.
+- Colocate tests with code; keep root aggregators minimal (currently the `//:all_tests` suite).
 - Adopt per‑service Flyway targets (`flyway_migration`) and document env prefixes per app.
 - Keep each app’s `README.md` and `AGENTS.md` current (build/run/env/tests).
 - Maintain jOOQ codegen targets in Bazel and refresh after schema changes.
