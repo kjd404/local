@@ -2,56 +2,93 @@
 //  Persistence.swift
 //  Plutary
 //
-//  Created by kjdrew on 9/17/25.
+//  Created by Codex on 9/28/25.
 //
 
 import CoreData
+import Foundation
 
-struct PersistenceController {
+@MainActor
+final class PersistenceController {
     static let shared = PersistenceController()
 
-    @MainActor
     static let preview: PersistenceController = {
-        let result = PersistenceController(inMemory: true)
-        let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-        }
-        do {
-            try viewContext.save()
-        } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-            let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-        }
-        return result
+        let controller = PersistenceController(inMemory: true)
+        controller.seedPreviewData()
+        return controller
     }()
 
     let container: NSPersistentContainer
+    let receiptStore: ReceiptStoreProtocol
+    let imageStore: ReceiptImageStoreProtocol
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "Plutary")
-        if inMemory {
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        if inMemory, let description = container.persistentStoreDescriptions.first {
+            description.url = URL(fileURLWithPath: "/dev/null")
         }
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
 
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+        container.loadPersistentStores { _, error in
+            if let error {
+                fatalError("Unresolved Core Data error: \(error)")
             }
-        })
+        }
+
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        receiptStore = CoreDataReceiptStore(container: container)
+        imageStore = (try? FileReceiptImageStore()) ?? FailoverImageStore()
     }
+
+    private func seedPreviewData() {
+        #if DEBUG
+        let context = container.viewContext
+        for sample in Receipt.previewSamples {
+            let entity = ReceiptEntity(context: context)
+            entity.id = sample.id
+            entity.merchantName = sample.merchantName
+            entity.purchaseDate = sample.purchaseDate
+            entity.totalAmount = NSDecimalNumber(decimal: sample.totalAmount)
+            entity.taxAmount = sample.taxAmount.map { NSDecimalNumber(decimal: $0) }
+            entity.tipAmount = sample.tipAmount.map { NSDecimalNumber(decimal: $0) }
+            entity.paymentMethod = sample.paymentMethod
+            entity.notes = sample.notes
+            entity.imageToken = sample.imageToken
+            entity.ocrText = sample.ocrText
+            entity.ocrLocale = sample.ocrLocaleIdentifier
+            entity.createdAt = sample.createdAt
+            entity.updatedAt = sample.updatedAt
+            entity.autoFilledFields = sample.autoFilledFields.isEmpty ? nil : sample.autoFilledFields.map { $0.rawValue }.sorted().joined(separator: ",")
+
+            sample.lineItems.forEach { line in
+                let lineEntity = LineItemEntity(context: context)
+                lineEntity.id = line.id
+                lineEntity.descriptionText = line.description
+                lineEntity.quantity = line.quantity.map { NSDecimalNumber(decimal: $0) }
+                lineEntity.unitPrice = line.unitPrice.map { NSDecimalNumber(decimal: $0) }
+                lineEntity.total = line.total.map { NSDecimalNumber(decimal: $0) }
+                lineEntity.receipt = entity
+            }
+        }
+
+        do {
+            try context.save()
+        } catch {
+            assertionFailure("Failed to seed preview data: \(error)")
+        }
+        #endif
+    }
+}
+
+private final class FailoverImageStore: ReceiptImageStoreProtocol {
+    func storeImageData(_ data: Data, preferredToken: String?) throws -> String {
+        preferredToken ?? UUID().uuidString
+    }
+
+    func imageData(for token: String) throws -> Data {
+        Data()
+    }
+
+    func deleteImage(for token: String) throws {}
 }

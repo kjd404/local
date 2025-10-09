@@ -8,34 +8,50 @@
 import XCTest
 
 final class PlutaryUITests: XCTestCase {
-
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testSeededReceiptsAppearInList() throws {
+        let app = launchApp(withFixture: .sample)
+
+        let sampleCell = app.staticTexts["Sample Deli"]
+        XCTAssertTrue(sampleCell.waitForExistence(timeout: 3), "Seeded receipt should appear in the list")
+
+        sampleCell.tap()
+        XCTAssertTrue(app.staticTexts["Notes"].exists, "Detail view should show metadata section")
     }
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testManualEntryCreatesReceipt() throws {
+        let app = launchApp(withFixture: .empty)
+
+        app.buttons["Add Receipt"].tap()
+        app.buttons["Enter manually"].tap()
+
+        let merchantField = app.textFields["Merchant Name"]
+        XCTAssertTrue(merchantField.waitForExistence(timeout: 2))
+        merchantField.tap()
+        merchantField.typeText("UITest Coffee")
+
+        let totalField = app.textFields["Total Amount"]
+        totalField.tap()
+        totalField.typeText("9.75")
+
+        app.buttons["Save"].tap()
+
+        let newReceipt = app.staticTexts["UITest Coffee"]
+        XCTAssertTrue(newReceipt.waitForExistence(timeout: 3), "Newly created receipt should appear in the list")
+    }
+
+    private func launchApp(withFixture fixture: Fixture) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments += ["--uitests", "--fixture", fixture.rawValue]
         app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        return app
     }
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    private enum Fixture: String {
+        case sample
+        case empty
     }
 }

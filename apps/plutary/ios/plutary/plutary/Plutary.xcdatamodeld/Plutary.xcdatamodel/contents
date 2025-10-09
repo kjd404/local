@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    <entity name="Receipt" representedClassName="ReceiptEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="autoFilledFields" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imageToken" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="merchantName" optional="NO" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="ocrLocale" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="ocrText" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="paymentMethod" optional="YES" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="purchaseDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="taxAmount" optional="YES" attributeType="Decimal" usesScalarValueType="NO"/>
+        <attribute name="tipAmount" optional="YES" attributeType="Decimal" usesScalarValueType="NO"/>
+        <attribute name="totalAmount" optional="NO" attributeType="Decimal" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="lineItems" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LineItem" inverseName="receipt" inverseEntity="LineItem"/>
+    </entity>
+    <entity name="LineItem" representedClassName="LineItemEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="descriptionText" optional="NO" attributeType="String" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="quantity" optional="YES" attributeType="Decimal" usesScalarValueType="NO"/>
+        <attribute name="total" optional="YES" attributeType="Decimal" usesScalarValueType="NO"/>
+        <attribute name="unitPrice" optional="YES" attributeType="Decimal" usesScalarValueType="NO"/>
+        <relationship name="receipt" optional="NO" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="Receipt" inverseName="lineItems" inverseEntity="Receipt"/>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="Receipt" positionX="-63" positionY="-18" width="128" height="314"/>
+        <element name="LineItem" positionX="230" positionY="-18" width="128" height="194"/>
     </elements>
 </model>

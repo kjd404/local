@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C3FCBCC22E7BB46D007A7CE7 /* Build configuration list for PBXProject "Plutary" */;
+			buildConfigurationList = C3FCBCC22E7BB46D007A7CE7 /* Build configuration list for PBXProject "plutary" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -400,11 +400,15 @@
 				DEVELOPMENT_TEAM = SWZ8VHBHVV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow Plutary to capture receipt photos for on-device OCR.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Allow Plutary to store receipt images in your photo library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow Plutary to access your photo library to import receipt images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -432,11 +436,15 @@
 				DEVELOPMENT_TEAM = SWZ8VHBHVV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow Plutary to capture receipt photos for on-device OCR.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Allow Plutary to store receipt images in your photo library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow Plutary to access your photo library to import receipt images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -541,7 +549,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C3FCBCC22E7BB46D007A7CE7 /* Build configuration list for PBXProject "Plutary" */ = {
+		C3FCBCC22E7BB46D007A7CE7 /* Build configuration list for PBXProject "plutary" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C3FCBCEB2E7BB46E007A7CE7 /* Debug */,
