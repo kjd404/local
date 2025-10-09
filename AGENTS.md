@@ -6,7 +6,8 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 
 ### 1) Planner
 - Clarifies scope into concrete tasks and acceptance criteria.
-- Maintains the task list in README (or issues).
+- Works from the approved plan file under `.agent/plans/`, updating checkboxes and notes as work lands.
+- Maintains accessible plan artifacts (e.g., `.agent/plans/` or designated trackers) with current tasks.
 - Gatekeeper for architectural changes.
 
 **Checklist**
@@ -41,9 +42,11 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 
 ## Guardrails
 - Keep secrets only in local, git-ignored `.env` files; never commit them to the repository.
+- House agent collateral under `.agent/`—prompts in `.agent/prompts/`, plans in `.agent/plans/`, and research outputs (git-ignored) under `.agent/reports/`; keep plan state synchronized so handoffs stay unblocked.
 - Changes that affect storage or schema require a migration plan in PR description.
 - Bazel is the blessed entry point; helper scripts should be idempotent and invokable via `bazel run` wrappers.
-- Python is first‑class for productivity; use `bazel run //:venv` for a repo‑local venv and `bazel run //:lock` to update pinned deps shared with Bazel.
+- Python is first‑class for productivity; use `bazel run //:venv` for a repo-local venv and `bazel run //:lock` to update pinned deps shared with Bazel.
+- Tests remain colocated by default. The curated `bazel test //tests:repo_suite` target is the sanctioned repo-wide aggregator; introduce additional root-level suites only after planner review.
 
 ## Object-Oriented Design
 
@@ -64,11 +67,11 @@ and constructor-based immutability.
 5. Drop a sample CSV (e.g., `co1828-example.csv` or `ch1234-example.csv` from `apps/ingest-service/src/test/resources/examples`) into `storage/incoming/`, or run the app locally pointing at the database.
 
 ## Testing & PRs
-- Tests are colocated with their code; run targeted app suites (e.g., `bazel test //apps/ingest-service:ingest_tests`) and use the repo aggregator `bazel test //:all_tests` for cross-service changes.
+- Tests are colocated with their code; run targeted suites (e.g., `bazel test //apps/ingest-service:ingest_tests`) and lean on the curated repo aggregator `bazel test //tests:repo_suite` when sweeping cross-service changes.
 - Build the ingest app: `bazel build //apps/ingest-service:ingest_app`.
 - Build the Docker image: `bazel run //apps/ingest-service/docker:build_image`.
 - **PR Checklist**
-  - [ ] All relevant tests pass (targeted app suites and `bazel test //:all_tests` for cross-cutting changes).
+  - [ ] All relevant tests pass (targeted suites plus `bazel test //tests:repo_suite` for repo-wide refactors).
   - [ ] Migration plan noted for storage or schema changes (including env prefixes if multi-service).
   - [ ] PR description lists the commands executed.
 
@@ -79,7 +82,7 @@ and constructor-based immutability.
 - E2E suite under `e2e/` once multi‑service flows exist.
 
 ## Ongoing Design Tasks
-- Colocate tests with code; keep root aggregators minimal (currently the `//:all_tests` suite).
+- Colocate tests with code; reserve `bazel test //tests:repo_suite` for cross-service verification.
 - Adopt per‑service Flyway targets (`flyway_migration`) and document env prefixes per app.
 - Keep each app’s `README.md` and `AGENTS.md` current (build/run/env/tests).
 - Maintain jOOQ codegen targets in Bazel and refresh after schema changes.
@@ -88,6 +91,6 @@ and constructor-based immutability.
 
 ## Monorepo Conventions
 - Structure: `apps/<service>`, `libs/<lang>/...`, `ops/sql/<service>`, `tools/<lang>/...`.
-- Tests: colocated with the code; avoid a top-level `tests/` aggregator.
+- Tests: colocated with the code; `//tests:repo_suite` is the sanctioned repo-wide aggregator when needed.
 - Database migrations: use `flyway_migration` macro (`//tools/sql:flyway.bzl`) to define `:db_migrate` per service; prefer `<SERVICE>_DB_*` env vars.
 - Bazel: bzlmod at repo root; JVM deps via `rules_jvm_external`. Python packages are pinned in `requirements.lock` and consumed by both Bazel and the venv.

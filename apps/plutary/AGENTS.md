@@ -6,8 +6,10 @@ small cohesive classes, and Bazel-first builds for backend components.
 ## Operating Mode
 - Work test-first with PyTest. Add or update a failing test before production changes, then make
   it pass and refactor.
-- Keep collaborators injectable (factories live in `plutary.composition` when added) so higher-level
-  tests can swap fakes for Paddle, the database, or queue publishers.
+- Keep collaborators injectable; continue wiring dependencies through the current `plutary` modules so
+  higher-level tests can swap fakes for Paddle, the database, or queue publishers. A forthcoming
+  `plutary.composition` package will consolidate shared factories once it lands—leave TODOs instead of
+  importing it today.
 - Update this document and `README.md` whenever new Python features land or Java parity changes.
 
 ## Testing Infrastructure
