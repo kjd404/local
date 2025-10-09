@@ -24,6 +24,7 @@ This repo uses a lightweight, role-based workflow to keep changes coherent and s
 - [ ] Tests colocated with the code; cover edge cases (encodings, dates, negatives).
 - [ ] Docker image builds for arm64/amd64 (if applicable).
 - [ ] App README lists env vars, run commands, and troubleshooting.
+- [ ] Relevant integration runbooks in `runbooks/` are current and executed for release validation.
 
 ### 3) Data Engineer
 - Owns schema evolution in `ops/sql/<service>` and JOOQ regeneration where used.

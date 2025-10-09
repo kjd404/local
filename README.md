@@ -13,7 +13,7 @@ This project emphasizes object-oriented design with dependency injection and com
 ## Quickstart
 
 ```bash
-docker compose up -d       # start Postgres on localhost:5432 with a persistent volume
+docker compose up -d       # start Postgres (defaults to 15432; export INGEST_DB_PORT to override)
 cp .env-sample .env        # copy sample env and edit DB credentials
 
 # Build and run with Bazel
@@ -66,9 +66,14 @@ java -jar apps/ingest-service/app.jar --file=/path/to/ch1234-example.csv
 
 Stop the database with `docker compose down` when finished.
 
+## Runbooks
+
+- `runbooks/` centralizes manual or semi-automated integration guides. Start with `runbooks/ingest-service-integration.md` to seed the sample CSV, validate `transactions`, and tear the stack down end-to-end.
+
 ## Monorepo Layout
 
 - `.agent/`: agent collateral—prompts in `.agent/prompts/`, plans under `.agent/plans/`, and git-ignored research outputs in `.agent/reports/`.
+- `runbooks/`: repository-level integration runbooks following `<service>-<scenario>-runbook.md`.
 - `apps/<service>`: application code with per-app `README.md` and `AGENTS.md`.
 - `libs/<lang>`: shared libraries by language (add as needed).
 - `ops/sql/<service>`: Flyway migrations per service; use the shared macro `flyway_migration`.

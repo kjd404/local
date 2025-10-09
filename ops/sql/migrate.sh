@@ -30,14 +30,22 @@ fi
 DB_URL=${DB_URL/localhost/host.docker.internal}
 DB_URL=${DB_URL/127.0.0.1/host.docker.internal}
 
+# Copy top-level SQL files into a temporary directory so Flyway sees only the
+# canonical ingest migrations (subdirectories house service-specific scripts).
+SQL_TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$SQL_TMP_DIR"' EXIT
+find "$WORKSPACE_DIR/ops/sql" -maxdepth 1 -type f -name '*.sql' -exec cp {} "$SQL_TMP_DIR" \;
+
 if [[ "$DB_URL" != jdbc:* ]]; then
   DB_URL="jdbc:$DB_URL"
 fi
 
-exec docker run --rm \
-  -v "$WORKSPACE_DIR/ops/sql":/flyway/sql \
+docker run --rm \
+  -v "$SQL_TMP_DIR":/flyway/sql \
   flyway/flyway \
   -url="$DB_URL" \
   -user="$DB_USER" \
   -password="$DB_PASSWORD" \
   migrate
+RC=$?
+exit $RC
