@@ -28,6 +28,12 @@ heuristic parser remain Python-native; Bazel swaps the concrete OCR binary via t
 The higher-level receipt ingestion flow (repositories, state machine, queue publishers) is being
 ported next; those Java components remain in history for reference but are no longer built.
 
+## Upcoming Extensibility
+- **Composition module (planned):** A forthcoming `plutary.composition` package will replace the ad-hoc assembly in `receipt_cli.py` with factories such as `build_receipt_pipeline()` so CLIs, workers, and tests share the same wiring.
+- **Provider hooks & registry:** Expect provider functions to override preprocessors, OCR services, parsers, and persistence adapters, plus a lightweight `register_processor("<merchant>")` helper for custom pipelines.
+- **What to do today:** Continue injecting collaborators manually—swap in alternate `ReceiptImagePreprocessor`, `ReceiptOcrService`, or parser instances when constructing `ReceiptProcessingPipeline`, and wrap `ReceiptPersistenceService` if your processor needs different storage.
+- **Stay aligned:** Track contribution guidance in `apps/plutary/AGENTS.md` and update both documents once the composition module is available.
+
 ## Native macOS Vision OCR (Service Binary)
 - Requires macOS 12+ with Xcode command line tools so the Apple Vision framework is present.
 - Builds with Bazelisk/Bazel 7.1.2 or newer (pinned via `.bazelversion`).
