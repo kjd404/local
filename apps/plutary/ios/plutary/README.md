@@ -80,4 +80,4 @@ Key coverage:
   coverage for the capture review flow.
 - `PlutaryUITests.swift`: fixture-backed list assertions plus manual entry smoke test.
 
-Remember to update `plans/2025-09-28-plutary-ios-mvp.md` if you extend flows or add new fixtures.
+Remember to update `.agent/plans/2025-09-28-plutary-ios-mvp.md` if you extend flows or add new fixtures.

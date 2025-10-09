@@ -30,6 +30,5 @@ __pycache__/
 **/xcuserdata/
 *.xcuserstate
 
-# Ignore local planning artifacts
-plans/
-prompts/
+# Ignore local agent planning artifacts
+/.agent/

@@ -68,6 +68,7 @@ Stop the database with `docker compose down` when finished.
 
 ## Monorepo Layout
 
+- `.agent/`: agent collateral—prompts in `.agent/prompts/`, plans under `.agent/plans/`, and git-ignored research outputs in `.agent/reports/`.
 - `apps/<service>`: application code with per-app `README.md` and `AGENTS.md`.
 - `libs/<lang>`: shared libraries by language (add as needed).
 - `ops/sql/<service>`: Flyway migrations per service; use the shared macro `flyway_migration`.
